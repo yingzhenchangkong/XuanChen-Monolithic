@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xuanchen.system.sysnotice.mapper.SysNoticeStatusMapper">
+    <select id="list" resultType="com.xuanchen.system.sysnotice.entity.SysNoticeStatus">
+        SELECT SNS.id,
+               SNS.notice_id,
+               SNS.user_id,
+               SU.nick_name AS user_name,
+               SNS.read_status,
+               CASE WHEN SNS.read_status = 1 THEN '已读' WHEN SNS.read_status = 0 THEN '未读' END AS read_status_name,
+               SNS.read_time
+        FROM sys_notice_status SNS
+             INNER JOIN sys_user SU ON SNS.user_id = SU.user_name
+        WHERE SNS.notice_id = #{sysNoticeStatus.noticeId}
+    </select>
+
+    <select id="getNoticeCountByUserName" resultType="Integer">
+        SELECT
+            COUNT(*)
+        FROM
+            sys_notice_status SNS
+            INNER JOIN sys_notice SN ON SNS.notice_id = SN.id AND SN.`status` = 1
+        WHERE
+            read_status = FALSE AND user_id = #{userId}
+    </select>
+</mapper>

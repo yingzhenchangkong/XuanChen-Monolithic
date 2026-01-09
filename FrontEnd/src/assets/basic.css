@@ -1,0 +1,12 @@
+.query-style .ant-row {
+  margin: 10px 0px;
+}
+
+.btn-style .ant-btn {
+  margin: 10px 5px;
+}
+
+.modal-form-style .ant-form-item {
+  margin: 10px;
+  width: 100%;
+}

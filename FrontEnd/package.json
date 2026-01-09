@@ -1,0 +1,37 @@
+{
+  "name": "xuanchen",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --open --mode dev",
+    "build": "run-p type-check \"build-only {@}\" --",
+    "preview": "vite preview",
+    "build-only": "vite build",
+    "type-check": "vue-tsc --build"
+  },
+  "dependencies": {
+    "@ant-design/icons-vue": "^7.0.1",
+    "@vueup/vue-quill": "^1.2.0",
+    "ant-design-vue": "^4.2.6",
+    "axios": "^1.13.2",
+    "dayjs": "^1.11.19",
+    "echarts": "^6.0.0",
+    "pinia": "^3.0.4",
+    "quill": "^2.0.3",
+    "vue": "^3.5.26",
+    "vue-router": "^4.6.4",
+    "vue3-slide-verify": "^1.1.8"
+  },
+  "devDependencies": {
+    "@tsconfig/node22": "^22.0.5",
+    "@types/node": "^25.0.3",
+    "@vitejs/plugin-vue": "^6.0.3",
+    "@vue/tsconfig": "^0.8.1",
+    "npm-run-all2": "^8.0.4",
+    "typescript": "~5.9.3",
+    "vite": "^7.3.0",
+    "vite-plugin-vue-devtools": "^8.0.5",
+    "vue-tsc": "^3.2.1"
+  }
+}

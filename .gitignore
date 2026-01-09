@@ -1,0 +1,10 @@
+.idea/
+logs/
+*.iml
+target/
+build/
+!**/src/main/**/target/
+!**/src/test/**/target/
+**/.vscode
+**/dist
+**/node_modules

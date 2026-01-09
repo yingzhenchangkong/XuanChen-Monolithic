@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xuanchen.system.sysuser.mapper.SysUserMapper">
+    <!-- 回收站 列表 -->
+    <select id="listRecycleBin" resultType="com.xuanchen.system.sysuser.entity.SysUser">
+        SELECT
+        id,
+        user_name,
+        nick_name,
+        mobile,
+        email
+        FROM
+        sys_user
+        WHERE
+        del_flag = 1
+        <if test="sysUser.userName != '' and sysUser.userName != null">
+            <bind name="userName" value="'%' + sysUser.userName + '%'"/>
+            AND user_name like #{userName}
+        </if>
+        <if test="sysUser.nickName != '' and sysUser.nickName != null">
+            <bind name="nickName" value="'%' + sysUser.nickName + '%'"/>
+            AND nick_name like #{nickName}
+        </if>
+    </select>
+    <!-- 回收站 彻底删除 -->
+    <delete id="deleteRecycleBin">
+        DELETE FROM sys_user
+        WHERE
+        del_flag = 1
+        AND id in
+        <foreach collection="sysUserIds" index="index" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <!-- 回收站 彻底删除 用户 角色 关系 -->
+    <delete id="deleteUserRole">
+        DELETE FROM sys_user_role
+        WHERE
+        user_id in
+        <foreach collection="sysUserIds" index="index" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <!-- 回收站 还原 -->
+    <delete id="revertRecycleBin">
+        UPDATE sys_user set del_flag = 0
+        WHERE
+        del_flag = 1
+        AND id in
+        <foreach collection="sysUserIds" index="index" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="validate" parameterType="com.xuanchen.system.sysuser.entity.SysUser" resultType="com.xuanchen.system.sysuser.entity.SysUser">
+        SELECT
+        *
+        FROM
+        (SELECT * FROM sys_user WHERE id NOT IN (#{sysUser.id})) sys_user
+        WHERE 1=1
+        <if test="sysUser.userName != '' and sysUser.userName != null">
+            AND user_name = #{sysUser.userName}
+        </if>
+        <if test="sysUser.mobile != '' and sysUser.mobile != null">
+            AND mobile = #{sysUser.mobile}
+        </if>
+        <if test="sysUser.email != '' and sysUser.email != null">
+            AND email = #{sysUser.email}
+        </if>
+    </select>
+</mapper>

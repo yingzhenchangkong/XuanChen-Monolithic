@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xuanchen.system.sysnotice.mapper.SysNoticeMapper">
+    <select id="listUser" resultType="com.xuanchen.system.sysnotice.entity.SysNotice">
+        SELECT SN.id,
+               SN.title,
+               SN.content,
+               SN.create_by,
+               SUA.nick_name AS create_name,
+               SN.create_time,
+               SNS.user_id,
+               SUB.nick_name AS user_name,
+               SNS.id AS notice_status_id,
+               SNS.read_status,
+               CASE WHEN SNS.read_status = 1 THEN '已读' WHEN SNS.read_status = 0 THEN '未读' END as read_status_name,
+               SNS.read_time
+        FROM sys_notice SN
+                 INNER JOIN sys_notice_status SNS ON SN.id = SNS.notice_id AND SNS.user_id = #{sysNotice.userName}
+                 INNER JOIN sys_user SUA ON SN.create_by = SUA.user_name
+                 INNER JOIN sys_user SUB ON SNS.user_id = SUB.user_name
+        WHERE SN.status = 1
+        <if test="sysNotice.title != '' and sysNotice.title != null">
+            <bind name="noticeTitle" value="'%' + sysNotice.title + '%'"/>
+            AND SN.title LIKE #{noticeTitle}
+        </if>
+        <if test="sysNotice.readStatus != null">
+            AND SNS.read_status = #{sysNotice.readStatus}
+        </if>
+        ORDER BY SNS.read_status ASC, SN.create_time DESC
+    </select>
+
+    <select id="listManage" resultType="com.xuanchen.system.sysnotice.entity.SysNotice">
+        SELECT
+        SN.id,
+        SN.title,
+        SN.content,
+        SN.STATUS,
+        CASE WHEN SN.STATUS = 1 THEN '已发布' WHEN SN.STATUS = 2 THEN '已撤销' END AS status_name,
+        SN.create_by,
+        SUA.nick_name AS create_name,
+        SN.create_time,
+        SN.update_by,
+        SUB.nick_name AS update_name,
+        SN.update_time
+        FROM
+        sys_notice SN
+        INNER JOIN sys_user SUA ON SN.create_by = SUA.user_name
+        LEFT JOIN sys_user SUB ON SN.update_by = SUB.user_name
+        WHERE 1=1
+        <if test="sysNotice.title != '' and sysNotice.title != null">
+            <bind name="noticeTitle" value="'%' + sysNotice.title + '%'"/>
+            AND SN.title LIKE #{noticeTitle}
+        </if>
+        ORDER BY SN.create_time DESC
+    </select>
+</mapper>
