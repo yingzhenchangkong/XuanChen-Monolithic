@@ -16,11 +16,15 @@
 #### 软件功能
 ```
 |--登录、退出
+|--首页
 |--系统管理
 |  |--用户管理
 |  |--角色管理
+|  |--部门管理
+|  |--岗位管理
 |  |--菜单管理
 |  |--字典管理
+|  |--系统设置
 |--系统工具
 |  |--代码生成器
 |--通知公告
@@ -46,5 +50,18 @@
 |  |--xuanchen-generator 代码生成器
 |  |--xuanchen-system 系统模块
 |--FrontEnd 前端
+|  |--assets 资源
+|  |--components 组件
+|  |--hooks 钩子
+|  |--layout 布局
+|  |--router 路由
+|  |--store 状态管理
+|  |--utils 工具
+|  |--views 视图
+|  |  |--auth 权限
+|  |  |--error 错误
+|  |  |--monitor 监控
+|  |  |--system 系统
+|  |  |--tool 工具
 |--Documents 文档
 ```

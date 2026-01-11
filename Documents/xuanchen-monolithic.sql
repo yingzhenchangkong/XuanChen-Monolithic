@@ -11,11 +11,37 @@
  Target Server Version : 80041 (8.0.41)
  File Encoding         : 65001
 
- Date: 07/01/2026 07:19:13
+ Date: 10/01/2026 23:44:19
 */
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
+
+-- ----------------------------
+-- Table structure for sys_config
+-- ----------------------------
+DROP TABLE IF EXISTS `sys_config`;
+CREATE TABLE `sys_config`  (
+  `id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '主键',
+  `config_code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '参数编码',
+  `config_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '参数名称',
+  `config_description` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '参数描述',
+  `config_key` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '参数键名',
+  `config_value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '参数键值',
+  `config_type` tinyint NULL DEFAULT NULL COMMENT '参数类型(1系统2业务)',
+  `order_no` int NULL DEFAULT NULL COMMENT '排序码',
+  `status` tinyint(1) NULL DEFAULT NULL COMMENT '状态（1启用，0停用）',
+  `del_flag` tinyint(1) NULL DEFAULT 0 COMMENT '删除状态（0正常，1已删除）',
+  `create_by` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '创建人',
+  `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
+  `update_by` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '更新人',
+  `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '参数配置表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of sys_config
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for sys_dept
@@ -134,8 +160,8 @@ INSERT INTO `sys_menu` VALUES ('1749431870600404994', NULL, '/system', 'system',
 INSERT INTO `sys_menu` VALUES ('1749432234737295362', '1749431870600404994', '/system/user', 'user', 'system/user/Index', 'system:user:list', '用户管理', 'TeamOutlined', 'C', 1, 2, 1, 0, NULL, NULL, NULL, NULL);
 INSERT INTO `sys_menu` VALUES ('1749432380376113154', '1749431870600404994', '/system/role', 'role', 'system/role/Index', 'system:role:list', '角色管理', 'UserSwitchOutlined', 'C', 1, 3, 1, 0, NULL, NULL, NULL, NULL);
 INSERT INTO `sys_menu` VALUES ('1749432380376113155', '1749431870600404994', '/system/dept', 'dept', 'system/dept/Index', 'system:dept:list', '部门管理', 'ApartmentOutlined', 'C', 1, 4, 1, 0, NULL, NULL, NULL, NULL);
-INSERT INTO `sys_menu` VALUES ('1749432617295568897', '1749431870600404994', '/system/menu', 'menu', 'system/menu/Index', 'system:menu:list', '菜单管理', 'MenuOutlined', 'C', 1, 5, 1, 0, NULL, NULL, NULL, NULL);
-INSERT INTO `sys_menu` VALUES ('1749432617295568898', '1749431870600404994', '/system/dict', 'dict', 'system/dict/Index', 'system:dict:list', '字典管理', 'CopyOutlined', 'C', 1, 6, 1, 0, NULL, NULL, NULL, NULL);
+INSERT INTO `sys_menu` VALUES ('1749432617295568897', '1749431870600404994', '/system/menu', 'menu', 'system/menu/Index', 'system:menu:list', '菜单管理', 'MenuOutlined', 'C', 1, 6, 1, 0, NULL, NULL, 'admin', '2026-01-10 23:00:42');
+INSERT INTO `sys_menu` VALUES ('1749432617295568898', '1749431870600404994', '/system/dict', 'dict', 'system/dict/Index', 'system:dict:list', '字典管理', 'CopyOutlined', 'C', 1, 7, 1, 0, NULL, NULL, 'admin', '2026-01-10 23:00:36');
 INSERT INTO `sys_menu` VALUES ('1754784215470551042', NULL, '/monitor', 'monitor', NULL, NULL, '系统监控', 'FundProjectionScreenOutlined', 'M', 0, 2, 1, 0, NULL, NULL, NULL, NULL);
 INSERT INTO `sys_menu` VALUES ('1754785169498550273', '1754784215470551042', '/monitor/onlineuser', 'onlineuser', 'monitor/onlineuser/Index', 'monitor:onlineuser:list', '在线用户', 'TeamOutlined', 'C', 1, 1, 1, 0, NULL, NULL, NULL, NULL);
 INSERT INTO `sys_menu` VALUES ('1754788628566224898', '1754784215470551042', '/monitor/server', 'server', 'monitor/server/Index', 'monitor:server:list', '性能监控', 'ThunderboltOutlined', 'C', 1, 2, 1, 0, NULL, NULL, NULL, NULL);
@@ -147,6 +173,8 @@ INSERT INTO `sys_menu` VALUES ('1980379819136446465', NULL, '/notice', 'notice',
 INSERT INTO `sys_menu` VALUES ('1980380019431239681', '1980379819136446465', '/notice/issue', 'noticeissue', 'system/notice/Issue', 'system:notice:Issue', '发布通知', 'SoundOutlined', 'C', 1, 1, 1, 0, 'admin', '2025-10-21 05:06:05', NULL, NULL);
 INSERT INTO `sys_menu` VALUES ('1980380162117267458', '1980379819136446465', '/notice/manage', 'noticemanage', 'system/notice/Manage', 'system:notice:Manage', '通知管理', 'SoundOutlined', 'C', 1, 2, 1, 0, 'admin', '2025-10-21 05:06:39', NULL, NULL);
 INSERT INTO `sys_menu` VALUES ('1980380293801635841', '1980379819136446465', '/notice/list', 'noticelist', 'system/notice/Index', 'system:notice:Index', '通知列表', 'SoundOutlined', 'C', 1, 3, 1, 0, 'admin', '2025-10-21 05:07:10', NULL, NULL);
+INSERT INTO `sys_menu` VALUES ('2010005313825574914', '1749431870600404994', '/system/post', 'post', 'system/post/Index', '', '岗位管理', 'ContactsOutlined', NULL, 1, 5, 1, 0, 'admin', '2026-01-10 23:06:26', NULL, NULL);
+INSERT INTO `sys_menu` VALUES ('2010005751476031490', '1749431870600404994', '/system/config', 'config', 'system/config/Index', '', '系统设置', 'SettingOutlined', NULL, 1, 8, 1, 0, 'admin', '2026-01-10 23:08:10', 'admin', '2026-01-10 23:08:49');
 
 -- ----------------------------
 -- Table structure for sys_notice
@@ -162,7 +190,7 @@ CREATE TABLE `sys_notice`  (
   `update_by` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '更新人',
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '通知' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '通知表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_notice
@@ -181,7 +209,7 @@ CREATE TABLE `sys_notice_status`  (
   `read_status` tinyint(1) NULL DEFAULT 0 COMMENT '是否已读(0未读1已读)',
   `read_time` datetime NULL DEFAULT NULL COMMENT '阅读时间',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '通知 阅读状态' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '通知 阅读状态表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_notice_status
@@ -189,6 +217,29 @@ CREATE TABLE `sys_notice_status`  (
 INSERT INTO `sys_notice_status` VALUES ('1980398692497797122', '1980398692455854082', 'admin', 1, '2025-10-29 14:46:58');
 INSERT INTO `sys_notice_status` VALUES ('1980398692556517377', '1980398692455854082', 'test02', 0, NULL);
 INSERT INTO `sys_notice_status` VALUES ('1980398877110087681', '1980398877042978818', 'admin', 0, NULL);
+
+-- ----------------------------
+-- Table structure for sys_post
+-- ----------------------------
+DROP TABLE IF EXISTS `sys_post`;
+CREATE TABLE `sys_post`  (
+  `id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '主键',
+  `post_code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '岗位编码',
+  `post_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '岗位名称',
+  `post_description` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '岗位描述',
+  `order_no` int NULL DEFAULT NULL COMMENT '排序码',
+  `status` tinyint(1) NULL DEFAULT NULL COMMENT '状态（1启用，0停用）',
+  `del_flag` tinyint(1) NULL DEFAULT 0 COMMENT '删除状态（0正常，1已删除）',
+  `create_by` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '创建人',
+  `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
+  `update_by` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '更新人',
+  `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '岗位表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of sys_post
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for sys_role
@@ -231,27 +282,29 @@ CREATE TABLE `sys_role_menu`  (
 -- ----------------------------
 INSERT INTO `sys_role_menu` VALUES ('1980380583716122626', '1745438525662351362', '1980379819136446465');
 INSERT INTO `sys_role_menu` VALUES ('1980380583716122627', '1745438525662351362', '1980380293801635841');
-INSERT INTO `sys_role_menu` VALUES ('1980381378893246466', '1750881083171422209', '1749431870600404994');
-INSERT INTO `sys_role_menu` VALUES ('1980381378893246467', '1750881083171422209', '1749432234737295362');
-INSERT INTO `sys_role_menu` VALUES ('1980381378893246468', '1750881083171422209', '1749432380376113154');
-INSERT INTO `sys_role_menu` VALUES ('1980381378893246469', '1750881083171422209', '1749432380376113155');
-INSERT INTO `sys_role_menu` VALUES ('1980381378893246470', '1750881083171422209', '1749432617295568897');
-INSERT INTO `sys_role_menu` VALUES ('1980381378893246471', '1750881083171422209', '1749432617295568898');
-INSERT INTO `sys_role_menu` VALUES ('1980381378893246472', '1750881083171422209', '1754784215470551042');
-INSERT INTO `sys_role_menu` VALUES ('1980381378893246473', '1750881083171422209', '1754785169498550273');
-INSERT INTO `sys_role_menu` VALUES ('1980381378893246474', '1750881083171422209', '1754788628566224898');
-INSERT INTO `sys_role_menu` VALUES ('1980381378893246475', '1750881083171422209', '1754788962474766338');
-INSERT INTO `sys_role_menu` VALUES ('1980381378893246476', '1750881083171422209', '1755046069899927554');
-INSERT INTO `sys_role_menu` VALUES ('1980381378893246477', '1750881083171422209', '1755046069899927555');
-INSERT INTO `sys_role_menu` VALUES ('1980381378893246478', '1750881083171422209', '1755046069899927566');
-INSERT INTO `sys_role_menu` VALUES ('1980381378893246479', '1750881083171422209', '1749431870600404994');
-INSERT INTO `sys_role_menu` VALUES ('1980381378893246480', '1750881083171422209', '1754784215470551042');
-INSERT INTO `sys_role_menu` VALUES ('1980381378893246481', '1750881083171422209', '1755046069899927555');
-INSERT INTO `sys_role_menu` VALUES ('1980381378893246482', '1750881083171422209', '1980379819136446465');
-INSERT INTO `sys_role_menu` VALUES ('1980381378893246483', '1750881083171422209', '1980380293801635841');
-INSERT INTO `sys_role_menu` VALUES ('1980381378893246484', '1750881083171422209', '1980380162117267458');
-INSERT INTO `sys_role_menu` VALUES ('1980381378893246485', '1750881083171422209', '1980380019431239681');
-INSERT INTO `sys_role_menu` VALUES ('1980381378893246486', '1750881083171422209', '1980379819136446465');
+INSERT INTO `sys_role_menu` VALUES ('2010006229798653954', '1750881083171422209', '1749431870600404994');
+INSERT INTO `sys_role_menu` VALUES ('2010006229798653955', '1750881083171422209', '1749432234737295362');
+INSERT INTO `sys_role_menu` VALUES ('2010006229798653956', '1750881083171422209', '1749432380376113154');
+INSERT INTO `sys_role_menu` VALUES ('2010006229798653957', '1750881083171422209', '1749432380376113155');
+INSERT INTO `sys_role_menu` VALUES ('2010006229798653958', '1750881083171422209', '1749432617295568897');
+INSERT INTO `sys_role_menu` VALUES ('2010006229798653959', '1750881083171422209', '1749432617295568898');
+INSERT INTO `sys_role_menu` VALUES ('2010006229798653960', '1750881083171422209', '1754784215470551042');
+INSERT INTO `sys_role_menu` VALUES ('2010006229798653961', '1750881083171422209', '1754785169498550273');
+INSERT INTO `sys_role_menu` VALUES ('2010006229798653962', '1750881083171422209', '1754788628566224898');
+INSERT INTO `sys_role_menu` VALUES ('2010006229798653963', '1750881083171422209', '1754788962474766338');
+INSERT INTO `sys_role_menu` VALUES ('2010006229828014081', '1750881083171422209', '1755046069899927554');
+INSERT INTO `sys_role_menu` VALUES ('2010006229828014082', '1750881083171422209', '1755046069899927555');
+INSERT INTO `sys_role_menu` VALUES ('2010006229828014083', '1750881083171422209', '1755046069899927566');
+INSERT INTO `sys_role_menu` VALUES ('2010006229828014084', '1750881083171422209', '1980379819136446465');
+INSERT INTO `sys_role_menu` VALUES ('2010006229828014085', '1750881083171422209', '1980380293801635841');
+INSERT INTO `sys_role_menu` VALUES ('2010006229828014086', '1750881083171422209', '1980380162117267458');
+INSERT INTO `sys_role_menu` VALUES ('2010006229828014087', '1750881083171422209', '1980380019431239681');
+INSERT INTO `sys_role_menu` VALUES ('2010006229828014088', '1750881083171422209', '1754784215470551042');
+INSERT INTO `sys_role_menu` VALUES ('2010006229828014089', '1750881083171422209', '1755046069899927555');
+INSERT INTO `sys_role_menu` VALUES ('2010006229828014090', '1750881083171422209', '1980379819136446465');
+INSERT INTO `sys_role_menu` VALUES ('2010006229828014091', '1750881083171422209', '2010005313825574914');
+INSERT INTO `sys_role_menu` VALUES ('2010006229828014092', '1750881083171422209', '2010005751476031490');
+INSERT INTO `sys_role_menu` VALUES ('2010006229828014093', '1750881083171422209', '1749431870600404994');
 
 -- ----------------------------
 -- Table structure for sys_user
@@ -306,6 +359,21 @@ INSERT INTO `sys_user_dept` VALUES ('2008314025419014146', '1757769284339273730'
 INSERT INTO `sys_user_dept` VALUES ('2008314119774076929', '1772396269187276802', 'XC001002');
 INSERT INTO `sys_user_dept` VALUES ('2008314179647766530', '1779508954504761345', 'XC001002003');
 INSERT INTO `sys_user_dept` VALUES ('2008314220831637506', '1779511801023696897', 'XC001002005');
+
+-- ----------------------------
+-- Table structure for sys_user_post
+-- ----------------------------
+DROP TABLE IF EXISTS `sys_user_post`;
+CREATE TABLE `sys_user_post`  (
+  `id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '主键',
+  `user_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT 'NULL' COMMENT '用户ID',
+  `post_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT 'NULL' COMMENT '岗位ID',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '用户岗位关系表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of sys_user_post
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for sys_user_role
