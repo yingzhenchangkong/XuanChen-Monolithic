@@ -263,12 +263,29 @@ public class SysRoleController {
      */
     @GetMapping("/validateRoleCode")
     public Result validateRoleCode(SysRole sysRole) {
-        LambdaQueryWrapper<SysRole> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(SysRole::getRoleCode, sysRole.getRoleCode());
-        if (sysRoleService.exists(queryWrapper)) {
-            return Result.error("角色编码已存在！");
-        }
-        return Result.success("角色编码可用！");
+        boolean exists = StringUtil.isEmpty(sysRole.getId())
+                ? sysRoleService.exists(new LambdaQueryWrapper<SysRole>().eq(SysRole::getRoleCode, sysRole.getRoleCode()))
+                : sysRoleService.validate(sysRole);
+
+        return exists
+                ? Result.error("角色编码已存在！")
+                : Result.success("角色编码可用！");
     }
 
+    /**
+     * 校验 角色名称 是否已存在
+     *
+     * @param sysRole
+     * @return
+     */
+    @GetMapping("/validateRoleName")
+    public Result validateRoleName(SysRole sysRole) {
+        boolean exists = StringUtil.isEmpty(sysRole.getId())
+                ? sysRoleService.exists(new LambdaQueryWrapper<SysRole>().eq(SysRole::getRoleName, sysRole.getRoleName()))
+                : sysRoleService.validate(sysRole);
+
+        return exists
+                ? Result.error("角色名称已存在！")
+                : Result.success("角色名称可用！");
+    }
 }

@@ -12,9 +12,9 @@
 
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
-import { getAction, postAction } from '@/utils/httpAction';
 import { message } from 'ant-design-vue';
 import type { TreeProps } from 'ant-design-vue';
+import { getListAllMenu, getListAuthMenu, saveAuthMenu } from '../role.api';
 
 defineProps({
   modalTitle: {
@@ -22,6 +22,12 @@ defineProps({
     default: '分配菜单'
   }
 })
+
+/** 查询参数 */
+const queryParams = reactive({
+  roleId: '',
+})
+const visible = ref(false);
 
 const treeData: any = ref([]);
 const fieldNames: TreeProps['fieldNames'] = {
@@ -31,24 +37,12 @@ const fieldNames: TreeProps['fieldNames'] = {
 };
 const checkedKeys = ref<string[]>([]);
 
-const url = {
-  listAllMenu: '/system/menu/list',
-  listAuthMenu: '/system/rolemenu/listAuthMenu',
-  saveAuthMenu: '/system/rolemenu/saveAuthMenu',
-}
 /** 获取所有菜单、已授权菜单 */
 const listMenu = async () => {
-  const resAllMenu = await getAction(url.listAllMenu, {});
-  treeData.value = resAllMenu.data.records;
-  const resAuthMenu = await getAction(url.listAuthMenu, { roleId: queryParams.roleId });
-  checkedKeys.value = resAuthMenu.data;
+  treeData.value = await getListAllMenu();
+  checkedKeys.value = await getListAuthMenu(queryParams.roleId);
 }
 
-/** 查询参数 */
-const queryParams = reactive({
-  roleId: '',
-})
-const visible = ref(false);
 /** 打开弹窗 */
 const show = (roleId: string) => {
   visible.value = true;
@@ -60,11 +54,10 @@ const handleCancel = () => {
   visible.value = false;
 }
 /** 保存 */
-const handleSave = () => {
-  postAction(url.saveAuthMenu, { menuIds: checkedKeys.value, roleId: queryParams.roleId }).then((res: any) => {
-    message.success(res.msg);
-    handleCancel();
-  })
+const handleSave = async () => {
+  const res: any = await saveAuthMenu(queryParams.roleId, checkedKeys.value);
+  message.success(res.msg);
+  handleCancel();
 }
 
 //子组件方法默认为私有

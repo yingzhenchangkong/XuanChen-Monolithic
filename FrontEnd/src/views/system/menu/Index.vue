@@ -66,12 +66,13 @@ import { useList } from '@/hooks/useList'
 import { ref } from 'vue';
 import Operation from './modal/Operation.vue';
 
-import { columns } from './menu.data'
+import { columns } from './menu.data';
+import { MenuApiUrl } from './menu.api';
 
 /** url */
 const url = {
-  list: '/system/menu/list',
-  delete: '/system/menu/delete',
+  list: MenuApiUrl.LIST,
+  delete: MenuApiUrl.DELETE,
 }
 /** 添加子菜单 */
 const handleAddSub = (parentId: string) => {

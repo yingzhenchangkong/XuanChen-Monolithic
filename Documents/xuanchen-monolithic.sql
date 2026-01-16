@@ -1,17 +1,17 @@
 /*
  Navicat Premium Dump SQL
 
- Source Server         : 本地_MySQL
+ Source Server         : 本地MySQL
  Source Server Type    : MySQL
- Source Server Version : 80041 (8.0.41)
+ Source Server Version : 80044 (8.0.44)
  Source Host           : localhost:3306
  Source Schema         : xuanchen-monolithic
 
  Target Server Type    : MySQL
- Target Server Version : 80041 (8.0.41)
+ Target Server Version : 80044 (8.0.44)
  File Encoding         : 65001
 
- Date: 10/01/2026 23:44:19
+ Date: 13/01/2026 16:58:45
 */
 
 SET NAMES utf8mb4;
@@ -174,7 +174,7 @@ INSERT INTO `sys_menu` VALUES ('1980380019431239681', '1980379819136446465', '/n
 INSERT INTO `sys_menu` VALUES ('1980380162117267458', '1980379819136446465', '/notice/manage', 'noticemanage', 'system/notice/Manage', 'system:notice:Manage', '通知管理', 'SoundOutlined', 'C', 1, 2, 1, 0, 'admin', '2025-10-21 05:06:39', NULL, NULL);
 INSERT INTO `sys_menu` VALUES ('1980380293801635841', '1980379819136446465', '/notice/list', 'noticelist', 'system/notice/Index', 'system:notice:Index', '通知列表', 'SoundOutlined', 'C', 1, 3, 1, 0, 'admin', '2025-10-21 05:07:10', NULL, NULL);
 INSERT INTO `sys_menu` VALUES ('2010005313825574914', '1749431870600404994', '/system/post', 'post', 'system/post/Index', '', '岗位管理', 'ContactsOutlined', NULL, 1, 5, 1, 0, 'admin', '2026-01-10 23:06:26', NULL, NULL);
-INSERT INTO `sys_menu` VALUES ('2010005751476031490', '1749431870600404994', '/system/config', 'config', 'system/config/Index', '', '系统设置', 'SettingOutlined', NULL, 1, 8, 1, 0, 'admin', '2026-01-10 23:08:10', 'admin', '2026-01-10 23:08:49');
+INSERT INTO `sys_menu` VALUES ('2010005751476031490', '1749431870600404994', '/system/config', 'config', 'system/config/Index', '', '参数配置', 'SettingOutlined', NULL, 1, 8, 1, 0, 'admin', '2026-01-10 23:08:10', 'admin', '2026-01-11 22:37:27');
 
 -- ----------------------------
 -- Table structure for sys_notice
@@ -240,6 +240,10 @@ CREATE TABLE `sys_post`  (
 -- ----------------------------
 -- Records of sys_post
 -- ----------------------------
+INSERT INTO `sys_post` VALUES ('2010855310054043650', 'P0001', '总裁', '', 1, 1, 0, 'admin', '2026-01-13 07:24:00', NULL, NULL);
+INSERT INTO `sys_post` VALUES ('2010976013071847425', 'P0002', '总经理', '', 2, 1, 0, 'admin', '2026-01-13 15:23:38', NULL, NULL);
+INSERT INTO `sys_post` VALUES ('2010976279695364098', 'P0003', '副总经理', '', 3, 1, 0, 'admin', '2026-01-13 15:24:42', NULL, NULL);
+INSERT INTO `sys_post` VALUES ('2010976815773552641', 'P0004', '财务', '', 4, 1, 0, 'admin', '2026-01-13 15:26:50', NULL, NULL);
 
 -- ----------------------------
 -- Table structure for sys_role

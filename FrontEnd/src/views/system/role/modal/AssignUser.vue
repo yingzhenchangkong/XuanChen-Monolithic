@@ -5,7 +5,7 @@
     </template>
     <a-row :gutter="20">
       <a-col :span="12">
-        <a-table :dataSource="dataSourceUnAuthUsers" :columns="columns" :pagination="ipaginationUnAuthUsers"
+        <a-table :dataSource="dataSourceUnAuthUsers" :columns="columnsAssignUser" :pagination="ipaginationUnAuthUsers"
           :loading="loadingUnAuthUsers"
           :row-selection="{ selectedRowKeys: stateUnAuthUsers.selectedRowKeysUnAuthUsers, onChange: onSelectChangeUnAuthUsers }"
           bordered rowKey="id" size="small" @change="handleTableChangeUnAuthUsers">
@@ -30,7 +30,7 @@
         </a-table>
       </a-col>
       <a-col :span="12">
-        <a-table :dataSource="dataSource" :columns="columns" :pagination="ipagination" :loading="loading"
+        <a-table :dataSource="dataSource" :columns="columnsAssignUser" :pagination="ipagination" :loading="loading"
           :row-selection="{ selectedRowKeys: state.selectedRowKeys, onChange: onSelectChange }" bordered rowKey="id"
           size="small" @change="handleTableChange">
           <template #title>已授权用户
@@ -60,8 +60,9 @@
 <script setup lang="ts">
 import { useList } from '@/hooks/useList'
 import { reactive, ref } from 'vue';
-import { getAction, postAction } from '@/utils/httpAction';
 import { message } from 'ant-design-vue';
+import { columnsAssignUser } from '../role.data';
+import { RoleApiUrl, cancelAuthUser, cancleAuthUserBatch, authUser, authUserBatch, getListUnAuthUser } from '../role.api';
 
 defineProps({
   modalTitle: {
@@ -69,43 +70,9 @@ defineProps({
     default: '分配用户'
   }
 })
-const columns = [
-  {
-    title: '#',
-    dataIndex: '',
-    key: 'rowIndex',
-    align: 'center',
-    customRender:
-      function (text: any, record: any, index: any, column: any) {
-        return parseInt(text.index) + 1;
-      }
-  },
-  {
-    title: '用户名',
-    dataIndex: 'userName',
-    align: 'center',
-    width: 140
-  },
-  {
-    title: '昵称',
-    dataIndex: 'nickName',
-    align: 'center',
-    width: 140
-  },
-  {
-    title: '操作',
-    dataIndex: 'operation',
-    align: 'center',
-    width: 240
-  },
-];
+
 const url = {
-  list: '/system/userrole/listAuthUser',
-  listUnAuthUser: '/system/userrole/listUnAuthUser',
-  auth: '/system/userrole/auth',
-  authBatch: '/system/userrole/authBatch',
-  cancelAuth: '/system/userrole/cancelAuth',
-  cancelAuthBatch: '/system/userrole/cancelAuthBatch',
+  list: RoleApiUrl.ASSIGN_USER_LIST_AUTH_USER,
 }
 /** 查询参数 */
 const queryParams = reactive({
@@ -129,18 +96,17 @@ const handleCancel = () => {
   visible.value = false;
 }
 /** 取消授权 */
-const handleCancleAuth = (record: any) => {
-  postAction(url.cancelAuth, { userId: record.userId, roleId: queryParams.roleId }).then((res: any) => {
-    message.success(res.msg);
-    refresh()
-  })
+const handleCancleAuth = async (record: any) => {
+  const res: any = await cancelAuthUser(record.userId, queryParams.roleId);
+  message.success(res.msg);
+  refresh();
 }
 /** 批量取消授权 */
-const handleCancleAuthBatch = () => {
-  postAction(url.cancelAuthBatch, { userIds: state.selectedRowKeys, roleId: queryParams.roleId }).then((res: any) => {
-    message.success(res.msg);
-    refresh()
-  })
+const handleCancleAuthBatch = async () => {
+  const userIds = state.selectedRowKeys.map(key => String(key));
+  const res: any = await cancleAuthUserBatch(userIds, queryParams.roleId);
+  message.success(res.msg);
+  refresh();
 }
 const {
   loadData,
@@ -185,32 +151,29 @@ const handleCancelSelectUnAuthUser = () => {
   stateUnAuthUsers.selectedRowKeysUnAuthUsers = []
 }
 /** 授权 */
-const handleAuth = (record: any) => {
-  postAction(url.auth, { userId: record.userId, roleId: queryParams.roleId }).then((res: any) => {
-    message.success(res.msg);
-    refresh()
-  })
+const handleAuth = async (record: any) => {
+  const res: any = await authUser(record.userId, queryParams.roleId);
+  message.success(res.msg);
+  refresh();
 }
 /** 批量授权 */
-const handleAuthBatch = () => {
-  postAction(url.authBatch, { userIds: stateUnAuthUsers.selectedRowKeysUnAuthUsers, roleId: queryParams.roleId }).then((res: any) => {
-    message.success(res.msg);
-    refresh()
-  })
+const handleAuthBatch = async () => {
+  const userIds = stateUnAuthUsers.selectedRowKeysUnAuthUsers.map(key => String(key));
+  const res: any = await authUserBatch(userIds, queryParams.roleId);
+  message.success(res.msg);
+  refresh();
 }
-const loadDataUnAuthUser = () => {
-  loadingUnAuthUsers.value = true
-  getAction(url.listUnAuthUser, queryParams).then((res) => {
-    dataSourceUnAuthUsers.value = res.data.records
-    if (res.data.total) {
-      ipaginationUnAuthUsers.total = res.data.total
-    } else {
-      ipaginationUnAuthUsers.total = 0
-    }
-    handleCancelSelect()
-  }).finally(() => {
-    loadingUnAuthUsers.value = false
-  })
+const loadDataUnAuthUser = async () => {
+  loadingUnAuthUsers.value = true;
+  const res: any = await getListUnAuthUser(queryParams.roleId);
+  dataSourceUnAuthUsers.value = res.data.records;
+  if (res.data.total) {
+    ipaginationUnAuthUsers.total = res.data.total
+  } else {
+    ipaginationUnAuthUsers.total = 0
+  }
+  handleCancelSelect();
+  loadingUnAuthUsers.value = false;
 }
 
 //子组件方法默认为私有

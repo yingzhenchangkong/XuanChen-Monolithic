@@ -58,11 +58,11 @@
 </template>
 
 <script setup lang="ts">
-import { useList } from '@/hooks/useList'
+import { useList } from '@/hooks/useList';
 import { ref } from 'vue';
 import QueryFormXC from '@/components/xuanchen/QueryFormXC.vue';
-import { queryParams, queryFormItems, columnsRecBin } from '../role.data';
-import { RoleApiUrl } from '../role.api';
+import { queryParams, queryFormItems, columnsRecBin } from '../post.data';
+import { PostApiUrl } from '../post.api';
 
 defineProps({
   modalTitle: {
@@ -73,17 +73,17 @@ defineProps({
 const emit = defineEmits(['childOK']);
 /** url */
 const url = {
-  list: RoleApiUrl.RECBIN_LIST,
-  delete: RoleApiUrl.RECBIN_DELETE,
-  deleteBatch: RoleApiUrl.RECBIN_DELETE_BATCH,
-  revert: RoleApiUrl.RECBIN_REVERT,
-  revertBatch: RoleApiUrl.RECBIN_REVERT_BATCH,
+  list: PostApiUrl.RECBIN_LIST,
+  delete: PostApiUrl.RECBIN_DELETE,
+  deleteBatch: PostApiUrl.RECBIN_DELETE_BATCH,
+  revert: PostApiUrl.RECBIN_REVERT,
+  revertBatch: PostApiUrl.RECBIN_REVERT_BATCH,
 }
 
 /** 重置 */
 const handleReset = () => {
-  queryParams.roleName = ''
-  queryParams.roleDescription = ''
+  queryParams.postName = ''
+  queryParams.postDescription = ''
   loadData()
 }
 const visible = ref(false);

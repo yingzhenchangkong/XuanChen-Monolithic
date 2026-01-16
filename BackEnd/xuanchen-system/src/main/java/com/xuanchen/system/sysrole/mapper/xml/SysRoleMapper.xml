@@ -59,4 +59,18 @@
             #{id}
         </foreach>
     </update>
+
+    <select id="validate" parameterType="com.xuanchen.system.sysrole.entity.SysRole" resultType="com.xuanchen.system.sysrole.entity.SysRole">
+        SELECT
+        *
+        FROM
+        (SELECT * FROM sys_role WHERE id NOT IN (#{sysRole.id})) sys_role
+        WHERE 1=1
+        <if test="sysRole.roleCode != '' and sysRole.roleCode != null">
+            AND role_code = #{sysRole.roleCode}
+        </if>
+        <if test="sysRole.roleName != '' and sysRole.roleName != null">
+            AND role_name = #{sysRole.roleName}
+        </if>
+    </select>
 </mapper>

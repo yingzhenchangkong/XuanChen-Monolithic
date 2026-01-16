@@ -143,23 +143,13 @@ public class SysMenuController {
      */
     @GetMapping("/validateName")
     public Result validateUserName(SysMenu sysMenu) {
-        boolean tf = false;
-        if (StringUtil.isEmpty(sysMenu.getId())) {
-            LambdaQueryWrapper<SysMenu> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(SysMenu::getName, sysMenu.getName());
-            if (sysMenuService.exists(queryWrapper)) {
-                tf = true;
-            }
-        } else {
-            if (sysMenuService.validate(sysMenu)) {
-                tf = true;
-            }
-        }
-        if (tf) {
-            return Result.error("路由名称已存在！");
-        } else {
-            return Result.success("路由名称可用！");
-        }
+        boolean exists = StringUtil.isEmpty(sysMenu.getId())
+                ? sysMenuService.exists(new LambdaQueryWrapper<SysMenu>().eq(SysMenu::getName, sysMenu.getName()))
+                : sysMenuService.validate(sysMenu);
+
+        return exists
+                ? Result.error("路由名称已存在！")
+                : Result.success("路由名称可用！");
     }
 
     /**
@@ -170,21 +160,12 @@ public class SysMenuController {
      */
     @GetMapping("/validatePath")
     public Result validateMobile(SysMenu sysMenu) {
-        boolean tf = false;
-        if (StringUtil.isEmpty(sysMenu.getId())) {
-            LambdaQueryWrapper<SysMenu> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(SysMenu::getPath, sysMenu.getPath());
-            if (sysMenuService.exists(queryWrapper)) {
-                tf = true;
-            }
-        } else {
-            if (sysMenuService.validate(sysMenu)) {
-                tf = true;
-            }
-        }
-        if (tf) {
-            return Result.error("路由地址已存在！");
-        }
-        return Result.success("路由地址可用！");
+        boolean exists = StringUtil.isEmpty(sysMenu.getId())
+                ? sysMenuService.exists(new LambdaQueryWrapper<SysMenu>().eq(SysMenu::getPath, sysMenu.getPath()))
+                : sysMenuService.validate(sysMenu);
+
+        return exists
+                ? Result.error("路由地址已存在！")
+                : Result.success("路由地址可用！");
     }
 }

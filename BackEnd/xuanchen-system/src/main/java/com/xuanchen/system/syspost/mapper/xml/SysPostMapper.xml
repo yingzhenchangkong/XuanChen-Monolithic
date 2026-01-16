@@ -1,4 +1,58 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.xuanchen.system.syspost.mapper.SysPostMapper">
+    <!-- 回收站 列表 -->
+    <select id="listRecycleBin" resultType="com.xuanchen.system.syspost.entity.SysPost">
+        SELECT
+        id,
+        post_code,
+        post_name,
+        post_description
+        FROM
+        sys_post
+        WHERE
+        del_flag = 1
+        <if test="sysPost.postName != '' and sysPost.postName != null">
+            <bind name="postName" value="'%' + sysPost.postName + '%'"/>
+            AND post_name like #{postName}
+        </if>
+        <if test="sysPost.postDescription != '' and sysPost.postDescription != null">
+            <bind name="postDescription" value="'%' + sysPost.postDescription + '%'"/>
+            AND post_description like #{postDescription}
+        </if>
+    </select>
+    <!-- 回收站 彻底删除 -->
+    <delete id="deleteRecycleBin">
+        DELETE FROM sys_post
+        WHERE
+        del_flag = 1
+        AND id in
+        <foreach collection="sysPostIds" index="index" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <!-- 回收站 还原 -->
+    <update id="revertRecycleBin">
+        UPDATE sys_post set del_flag = 0
+        WHERE
+        del_flag = 1
+        AND id in
+        <foreach collection="sysPostIds" index="index" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="validate" parameterType="com.xuanchen.system.syspost.entity.SysPost" resultType="com.xuanchen.system.syspost.entity.SysPost">
+        SELECT
+        *
+        FROM
+        (SELECT * FROM sys_post WHERE id NOT IN (#{sysPost.id})) sys_post
+        WHERE 1=1
+        <if test="sysPost.postCode != '' and sysPost.postCode != null">
+            AND post_code = #{sysPost.postCode}
+        </if>
+        <if test="sysPost.postName != '' and sysPost.postName != null">
+            AND post_name = #{sysPost.postName}
+        </if>
+    </select>
 </mapper>

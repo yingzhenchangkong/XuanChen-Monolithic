@@ -34,4 +34,6 @@ public interface ISysRoleService extends IService<SysRole> {
      * @param ids
      */
     void revertRecycleBin(String ids);
+
+    Boolean validate(SysRole sysRole);
 }

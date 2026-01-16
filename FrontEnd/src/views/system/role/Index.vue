@@ -48,7 +48,7 @@
       </template>
     </div>
     <!--表格区域-->
-    <a-table :dataSource="dataSource" :columns="columns" :pagination="ipagination" :loading="loading"
+    <a-table :dataSource="dataSource" :columns="columnsIndex" :pagination="ipagination" :loading="loading"
       :row-selection="{ selectedRowKeys: state.selectedRowKeys, onChange: onSelectChange }" bordered rowKey="id"
       size="small" @change="handleTableChange">
       <template #bodyCell="{ column, text, record }">
@@ -95,15 +95,16 @@ import AssignUser from './modal/AssignUser.vue';
 import AssignMenu from './modal/AssignMenu.vue';
 
 import QueryFormXC from '@/components/xuanchen/QueryFormXC.vue';
-import { queryParams, queryFormItems, columns } from './role.data';
+import { RoleApiUrl } from './role.api';
+import { queryParams, queryFormItems, columnsIndex } from './role.data';
 
 /** url */
 const url = reactive({
-  list: '/system/role/list',
-  delete: '/system/role/delete',
-  deleteBatch: '/system/role/deleteBatch',
-  exportExcel: '/system/role/exportExcel',
-  importExcel: '/system/role/importExcel',
+  list: RoleApiUrl.INDEX_LIST,
+  delete: RoleApiUrl.INDEX_DELETE,
+  deleteBatch: RoleApiUrl.INDEX_DELETE_BATCH,
+  exportExcel: RoleApiUrl.INDEX_EXPORT_EXCEL,
+  importExcel: RoleApiUrl.INDEX_IMPORT_EXCEL,
 })
 
 /** 重置 */

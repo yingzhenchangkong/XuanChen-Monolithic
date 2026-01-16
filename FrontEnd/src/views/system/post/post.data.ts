@@ -1,22 +1,23 @@
 import { reactive } from 'vue';
+
 /** 查询参数 */
 export const queryParams = reactive({
-  roleName: '',
-  roleDescription: '',
+  postName: '',
+  postDescription: '',
 })
 /** 查询配置 */
 export const queryFormItems = [
   {
-    name: 'roleName',
-    label: '角色名称',
+    name: 'postName',
+    label: '岗位名称',
     type: 'input' as const,
-    placeholder: '请输入角色名称'
+    placeholder: '请输入岗位名称'
   },
   {
-    name: 'roleDescription',
-    label: '角色描述',
+    name: 'postDescription',
+    label: '岗位描述',
     type: 'input' as const,
-    placeholder: '请输入角色描述'
+    placeholder: '请输入岗位描述'
   }
 ];
 
@@ -34,20 +35,20 @@ export const columnsIndex = [
       }
   },
   {
-    title: '角色编码',
-    dataIndex: 'roleCode',
+    title: '岗位编码',
+    dataIndex: 'postCode',
     align: 'left',
     width: 110
   },
   {
-    title: '角色名称',
-    dataIndex: 'roleName',
+    title: '岗位名称',
+    dataIndex: 'postName',
     align: 'left',
     width: 150
   },
   {
-    title: '角色描述',
-    dataIndex: 'roleDescription',
+    title: '岗位描述',
+    dataIndex: 'postDescription',
     align: 'left',
   },
   {
@@ -66,10 +67,9 @@ export const columnsIndex = [
     title: '操作',
     dataIndex: 'operation',
     align: 'center',
-    width: 320
+    width: 140
   },
 ];
-
 /** 定义表格的列 回收站*/
 export const columnsRecBin = [
   {
@@ -77,64 +77,33 @@ export const columnsRecBin = [
     dataIndex: '',
     key: 'rowIndex',
     align: 'center',
+    width: 60,
     customRender:
       function (text: any, record: any, index: any, column: any) {
         return parseInt(text.index) + 1;
       }
   },
   {
-    title: '角色编码',
-    dataIndex: 'roleCode',
-    align: 'center',
+    title: '岗位编码',
+    dataIndex: 'postCode',
+    align: 'left',
     width: 110
   },
   {
-    title: '角色名称',
-    dataIndex: 'roleName',
-    align: 'center',
+    title: '岗位名称',
+    dataIndex: 'postName',
+    align: 'left',
     width: 150
   },
   {
-    title: '角色描述',
-    dataIndex: 'roleDescription',
-    align: 'center',
+    title: '岗位描述',
+    dataIndex: 'postDescription',
+    align: 'left',
   },
   {
     title: '操作',
     dataIndex: 'operation',
     align: 'center',
-    width: 240
-  },
-];
-
-/** 定义表格的列 分配用户*/
-export const columnsAssignUser = [
-  {
-    title: '#',
-    dataIndex: '',
-    key: 'rowIndex',
-    align: 'center',
-    customRender:
-      function (text: any, record: any, index: any, column: any) {
-        return parseInt(text.index) + 1;
-      }
-  },
-  {
-    title: '用户名',
-    dataIndex: 'userName',
-    align: 'center',
-    width: 140
-  },
-  {
-    title: '昵称',
-    dataIndex: 'nickName',
-    align: 'center',
-    width: 140
-  },
-  {
-    title: '操作',
-    dataIndex: 'operation',
-    align: 'center',
-    width: 240
+    width: 180
   },
 ];

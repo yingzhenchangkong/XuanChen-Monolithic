@@ -39,11 +39,12 @@
 
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
-import { getAction, httpAction } from '@/utils/httpAction';
 import { message } from 'ant-design-vue';
 import type { TreeSelectProps } from 'ant-design-vue';
 import iconPicker from '@/components/iconpicker/IconPicker.vue';
 import type { Rule } from 'ant-design-vue/es/form';
+import type { MenuModel } from '../menu.types';
+import { getMenuListApi, validateNameApi, validatePathApi, saveOrUpdate } from '../menu.api';
 
 defineProps({
   modalTitle: {
@@ -56,16 +57,9 @@ const labelCol = { span: 5 };
 const wrapperCol = { span: 17 };
 
 const emit = defineEmits(['childOK']);
-const url = {
-  add: '/system/menu/add',
-  edit: '/system/menu/edit',
-  selectMenu: '/system/menu/list',
-  validateName: '/system/menu/validateName',
-  validatePath: '/system/menu/validatePath',
-}
 const visible = ref(false);
 
-const model = reactive({
+const model = reactive<MenuModel>({
   id: '',
   parentId: undefined,
   name: '',
@@ -79,21 +73,11 @@ const model = reactive({
   orderNo: ''
 })
 
-const validateName = async (rule: Rule, value: string) => {
-  const res: any = await getAction(url.validateName, { id: model.id, name: value });
-  if (res.code === 500) {
-    return Promise.reject(res.msg);
-  } else {
-    return Promise.resolve();
-  }
+const validateName = async (_rule: Rule, value: string) => {
+  return await validateNameApi(model.id, value);
 }
-const validatePath = async (rule: Rule, value: string) => {
-  const res: any = await getAction(url.validatePath, { id: model.id, path: value });
-  if (res.code === 500) {
-    return Promise.reject(res.msg);
-  } else {
-    return Promise.resolve();
-  }
+const validatePath = async (_rule: Rule, value: string) => {
+  return await validatePathApi(model.id, value);
 }
 
 const rulesRef = ref()
@@ -158,29 +142,17 @@ const edit = (records: any) => {
 const treeData = ref<TreeSelectProps['treeData']>([]);
 
 const getTreeData = async () => {
-  const res = await getAction(url.selectMenu, {});
+  const res = await getMenuListApi();
   treeData.value = res.data.records;
 }
 getTreeData()
-const handleOk = () => {
-  rulesRef.value.validate().then(() => {
-    let httpurl = '';
-    let method = '';
-    if (model.id === '') {
-      httpurl += url.add;
-      method = 'post';
-    } else {
-      httpurl += url.edit;
-      method = 'put';
-    }
-    httpAction(httpurl, model, method).then((res: any) => {
-      message.success(res.msg);
-      emit('childOK');
-    })
-    visible.value = false;
-  }).catch(() => {
-    message.error('输入有误，请重新输入');
-  })
+
+const handleOk = async () => {
+  await rulesRef.value.validate();
+  const res: any = await saveOrUpdate(model);
+  message.success(res.msg);
+  emit('childOK');
+  visible.value = false;
 };
 
 //子组件方法默认为私有

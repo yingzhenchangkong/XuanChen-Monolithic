@@ -38,4 +38,9 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         String[] idArray = ids.split(",");
         sysRoleMapper.revertRecycleBin(idArray);
     }
+
+    @Override
+    public Boolean validate(SysRole sysRole) {
+        return sysRoleMapper.validate(sysRole).size() > 0;
+    }
 }

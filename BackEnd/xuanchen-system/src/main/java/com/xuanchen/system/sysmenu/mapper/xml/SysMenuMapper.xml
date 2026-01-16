@@ -8,7 +8,7 @@
               FROM sys_user
                        LEFT JOIN sys_user_role ON sys_user.id = sys_user_role.user_id
                        LEFT JOIN sys_role_menu ON sys_user_role.role_id = sys_role_menu.role_id
-                       LEFT JOIN sys_menu ON sys_role_menu.menu_id = sys_menu.id and sys_menu.menu_type in ('M','C')
+                       LEFT JOIN sys_menu ON sys_role_menu.menu_id = sys_menu.id
               WHERE sys_user.user_name = #{userName}
               ORDER BY order_no ASC) sysmenu
         WHERE id IS NOT NULL
