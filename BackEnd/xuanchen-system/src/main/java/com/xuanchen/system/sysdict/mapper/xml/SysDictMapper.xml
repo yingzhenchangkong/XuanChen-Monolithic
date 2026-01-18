@@ -1,7 +1,33 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.xuanchen.system.sysdict.mapper.SysDictMapper">
+    <select id="ifExistsId" parameterType="com.xuanchen.system.sysdict.entity.SysDict" resultType="com.xuanchen.system.sysdict.entity.SysDict">
+        SELECT
+        *
+        FROM
+        (SELECT * FROM sys_dict WHERE id NOT IN (#{sysDict.id})) sys_dict
+        WHERE 1=1
+        <if test="sysDict.dictCode != '' and sysDict.dictCode != null">
+            AND dict_code = #{sysDict.dictCode}
+        </if>
+        <if test="sysDict.dictName != '' and sysDict.dictName != null">
+            AND dict_name = #{sysDict.dictName}
+        </if>
+    </select>
 
+    <select id="ifExistsNoId" parameterType="com.xuanchen.system.sysdict.entity.SysDict" resultType="com.xuanchen.system.sysdict.entity.SysDict">
+        SELECT
+        *
+        FROM
+        sys_dict
+        WHERE 1=1
+        <if test="sysDict.dictCode != '' and sysDict.dictCode != null">
+            AND dict_code = #{sysDict.dictCode}
+        </if>
+        <if test="sysDict.dictName != '' and sysDict.dictName != null">
+            AND dict_name = #{sysDict.dictName}
+        </if>
+    </select>
 
 
 </mapper>

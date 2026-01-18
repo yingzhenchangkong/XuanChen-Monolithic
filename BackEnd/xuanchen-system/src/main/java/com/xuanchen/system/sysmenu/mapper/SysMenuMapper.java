@@ -19,5 +19,7 @@ public interface SysMenuMapper extends BaseMapper<SysMenu> {
 
     List<String> listAuthByUserId(String userId);
 
-    List<SysMenu> validate(@Param("sysMenu") SysMenu sysMenu);
+    List<SysMenu> ifExistsId(@Param("sysMenu") SysMenu sysMenu);
+
+    List<SysMenu> ifExistsNoId(@Param("sysMenu") SysMenu sysMenu);
 }

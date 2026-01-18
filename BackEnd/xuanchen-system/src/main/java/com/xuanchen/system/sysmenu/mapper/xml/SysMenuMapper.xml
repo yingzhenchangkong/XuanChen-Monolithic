@@ -26,11 +26,25 @@
           AND perms != ''
     </select>
 
-    <select id="validate" parameterType="com.xuanchen.system.sysmenu.entity.SysMenu" resultType="com.xuanchen.system.sysmenu.entity.SysMenu">
+    <select id="ifExistsId" parameterType="com.xuanchen.system.sysmenu.entity.SysMenu" resultType="com.xuanchen.system.sysmenu.entity.SysMenu">
         SELECT
         *
         FROM
         (SELECT * FROM sys_menu WHERE id NOT IN (#{sysMenu.id})) sys_menu
+        WHERE 1=1
+        <if test="sysMenu.name != '' and sysMenu.name != null">
+            AND name = #{sysMenu.name}
+        </if>
+        <if test="sysMenu.path != '' and sysMenu.path != null">
+            AND path = #{sysMenu.path}
+        </if>
+    </select>
+
+    <select id="ifExistsNoId" parameterType="com.xuanchen.system.sysmenu.entity.SysMenu" resultType="com.xuanchen.system.sysmenu.entity.SysMenu">
+        SELECT
+            *
+        FROM
+            sys_menu
         WHERE 1=1
         <if test="sysMenu.name != '' and sysMenu.name != null">
             AND name = #{sysMenu.name}

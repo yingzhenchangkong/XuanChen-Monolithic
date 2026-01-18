@@ -41,5 +41,7 @@ public interface SysPostMapper extends BaseMapper<SysPost> {
      */
     Integer revertRecycleBin(@Param("sysPostIds") String[] sysPostIds);
 
-    List<SysPost> validate(@Param("sysPost") SysPost sysPost);
+    List<SysPost> ifExistsId(@Param("sysPost") SysPost sysPost);
+
+    List<SysPost> ifExistsNoId(@Param("sysPost") SysPost sysPost);
 }

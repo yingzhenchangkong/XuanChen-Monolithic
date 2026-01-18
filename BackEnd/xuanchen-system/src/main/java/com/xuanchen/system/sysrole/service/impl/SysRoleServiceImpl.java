@@ -40,7 +40,12 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     }
 
     @Override
-    public Boolean validate(SysRole sysRole) {
-        return sysRoleMapper.validate(sysRole).size() > 0;
+    public Boolean ifExistsId(SysRole sysRole) {
+        return sysRoleMapper.ifExistsId(sysRole).size() > 0;
+    }
+
+    @Override
+    public Boolean ifExistsNoId(SysRole sysRole) {
+        return sysRoleMapper.ifExistsNoId(sysRole).size() > 0;
     }
 }

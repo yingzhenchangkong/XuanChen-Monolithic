@@ -1,6 +1,5 @@
 package com.xuanchen.system.sysdict.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -114,19 +113,19 @@ public class SysDictController {
     }
 
     /**
-     * 校验编码是否已存在
+     * 校验 参数 是否已存在
      *
      * @param sysDict
      * @return
      */
-    @GetMapping("/validateDictCode")
-    public Result validateDictCode(SysDict sysDict) {
-        LambdaQueryWrapper<SysDict> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(SysDict::getDictCode, sysDict.getDictCode());
-        if (sysDictService.exists(queryWrapper)) {
-            return Result.error("编码已存在");
-        }
-        return Result.success("编码可用");
+    @GetMapping("/validate")
+    public Result validate(SysDict sysDict) {
+        boolean exists = StringUtil.isEmpty(sysDict.getId())
+                ? sysDictService.ifExistsNoId(sysDict)
+                : sysDictService.ifExistsId(sysDict);
+        return exists
+                ? Result.error()
+                : Result.success();
     }
 
     /**

@@ -19,5 +19,7 @@ public interface ISysMenuService extends IService<SysMenu> {
 
     void listToTree(List<SysMenuTree> listTree, List<SysMenu> list, SysMenuTree temp);
 
-    Boolean validate(SysMenu sysMenu);
+    Boolean ifExistsId(SysMenu sysMenu);
+
+    Boolean ifExistsNoId(SysMenu sysMenu);
 }

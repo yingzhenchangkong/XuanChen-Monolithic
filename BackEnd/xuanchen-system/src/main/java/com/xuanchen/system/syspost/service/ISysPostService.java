@@ -35,5 +35,7 @@ public interface ISysPostService extends IService<SysPost> {
      */
     void revertRecycleBin(String ids);
 
-    Boolean validate(SysPost sysPost);
+    Boolean ifExistsId(SysPost sysPost);
+
+    Boolean ifExistsNoId(SysPost sysPost);
 }

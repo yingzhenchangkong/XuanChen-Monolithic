@@ -35,5 +35,7 @@ public interface ISysUserService extends IService<SysUser> {
      */
     void revertRecycleBin(String ids);
 
-    Boolean validate(SysUser sysUser);
+    Boolean ifExistsId(SysUser sysUser);
+
+    Boolean ifExistsNoId(SysUser sysUser);
 }

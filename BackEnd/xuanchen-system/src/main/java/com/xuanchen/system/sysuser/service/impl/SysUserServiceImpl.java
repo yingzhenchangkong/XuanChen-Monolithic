@@ -39,7 +39,12 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
-    public Boolean validate(SysUser sysUser) {
-        return sysUserMapper.validate(sysUser).size() > 0;
+    public Boolean ifExistsId(SysUser sysUser) {
+        return sysUserMapper.ifExistsId(sysUser).size() > 0;
+    }
+
+    @Override
+    public Boolean ifExistsNoId(SysUser sysUser) {
+        return sysUserMapper.ifExistsNoId(sysUser).size() > 0;
     }
 }

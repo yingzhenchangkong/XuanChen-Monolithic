@@ -4,7 +4,6 @@ import cn.idev.excel.FastExcel;
 import cn.idev.excel.support.ExcelTypeEnum;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -434,81 +433,18 @@ public class SysUserController {
     }
 
     /**
-     * 校验用户名是否已存在
+     * 校验 参数 是否已存在
      *
      * @param sysUser
      * @return
      */
-    @GetMapping("/validateUserName")
-    public Result validateUserName(SysUser sysUser) {
-        boolean tf = false;
-        if (StringUtil.isEmpty(sysUser.getId())) {
-            LambdaQueryWrapper<SysUser> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(SysUser::getUserName, sysUser.getUserName());
-            if (sysUserService.exists(queryWrapper)) {
-                tf = true;
-            }
-        } else {
-            if (sysUserService.validate(sysUser)) {
-                tf = true;
-            }
-        }
-        if (tf) {
-            return Result.error("用户名已存在！");
-        } else {
-            return Result.success("用户名可用！");
-        }
-    }
-
-    /**
-     * 校验手机号是否已存在
-     *
-     * @param sysUser
-     * @return
-     */
-    @GetMapping("/validateMobile")
-    public Result validateMobile(SysUser sysUser) {
-        boolean tf = false;
-        if (StringUtil.isEmpty(sysUser.getId())) {
-            LambdaQueryWrapper<SysUser> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(SysUser::getMobile, sysUser.getMobile());
-            if (sysUserService.exists(queryWrapper)) {
-                tf = true;
-            }
-        } else {
-            if (sysUserService.validate(sysUser)) {
-                tf = true;
-            }
-        }
-        if (tf) {
-            return Result.error("手机号已存在！");
-        }
-        return Result.success("手机号可用！");
-    }
-
-    /**
-     * 校验邮箱是否已存在
-     *
-     * @param sysUser
-     * @return
-     */
-    @GetMapping("/validateEmail")
-    public Result validateEmail(SysUser sysUser) {
-        boolean tf = false;
-        if (StringUtil.isEmpty(sysUser.getId())) {
-            LambdaQueryWrapper<SysUser> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(SysUser::getEmail, sysUser.getEmail());
-            if (sysUserService.exists(queryWrapper)) {
-                tf = true;
-            }
-        } else {
-            if (sysUserService.validate(sysUser)) {
-                tf = true;
-            }
-        }
-        if (tf) {
-            return Result.error("邮箱已存在！");
-        }
-        return Result.success("邮箱可用！");
+    @GetMapping("/validate")
+    public Result validate(SysUser sysUser) {
+        boolean exists = StringUtil.isEmpty(sysUser.getId())
+                ? sysUserService.ifExistsNoId(sysUser)
+                : sysUserService.ifExistsId(sysUser);
+        return exists
+                ? Result.error()
+                : Result.success();
     }
 }

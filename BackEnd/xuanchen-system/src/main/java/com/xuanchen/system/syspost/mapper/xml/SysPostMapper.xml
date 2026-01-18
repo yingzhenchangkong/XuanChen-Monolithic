@@ -42,11 +42,25 @@
         </foreach>
     </update>
 
-    <select id="validate" parameterType="com.xuanchen.system.syspost.entity.SysPost" resultType="com.xuanchen.system.syspost.entity.SysPost">
+    <select id="ifExistsId" parameterType="com.xuanchen.system.syspost.entity.SysPost" resultType="com.xuanchen.system.syspost.entity.SysPost">
         SELECT
         *
         FROM
         (SELECT * FROM sys_post WHERE id NOT IN (#{sysPost.id})) sys_post
+        WHERE 1=1
+        <if test="sysPost.postCode != '' and sysPost.postCode != null">
+            AND post_code = #{sysPost.postCode}
+        </if>
+        <if test="sysPost.postName != '' and sysPost.postName != null">
+            AND post_name = #{sysPost.postName}
+        </if>
+    </select>
+
+    <select id="ifExistsNoId" parameterType="com.xuanchen.system.syspost.entity.SysPost" resultType="com.xuanchen.system.syspost.entity.SysPost">
+        SELECT
+            *
+        FROM
+            sys_post
         WHERE 1=1
         <if test="sysPost.postCode != '' and sysPost.postCode != null">
             AND post_code = #{sysPost.postCode}

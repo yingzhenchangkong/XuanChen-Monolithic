@@ -1,5 +1,4 @@
 import { reactive } from 'vue';
-import { getStatus } from './notice.api';
 
 /** 查询参数(通知列表) */
 export const queryParamsIndex = reactive({
@@ -27,10 +26,7 @@ export const queryFormItemsIndex = reactive([
     }
   }
 ]);
-/** 获取阅读状态数据(通知列表) */
-export const loadStatus = async () => {
-  queryFormItemsIndex[1].options = await getStatus();
-};
+
 /** 定义表格的列(通知列表) */
 export const columnsIndex = [
   {

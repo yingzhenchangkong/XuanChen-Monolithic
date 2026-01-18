@@ -57,5 +57,7 @@ public interface SysRoleMapper extends BaseMapper<SysRole> {
      */
     Integer revertRecycleBin(@Param("sysRoleIds") String[] sysRoleIds);
 
-    List<SysRole> validate(@Param("sysRole") SysRole sysRole);
+    List<SysRole> ifExistsId(@Param("sysRole") SysRole sysRole);
+
+    List<SysRole> ifExistsNoId(@Param("sysRole") SysRole sysRole);
 }

@@ -86,7 +86,7 @@
   </a-card>
 </template>
 
-<script lang="ts" setup>
+<script setup lang="ts">
 import { useList } from '@/hooks/useList'
 import { reactive, ref } from 'vue';
 import Operation from './modal/Operation.vue';
@@ -111,12 +111,12 @@ const url = reactive({
 const handleReset = () => {
   queryParams.roleName = ''
   queryParams.roleDescription = ''
-  loadData()
+  loadData();
 }
 
-const refAssignUser = ref()
-const refAssignMenu = ref()
-const refRecycleBin = ref()
+const refAssignUser = ref();
+const refAssignMenu = ref();
+const refRecycleBin = ref();
 
 /** 分配用户 */
 const handleAssignUser = (roleId: string) => {
@@ -128,7 +128,7 @@ const handleAssignMenu = (roleId: string) => {
 }
 /** 回收站 */
 const handleRecycleBin = () => {
-  refRecycleBin.value.show()
+  refRecycleBin.value.show();
 }
 
 const {

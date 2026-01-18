@@ -38,7 +38,12 @@ public class SysPostServiceImpl extends ServiceImpl<SysPostMapper, SysPost> impl
     }
 
     @Override
-    public Boolean validate(SysPost sysPost) {
-        return sysPostMapper.validate(sysPost).size() > 0;
+    public Boolean ifExistsId(SysPost sysPost) {
+        return sysPostMapper.ifExistsId(sysPost).size() > 0;
+    }
+
+    @Override
+    public Boolean ifExistsNoId(SysPost sysPost) {
+        return sysPostMapper.ifExistsNoId(sysPost).size() > 0;
     }
 }

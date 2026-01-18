@@ -9,8 +9,7 @@ enum PostApiUrl {
   INDEX_IMPORT_EXCEL = '/system/post/importExcel',
   OPERATION_ADD = '/system/post/add',
   OPERATION_EDIT = '/system/post/edit',
-  OPERATION_VALIDATE_POST_CODE = '/system/post/validatePostCode',
-  OPERATION_VALIDATE_POST_NAME = '/system/post/validatePostName',
+  OPERATION_VALIDATE = '/system/post/validate',
   RECBIN_LIST = '/system/post/listRecycleBin',
   RECBIN_DELETE = '/system/post/deleteRecycleBin',
   RECBIN_DELETE_BATCH = '/system/post/deleteRecycleBinBatch',
@@ -21,18 +20,18 @@ enum PostApiUrl {
 export { PostApiUrl };
 
 export const validatePostCodeApi = async (id: string, postCode: string) => {
-  const res: any = await getAction(PostApiUrl.OPERATION_VALIDATE_POST_CODE, { id, postCode });
+  const res: any = await getAction(PostApiUrl.OPERATION_VALIDATE, { id, postCode });
   if (res.code === 500) {
-    return Promise.reject(res.msg);
+    return Promise.reject("岗位编码已存在!");
   } else {
     return Promise.resolve();
   }
 }
 
 export const validatePostNameApi = async (id: string, postName: string) => {
-  const res: any = await getAction(PostApiUrl.OPERATION_VALIDATE_POST_NAME, { id, postName });
+  const res: any = await getAction(PostApiUrl.OPERATION_VALIDATE, { id, postName });
   if (res.code === 500) {
-    return Promise.reject(res.msg);
+    return Promise.reject("岗位名称已存在!");
   } else {
     return Promise.resolve();
   }

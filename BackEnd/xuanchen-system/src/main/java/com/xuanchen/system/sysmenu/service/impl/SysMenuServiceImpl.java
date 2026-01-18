@@ -52,7 +52,12 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
     }
 
     @Override
-    public Boolean validate(SysMenu sysMenu) {
-        return sysMenuMapper.validate(sysMenu).size() > 0;
+    public Boolean ifExistsId(SysMenu sysMenu) {
+        return sysMenuMapper.ifExistsId(sysMenu).size() > 0;
+    }
+
+    @Override
+    public Boolean ifExistsNoId(SysMenu sysMenu) {
+        return sysMenuMapper.ifExistsNoId(sysMenu).size() > 0;
     }
 }

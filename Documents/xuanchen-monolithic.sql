@@ -1,17 +1,17 @@
 /*
  Navicat Premium Dump SQL
 
- Source Server         : 本地MySQL
+ Source Server         : 本地_MySQL
  Source Server Type    : MySQL
- Source Server Version : 80044 (8.0.44)
+ Source Server Version : 80041 (8.0.41)
  Source Host           : localhost:3306
  Source Schema         : xuanchen-monolithic
 
  Target Server Type    : MySQL
- Target Server Version : 80044 (8.0.44)
+ Target Server Version : 80041 (8.0.41)
  File Encoding         : 65001
 
- Date: 13/01/2026 16:58:45
+ Date: 16/01/2026 21:54:57
 */
 
 SET NAMES utf8mb4;
@@ -102,6 +102,7 @@ CREATE TABLE `sys_dict`  (
 -- Records of sys_dict
 -- ----------------------------
 INSERT INTO `sys_dict` VALUES ('1988219272327151617', 'yes_no', '是否', 1, 1, 0, 'admin', '2025-11-11 20:16:29', NULL, NULL);
+INSERT INTO `sys_dict` VALUES ('2012158527658344450', 'config_type', '参数类型', 2, 1, 0, 'admin', '2026-01-16 21:42:32', NULL, NULL);
 
 -- ----------------------------
 -- Table structure for sys_dict_item
@@ -127,6 +128,8 @@ CREATE TABLE `sys_dict_item`  (
 -- ----------------------------
 INSERT INTO `sys_dict_item` VALUES ('1988219316371537922', 'yes_no', '是', 'true', 1, 1, 0, 'admin', '2025-11-11 20:16:39', NULL, NULL);
 INSERT INTO `sys_dict_item` VALUES ('1988219354069942274', 'yes_no', '否', 'false', 2, 1, 0, 'admin', '2025-11-11 20:16:48', NULL, NULL);
+INSERT INTO `sys_dict_item` VALUES ('2012158582834413569', 'config_type', '系统', '1', 1, 1, 0, 'admin', '2026-01-16 21:42:45', NULL, NULL);
+INSERT INTO `sys_dict_item` VALUES ('2012158635976245250', 'config_type', '业务', '2', 2, 1, 0, 'admin', '2026-01-16 21:42:58', NULL, NULL);
 
 -- ----------------------------
 -- Table structure for sys_menu

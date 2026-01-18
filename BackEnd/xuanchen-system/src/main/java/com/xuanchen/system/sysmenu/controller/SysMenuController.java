@@ -136,36 +136,18 @@ public class SysMenuController {
     }
 
     /**
-     * 检验路由名称是否已存在
+     * 校验 参数 是否已存在
      *
      * @param sysMenu
      * @return
      */
-    @GetMapping("/validateName")
-    public Result validateUserName(SysMenu sysMenu) {
+    @GetMapping("/validate")
+    public Result validate(SysMenu sysMenu) {
         boolean exists = StringUtil.isEmpty(sysMenu.getId())
-                ? sysMenuService.exists(new LambdaQueryWrapper<SysMenu>().eq(SysMenu::getName, sysMenu.getName()))
-                : sysMenuService.validate(sysMenu);
-
+                ? sysMenuService.ifExistsNoId(sysMenu)
+                : sysMenuService.ifExistsId(sysMenu);
         return exists
-                ? Result.error("路由名称已存在！")
-                : Result.success("路由名称可用！");
-    }
-
-    /**
-     * 校验路由地址是否已存在
-     *
-     * @param sysMenu
-     * @return
-     */
-    @GetMapping("/validatePath")
-    public Result validateMobile(SysMenu sysMenu) {
-        boolean exists = StringUtil.isEmpty(sysMenu.getId())
-                ? sysMenuService.exists(new LambdaQueryWrapper<SysMenu>().eq(SysMenu::getPath, sysMenu.getPath()))
-                : sysMenuService.validate(sysMenu);
-
-        return exists
-                ? Result.error("路由地址已存在！")
-                : Result.success("路由地址可用！");
+                ? Result.error()
+                : Result.success();
     }
 }

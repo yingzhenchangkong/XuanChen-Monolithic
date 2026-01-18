@@ -10,4 +10,7 @@ import com.xuanchen.system.sysdict.entity.SysDict;
  * @date 2025-06-03
  */
 public interface ISysDictService extends IService<SysDict> {
+    Boolean ifExistsId(SysDict sysDict);
+
+    Boolean ifExistsNoId(SysDict sysDict);
 }

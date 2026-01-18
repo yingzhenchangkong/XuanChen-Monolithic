@@ -2,7 +2,6 @@ package com.xuanchen.system.syspost.controller;
 
 import cn.idev.excel.FastExcel;
 import cn.idev.excel.support.ExcelTypeEnum;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -256,36 +255,18 @@ public class SysPostController {
     }
 
     /**
-     * 校验 岗位编码 是否已存在
+     * 校验 参数 是否已存在
      *
      * @param sysPost
      * @return
      */
-    @GetMapping("/validatePostCode")
-    public Result validatePostCode(SysPost sysPost) {
+    @GetMapping("/validate")
+    public Result validate(SysPost sysPost) {
         boolean exists = StringUtil.isEmpty(sysPost.getId())
-                ? sysPostService.exists(new LambdaQueryWrapper<SysPost>().eq(SysPost::getPostCode, sysPost.getPostCode()))
-                : sysPostService.validate(sysPost);
-
+                ? sysPostService.ifExistsNoId(sysPost)
+                : sysPostService.ifExistsId(sysPost);
         return exists
-                ? Result.error("岗位编码已存在！")
-                : Result.success("岗位编码可用！");
-    }
-
-    /**
-     * 校验 岗位名称 是否已存在
-     *
-     * @param sysPost
-     * @return
-     */
-    @GetMapping("/validatePostName")
-    public Result validatePostName(SysPost sysPost) {
-        boolean exists = StringUtil.isEmpty(sysPost.getId())
-                ? sysPostService.exists(new LambdaQueryWrapper<SysPost>().eq(SysPost::getPostName, sysPost.getPostName()))
-                : sysPostService.validate(sysPost);
-
-        return exists
-                ? Result.error("岗位名称已存在！")
-                : Result.success("岗位名称可用！");
+                ? Result.error()
+                : Result.success();
     }
 }

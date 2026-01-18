@@ -23,7 +23,6 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
 import type { Rule } from 'ant-design-vue/es/form';
-import { getAction, httpAction } from '@/utils/httpAction';
 import { message } from 'ant-design-vue';
 import type { RoleModel } from '../role.types';
 import { validateRoleCodeApi, validateRoleNameApi, saveOrUpdate } from '../role.api';

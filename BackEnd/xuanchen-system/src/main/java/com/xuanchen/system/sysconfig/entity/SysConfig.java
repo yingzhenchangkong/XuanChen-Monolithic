@@ -5,6 +5,7 @@ import cn.idev.excel.annotation.ExcelProperty;
 import cn.idev.excel.annotation.write.style.ColumnWidth;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.Data;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
  * @author XuanChen
  * @date 2026-01-10
  */
+@Data
 public class SysConfig implements Serializable {
     private static final long serialVersionUID = 1L;
     /**

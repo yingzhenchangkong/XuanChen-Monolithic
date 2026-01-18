@@ -35,5 +35,7 @@ public interface ISysRoleService extends IService<SysRole> {
      */
     void revertRecycleBin(String ids);
 
-    Boolean validate(SysRole sysRole);
+    Boolean ifExistsId(SysRole sysRole);
+
+    Boolean ifExistsNoId(SysRole sysRole);
 }

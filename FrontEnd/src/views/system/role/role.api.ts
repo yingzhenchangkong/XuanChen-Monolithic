@@ -9,8 +9,7 @@ enum RoleApiUrl {
   INDEX_IMPORT_EXCEL = '/system/role/importExcel',
   OPERATION_ADD = '/system/role/add',
   OPERATION_EDIT = '/system/role/edit',
-  OPERATION_VALIDATE_ROLE_CODE = '/system/role/validateRoleCode',
-  OPERATION_VALIDATE_ROLE_NAME = '/system/role/validateRoleName',
+  OPERATION_VALIDATE = '/system/role/validate',
   RECBIN_LIST = '/system/role/listRecycleBin',
   RECBIN_DELETE = '/system/role/deleteRecycleBin',
   RECBIN_DELETE_BATCH = '/system/role/deleteRecycleBinBatch',
@@ -30,18 +29,18 @@ enum RoleApiUrl {
 export { RoleApiUrl };
 
 export const validateRoleCodeApi = async (id: string, roleCode: string) => {
-  const res: any = await getAction(RoleApiUrl.OPERATION_VALIDATE_ROLE_CODE, { id, roleCode });
+  const res: any = await getAction(RoleApiUrl.OPERATION_VALIDATE, { id, roleCode });
   if (res.code === 500) {
-    return Promise.reject(res.msg);
+    return Promise.reject("角色编码已存在!");
   } else {
     return Promise.resolve();
   }
 }
 
 export const validateRoleNameApi = async (id: string, roleName: string) => {
-  const res: any = await getAction(RoleApiUrl.OPERATION_VALIDATE_ROLE_NAME, { id, roleName });
+  const res: any = await getAction(RoleApiUrl.OPERATION_VALIDATE, { id, roleName });
   if (res.code === 500) {
-    return Promise.reject(res.msg);
+    return Promise.reject("角色名称已存在!");
   } else {
     return Promise.resolve();
   }

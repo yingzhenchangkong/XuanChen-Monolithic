@@ -52,11 +52,28 @@
         </foreach>
     </delete>
 
-    <select id="validate" parameterType="com.xuanchen.system.sysuser.entity.SysUser" resultType="com.xuanchen.system.sysuser.entity.SysUser">
+    <select id="ifExistsId" parameterType="com.xuanchen.system.sysuser.entity.SysUser" resultType="com.xuanchen.system.sysuser.entity.SysUser">
         SELECT
         *
         FROM
         (SELECT * FROM sys_user WHERE id NOT IN (#{sysUser.id})) sys_user
+        WHERE 1=1
+        <if test="sysUser.userName != '' and sysUser.userName != null">
+            AND user_name = #{sysUser.userName}
+        </if>
+        <if test="sysUser.mobile != '' and sysUser.mobile != null">
+            AND mobile = #{sysUser.mobile}
+        </if>
+        <if test="sysUser.email != '' and sysUser.email != null">
+            AND email = #{sysUser.email}
+        </if>
+    </select>
+
+    <select id="ifExistsNoId" parameterType="com.xuanchen.system.sysuser.entity.SysUser" resultType="com.xuanchen.system.sysuser.entity.SysUser">
+        SELECT
+            *
+        FROM
+            sys_user
         WHERE 1=1
         <if test="sysUser.userName != '' and sysUser.userName != null">
             AND user_name = #{sysUser.userName}

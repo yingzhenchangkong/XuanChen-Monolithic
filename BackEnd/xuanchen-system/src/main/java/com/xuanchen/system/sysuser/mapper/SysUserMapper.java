@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+
 /**
  * Mapper接口-->用户
  *
@@ -48,5 +49,7 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
      */
     Integer revertRecycleBin(@Param("sysUserIds") String[] sysUserIds);
 
-    List<SysUser> validate(@Param("sysUser") SysUser sysUser);
+    List<SysUser> ifExistsId(@Param("sysUser") SysUser sysUser);
+
+    List<SysUser> ifExistsNoId(@Param("sysUser") SysUser sysUser);
 }

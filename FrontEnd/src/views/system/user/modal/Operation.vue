@@ -77,30 +77,28 @@ const url = {
   selectDept: '/system/dept/getDeptTree',
   selectRole: '/system/role/select',
   upload: import.meta.env.APP_FILE_UPLOAD_PATH,
-  validateUserName: '/system/user/validateUserName',
-  validateMobile: '/system/user/validateMobile',
-  validateEmail: '/system/user/validateEmail',
+  validate: '/system/user/validate',
 }
 const validateUserName = async (rule: Rule, value: string) => {
-  const res: any = await getAction(url.validateUserName, { id: model.id, userName: value });
+  const res: any = await getAction(url.validate, { id: model.id, userName: value });
   if (res.code === 500) {
-    return Promise.reject(res.msg);
+    return Promise.reject("用户名已存在!");
   } else {
     return Promise.resolve();
   }
 }
 const validateMobile = async (rule: Rule, value: string) => {
-  const res: any = await getAction(url.validateMobile, { id: model.id, mobile: value });
+  const res: any = await getAction(url.validate, { id: model.id, mobile: value });
   if (res.code === 500) {
-    return Promise.reject(res.msg);
+    return Promise.reject("手机号已存在!");
   } else {
     return Promise.resolve();
   }
 }
 const validateEmail = async (rule: Rule, value: string) => {
-  const res: any = await getAction(url.validateEmail, { id: model.id, email: value });
+  const res: any = await getAction(url.validate, { id: model.id, email: value });
   if (res.code === 500) {
-    return Promise.reject(res.msg);
+    return Promise.reject("邮箱已存在!");
   } else {
     return Promise.resolve();
   }

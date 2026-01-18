@@ -6,8 +6,7 @@ enum MenuApiUrl {
   ADD = '/system/menu/add',
   EDIT = '/system/menu/edit',
   DELETE = '/system/menu/delete',
-  VALIDATE_NAME = '/system/menu/validateName',
-  VALIDATE_PATH = '/system/menu/validatePath',
+  VALIDATE = '/system/menu/validate',
 }
 
 export { MenuApiUrl };
@@ -17,18 +16,18 @@ export const getMenuListApi = async () => {
 }
 
 export const validateNameApi = async (id: string, name: string) => {
-  const res: any = await getAction(MenuApiUrl.VALIDATE_NAME, { id, name });
+  const res: any = await getAction(MenuApiUrl.VALIDATE, { id, name });
   if (res.code === 500) {
-    return Promise.reject(res.msg);
+    return Promise.reject("路由名称已存在!");
   } else {
     return Promise.resolve();
   }
 }
 
 export const validatePathApi = async (id: string, path: string) => {
-  const res: any = await getAction(MenuApiUrl.VALIDATE_PATH, { id, path });
+  const res: any = await getAction(MenuApiUrl.VALIDATE, { id, path });
   if (res.code === 500) {
-    return Promise.reject(res.msg);
+    return Promise.reject("路由地址已存在!");
   } else {
     return Promise.resolve();
   }

@@ -1,3 +1,87 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xuanchen.system.sysconfig.mapper.SysConfigMapper"></mapper>
+<mapper namespace="com.xuanchen.system.sysconfig.mapper.SysConfigMapper">
+    <!-- 回收站 列表 -->
+    <select id="listRecycleBin" resultType="com.xuanchen.system.sysconfig.entity.SysConfig">
+        SELECT
+        id,
+        config_code,
+        config_name,
+        config_description,
+        config_key,
+        config_value,
+        config_type
+        FROM
+        sys_config
+        WHERE
+        del_flag = 1
+        <if test="sysConfig.configName != '' and sysConfig.configName != null">
+            <bind name="configName" value="'%' + sysConfig.configName + '%'"/>
+            AND config_name like #{configName}
+        </if>
+        <if test="sysConfig.configDescription != '' and sysConfig.configDescription != null">
+            <bind name="configDescription" value="'%' + sysConfig.configDescription + '%'"/>
+            AND config_description like #{configDescription}
+        </if>
+    </select>
+    <!-- 回收站 彻底删除 -->
+    <delete id="deleteRecycleBin">
+        DELETE FROM sys_config
+        WHERE
+        del_flag = 1
+        AND id in
+        <foreach collection="sysConfigIds" index="index" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <!-- 回收站 还原 -->
+    <update id="revertRecycleBin">
+        UPDATE sys_config set del_flag = 0
+        WHERE
+        del_flag = 1
+        AND id in
+        <foreach collection="sysConfigIds" index="index" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="ifExistsId" parameterType="com.xuanchen.system.sysconfig.entity.SysConfig" resultType="com.xuanchen.system.sysconfig.entity.SysConfig">
+        SELECT
+        *
+        FROM
+        (SELECT * FROM sys_config WHERE id NOT IN (#{sysConfig.id})) sys_config
+        WHERE 1=1
+        <if test="sysConfig.configCode != '' and sysConfig.configCode != null">
+            AND config_code = #{sysConfig.configCode}
+        </if>
+        <if test="sysConfig.configName != '' and sysConfig.configName != null">
+            AND config_name = #{sysConfig.configName}
+        </if>
+        <if test="sysConfig.configKey != '' and sysConfig.configKey != null">
+            AND config_key = #{sysConfig.configKey}
+        </if>
+        <if test="sysConfig.configValue != '' and sysConfig.configValue != null">
+            AND config_value = #{sysConfig.configValue}
+        </if>
+    </select>
+
+    <select id="ifExistsNoId" parameterType="com.xuanchen.system.sysconfig.entity.SysConfig" resultType="com.xuanchen.system.sysconfig.entity.SysConfig">
+        SELECT
+            *
+        FROM
+            sys_config
+        WHERE 1=1
+        <if test="sysConfig.configCode != '' and sysConfig.configCode != null">
+            AND config_code = #{sysConfig.configCode}
+        </if>
+        <if test="sysConfig.configName != '' and sysConfig.configName != null">
+            AND config_name = #{sysConfig.configName}
+        </if>
+        <if test="sysConfig.configKey != '' and sysConfig.configKey != null">
+            AND config_key = #{sysConfig.configKey}
+        </if>
+        <if test="sysConfig.configValue != '' and sysConfig.configValue != null">
+            AND config_value = #{sysConfig.configValue}
+        </if>
+    </select>
+</mapper>

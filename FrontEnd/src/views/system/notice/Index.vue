@@ -47,13 +47,14 @@
 
 <script lang="ts" setup>
 import { reactive, ref } from 'vue';
-import { useList } from '@/hooks/useList'
+import { useList } from '@/hooks/useList';
 import { postAction } from '@/utils/httpAction';
 import { message } from 'ant-design-vue';
 import Detail from './modal/Detail.vue';
 
 import QueryFormXC from '@/components/xuanchen/QueryFormXC.vue';
-import { queryParamsIndex, queryFormItemsIndex, columnsIndex, loadStatus } from './notice.data';
+import { queryParamsIndex, queryFormItemsIndex, columnsIndex } from './notice.data';
+import { getDictSelect } from '../dict/dict.api';
 
 /** url */
 const url = reactive({
@@ -112,5 +113,9 @@ const {
 } = useList({ url, queryParams })
 loadData();
 
+/** 获取阅读状态数据(通知列表) */
+export const loadStatus = async () => {
+  queryFormItemsIndex[1]!.options = await getDictSelect("yes_no");
+};
 loadStatus();
 </script>
