@@ -35,14 +35,10 @@
 </template>
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import { getAction, deleteAction } from '@/utils/httpAction';
 import { message } from 'ant-design-vue';
-import type { DeptTranData } from '../dept.data';
 
-const url = {
-  getDeptTree: '/system/dept/getDeptTree',
-  delete: '/system/dept/delete',
-}
+import { getDeptTreeApi, deleteDeptApi } from '../dept.api';
+import type { DeptTranData } from '../dept.types';
 
 const treeData = ref();
 
@@ -51,7 +47,7 @@ const selectedKeys = ref<string[]>([]);
 const emit = defineEmits(['childData']);
 
 const getDeptTree = async () => {
-  treeData.value = await getAction(url.getDeptTree, {});
+  treeData.value = await getDeptTreeApi();
   // 获取所有节点的key并设置给expandedKeys
   const getAllKeys = (nodes: any[]): string[] => {
     return nodes.reduce((keys: string[], node) => {
@@ -83,16 +79,12 @@ function handleAddChildDepend(dataRef: any) {
 }
 
 async function handleDelete(treeKey: string) {
-  try {
-    const res: any = await deleteAction(url.delete, { deptCode: treeKey })
-    if (res.code === 200) {
-      message.success(res.msg)
-      await getDeptTree();
-    } else {
-      message.warning(res.msg)
-    }
-  } catch (error) {
-    message.error('删除失败')
+  const res: any = await deleteDeptApi(treeKey);
+  if (res.code === 200) {
+    message.success(res.msg)
+    await getDeptTree();
+  } else {
+    message.warning(res.msg)
   }
 }
 

@@ -1,7 +1,33 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.xuanchen.system.sysdict.mapper.SysDictItemMapper">
+    <select id="ifExistsId" parameterType="com.xuanchen.system.sysdict.entity.SysDictItem" resultType="com.xuanchen.system.sysdict.entity.SysDictItem">
+        SELECT
+        *
+        FROM
+        (SELECT * FROM sys_dict_item WHERE id NOT IN (#{sysDictItem.id})) sys_dict_item
+        WHERE dict_code = #{sysDictItem.dictCode}
+        <if test="sysDictItem.dictItemText != '' and sysDictItem.dictItemText != null">
+            AND dict_item_text = #{sysDictItem.dictItemText}
+        </if>
+        <if test="sysDictItem.dictItemValue != '' and sysDictItem.dictItemValue != null">
+            AND dict_item_value = #{sysDictItem.dictItemValue}
+        </if>
+    </select>
 
+    <select id="ifExistsNoId" parameterType="com.xuanchen.system.sysdict.entity.SysDictItem" resultType="com.xuanchen.system.sysdict.entity.SysDictItem">
+        SELECT
+            *
+        FROM
+            sys_dict_item
+        WHERE dict_code = #{sysDictItem.dictCode}
+        <if test="sysDictItem.dictItemText != '' and sysDictItem.dictItemText != null">
+            AND dict_item_text = #{sysDictItem.dictItemText}
+        </if>
+        <if test="sysDictItem.dictItemValue != '' and sysDictItem.dictItemValue != null">
+            AND dict_item_value = #{sysDictItem.dictItemValue}
+        </if>
+    </select>
 
 
 </mapper>

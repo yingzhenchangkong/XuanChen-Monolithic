@@ -30,7 +30,7 @@
       </a-form>
     </div>
   </div>
-  <SlideVerify ref="refOperation" @childOK="loginSubmit"/>
+  <SlideVerify ref="refOperation" @childOK="loginSubmit" />
 </template>
 
 <script setup lang="ts">
@@ -66,20 +66,18 @@ const showVerify = () => {
   refOperation.value.show()
 }
 // 登录
-const loginSubmit = () => {
-  loginRef.value.validate().then(() => {
-    postAction('/login', loginForm).then((res: any) => {
-      if (res && res.code === 200) {
-        authStore.setToken(res.data.token);
-        delete res.data.token;
-        authStore.setUserInfo(res.data);
-        router.push({ path: "/" });
-        message.success(res.msg);
-      } else {
-        message.error(res.msg);
-      }
-    })
-  })
+const loginSubmit = async () => {
+  await loginRef.value.validate();
+  const res: any = await postAction('/login', loginForm);
+  if (res?.code === 200) {
+    const { token, ...userInfo } = res.data;
+    authStore.setToken(token);
+    authStore.setUserInfo(userInfo);
+    router.push({ path: "/" });
+    message.success(res.msg);
+  } else {
+    message.error(res.msg);
+  }
 }
 // 忘记密码
 const forgotPassword = () => {

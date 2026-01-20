@@ -28,20 +28,19 @@
 
 <script setup lang="ts">
 import { ref, reactive, watch, onMounted } from 'vue';
-import { columnsDeptUser } from '../dept.data';
 import { useList } from '@/hooks/useList';
-import { getAction, postAction, deleteAction } from '@/utils/httpAction';
 import { message } from 'ant-design-vue';
+
+import { DeptApiUrl, link, unlink } from '../dept.api';
+import { getUserSelect } from '../../user/user.api';
+import { columnsDeptUser } from '../dept.data';
 
 const props = defineProps({
   deptCode: { type: String, default: '', required: true }
 })
 
 const url = {
-  list: '/system/userdept/listDeptUser',
-  link: '/system/userdept/link',
-  unlink: '/system/userdept/unlink',
-  selectUser: '/system/user/select',
+  list: DeptApiUrl.USER_LIST,
 }
 
 const queryParams = reactive({ deptCode: props.deptCode });
@@ -51,8 +50,7 @@ const model = reactive({
 
 const optionsUser = ref([]);
 const getSelectUser = async () => {
-  const res = await getAction(url.selectUser, {});
-  optionsUser.value = res.data;
+  optionsUser.value = await getUserSelect();
 };
 getSelectUser();
 
@@ -65,7 +63,7 @@ const handleLink = async () => {
     message.error('请选择员工');
     return;
   }
-  const res: any = await postAction(url.link, { listUser: model.listUser, deptCode: props.deptCode });
+  const res: any = await link(model.listUser, props.deptCode);
   if (res.code === 200) {
     message.success(res.msg);
     model.listUser = [];
@@ -77,7 +75,7 @@ const handleLink = async () => {
 }
 
 async function handleUnlink(record: any) {
-  const res: any = await deleteAction(url.unlink, { id: record.id })
+  const res: any = await unlink(record.id);
   if (res.code === 200) {
     message.success(res.msg);
     queryParams.deptCode = props.deptCode;

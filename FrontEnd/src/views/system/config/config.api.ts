@@ -1,4 +1,4 @@
-import { getAction, postAction, httpAction } from '@/utils/httpAction';
+import { getAction, httpAction } from '@/utils/httpAction';
 import type { ConfigModel } from './config.types';
 
 enum ConfigApiUrl {

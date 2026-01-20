@@ -1,13 +1,3 @@
-
-/**
- * 部门传输数据接口
- * 用于定义部门数据传输时的结构
- */
-export interface DeptTranData {
-  selectedKey: string;
-  ifAddChild: boolean;
-}
-
 /**
  * 部门用户表格列字段
  */

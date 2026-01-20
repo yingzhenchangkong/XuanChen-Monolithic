@@ -1,7 +1,8 @@
 <template>
   <a-card>
     <!-- 查询区域 -->
-    <QueryFormXC v-model="queryParamsIndex" :formItems="queryFormItemsIndex" @search="loadData" @reset="handleReset" />
+    <QueryFormXC v-model="queryParamsIndex" :formItems="queryFormItemsIndex" @search="handleSearch"
+      @reset="handleReset" />
     <!--操作按钮区域-->
     <div class="btn-style">
       <a-button type="primary" @click="handleAdd">
@@ -47,19 +48,17 @@
 <script lang="ts" setup>
 import { useList } from '@/hooks/useList';
 import { ref, onMounted } from 'vue';
-import { deleteAction } from '@/utils/httpAction';
 import { message } from 'ant-design-vue';
 import OperationIndex from './modal/OperationIndex.vue';
 import Item from './Item.vue';
 
 import QueryFormXC from '@/components/xuanchen/QueryFormXC.vue';
 import { queryParamsIndex, queryFormItemsIndex, columnsIndex } from './dict.data';
+import { DictApiUrl, deleteDictApi } from './dict.api';
 
 /** url */
 const url = {
-  list: '/system/dict/list',
-  delete: '/system/dict/delete',
-  deleteBatch: '/system/dict/deleteBatch',
+  list: DictApiUrl.DICT_LIST,
 }
 const mainId = ref('');
 
@@ -75,19 +74,14 @@ const handleReset = () => {
   loadData();
 }
 /** 删除 */
-const handleDelete = (id: string) => {
-  if (!url.delete) {
-    message.error('请设置url.delete属性!')
-    return
+const handleDelete = async (id: string) => {
+  const res: any = await deleteDictApi(id);
+  if (res.code == 200) {
+    message.success(res.msg);
+    handleReset();
+  } else {
+    message.warning(res.msg);
   }
-  deleteAction(url.delete, { id: id }).then((res: any) => {
-    if (res.code == 200) {
-      message.success(res.msg);
-      handleReset();
-    } else {
-      message.warning(res.msg);
-    }
-  })
 }
 /** 选择行改变时 改变已选择行的数组 */
 const onSelectChange = (selectedRowKeys: any, selectionRows: any) => {

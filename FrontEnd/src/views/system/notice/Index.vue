@@ -48,19 +48,17 @@
 <script lang="ts" setup>
 import { reactive, ref } from 'vue';
 import { useList } from '@/hooks/useList';
-import { postAction } from '@/utils/httpAction';
 import { message } from 'ant-design-vue';
 import Detail from './modal/Detail.vue';
 
 import QueryFormXC from '@/components/xuanchen/QueryFormXC.vue';
 import { queryParamsIndex, queryFormItemsIndex, columnsIndex } from './notice.data';
 import { getDictSelect } from '../dict/dict.api';
+import { NoticeApiUrl, setReadBatchApi, setReadAllApi } from './notice.api';
 
 /** url */
 const url = reactive({
-  list: '/system/notice/listUser',
-  setReadBatch: '/system/notice/setReadBatch',
-  setReadAll: '/system/notice/setReadAll',
+  list: NoticeApiUrl.LIST_USER,
 })
 
 const refDetail = ref();
@@ -69,7 +67,7 @@ const handleDetail = (record: any) => {
 }
 
 /** 批量标记为已读 */
-const handleReadBatch = () => {
+const handleReadBatch = async () => {
   if (state.selectedRowKeys.length <= 0) {
     message.warning('请选择一条记录！')
     return
@@ -78,27 +76,23 @@ const handleReadBatch = () => {
   state.selectedRows.forEach(item => {
     ids.push(item.noticeStatusId);
   })
-  postAction(url.setReadBatch, { ids }).then((res: any) => {
-    if (res.code == 200) {
-      message.success(res.msg);
-      loadData();
-    } else {
-      message.warning(res.msg);
-    }
-  })
+  const res: any = await setReadBatchApi(ids);
+  if (res.code == 200) {
+    message.success(res.msg);
+    loadData();
+  } else {
+    message.warning(res.msg);
+  }
 }
-
-
 /** 全部标记为已读 */
-const handleReadAll = () => {
-  postAction(url.setReadAll, {}).then((res: any) => {
-    if (res.code === 200) {
-      message.success(res.msg);
-      loadData();
-    } else {
-      message.error(res.msg);
-    }
-  });
+const handleReadAll = async () => {
+  const res: any = await setReadAllApi();
+  if (res.code === 200) {
+    message.success(res.msg);
+    loadData();
+  } else {
+    message.error(res.msg);
+  }
 }
 /** 重置 */
 const handleReset = () => {
@@ -114,7 +108,7 @@ const {
 loadData();
 
 /** 获取阅读状态数据(通知列表) */
-export const loadStatus = async () => {
+const loadStatus = async () => {
   queryFormItemsIndex[1]!.options = await getDictSelect("yes_no");
 };
 loadStatus();

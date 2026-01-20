@@ -49,26 +49,19 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
 import type { Rule } from 'ant-design-vue/es/form';
-import { getAction, postAction, httpAction } from '@/utils/httpAction';
 import { message } from 'ant-design-vue';
-import type { DeptTranData } from '../dept.data';
 import DeptUser from './DeptUser.vue';
 
-const url = {
-  getDeptTree: '/system/dept/getDeptTree',
-  getSelectedDept: '/system/dept/getSelectedDept',
-  createDeptCode: '/system/dept/createDeptCode',
-  add: '/system/dept/add',
-  edit: '/system/dept/edit',
-}
+import { getDeptTreeApi, getSelectedDeptApi, createDeptCodeApi, saveOrUpdate } from '../dept.api';
+import type { DeptTranData, DeptModel } from '../dept.types';
 
-const model = reactive({
+const model = reactive<DeptModel>({
   id: '',
   deptCode: '',
   parentDeptCode: undefined as string | undefined,
   deptName: '',
   status: true,
-  orderNo: '',
+  orderNo: undefined,
 })
 
 const labelCol = { span: 4 };
@@ -82,17 +75,13 @@ const rules: Record<string, Rule[]> = {
     { required: true, message: '请输入部门名称', trigger: 'blur' },
   ],
 }
+
 const handleSave = async () => {
-  try {
-    const httpurl = model.id ? url.edit : url.add;
-    const method = model.id ? 'put' : 'post';
-    const res: any = await httpAction(httpurl, model, method);
-    message.success(res.msg);
-    emit('childData', { selectedKey: model.deptCode, ifAddChild: false });
-  } catch (error: any) {
-    message.error("保存失败，请稍后重试！");
-  }
-}
+  await rulesRef.value.validate();
+  const res: any = await saveOrUpdate(model);
+  message.success(res.msg);
+  emit('childData', { selectedKey: model.deptCode, ifAddChild: false });
+};
 
 const handleReset = () => {
   model.id = '';
@@ -100,16 +89,17 @@ const handleReset = () => {
   model.parentDeptCode = undefined as string | undefined;
   model.deptName = '';
   model.status = true;
-  model.orderNo = '';
+  model.orderNo = undefined;
+  ;
 }
 
 const getDeptTree = async () => {
-  treeData.value = await getAction(url.getDeptTree, {});
+  treeData.value = await getDeptTreeApi();
 }
 getDeptTree();
 
 const getSelectedDept = async (deptCode: string) => {
-  const res: any = await getAction(url.getSelectedDept, { deptCode });
+  const res: any = await getSelectedDeptApi(deptCode);
   model.id = res.id;
   model.deptCode = res.deptCode;
   model.deptName = res.deptName;
@@ -118,7 +108,7 @@ const getSelectedDept = async (deptCode: string) => {
 }
 
 const createDeptCode = async (value: string) => {
-  const res: any = await postAction(url.createDeptCode, { parentDeptCode: value });
+  const res: any = await createDeptCodeApi(value);
   model.deptCode = res;
 }
 
@@ -143,7 +133,7 @@ const recParentData = async (data: DeptTranData) => {
     model.parentDeptCode = undefined;
     model.deptName = '';
     model.status = true;
-    model.orderNo = '';
+    model.orderNo = undefined;
     await createDeptCode('');
     await getDeptTree();
   } else {
@@ -153,7 +143,7 @@ const recParentData = async (data: DeptTranData) => {
       model.parentDeptCode = data.selectedKey;
       model.deptName = '';
       model.status = true;
-      model.orderNo = '';
+      model.orderNo = undefined;
     } else {
       await getDeptTree();
       model.parentDeptCode = getParentCode(treeData.value, data.selectedKey);

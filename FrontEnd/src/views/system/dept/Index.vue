@@ -13,7 +13,7 @@
 import { ref } from 'vue';
 import DeptTree from './modules/DeptTree.vue';
 import DeptInfo from './modules/DeptInfo.vue';
-import type { DeptTranData } from './dept.data';
+import type { DeptTranData } from './dept.types';
 
 const refDeptTree = ref();
 const recDataDeptTree = (data: DeptTranData) => {

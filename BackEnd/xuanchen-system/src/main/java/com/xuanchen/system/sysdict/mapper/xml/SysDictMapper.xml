@@ -28,6 +28,4 @@
             AND dict_name = #{sysDict.dictName}
         </if>
     </select>
-
-
 </mapper>

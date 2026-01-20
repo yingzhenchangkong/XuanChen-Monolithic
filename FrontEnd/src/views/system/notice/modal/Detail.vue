@@ -14,28 +14,27 @@
 </template>
 
 <script setup lang="ts">
-import { postAction } from '@/utils/httpAction';
 import { reactive, ref } from 'vue';
+import { setReadApi } from '../notice.api';
+import type { NoticeModel } from '../notice.types';
 
-/** url */
-const url = reactive({
-  setRead: '/system/notice/setRead',
-})
 const emit = defineEmits(['childOK']);
 const visible = ref(false);
-const model = reactive({
+const model = reactive<NoticeModel>({
+  id: '',
   title: '',
   content: '',
   createName: '',
-  createTime: '',
+  createTime: undefined,
+  noticeStatusId: '',
 })
-const detail = (records: any) => {
+const detail = async (records: NoticeModel) => {
   visible.value = true;
   model.title = records.title;
   model.content = records.content;
   model.createName = records.createName;
   model.createTime = records.createTime;
-  postAction(url.setRead, { noticeStatusId: records.noticeStatusId });
+  await setReadApi(records.noticeStatusId);
 }
 
 const handleCancel = () => {

@@ -35,6 +35,7 @@
         </a-tag>
       </template>
     </div>
+    <!--表格区域-->
     <a-table :dataSource="dataSource" :columns="columnsRecBin" :pagination="ipagination" :loading="loading"
       :row-selection="{ selectedRowKeys: state.selectedRowKeys, onChange: onSelectChange }" bordered rowKey="id"
       size="small" @change="handleTableChange">

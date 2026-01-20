@@ -15,15 +15,18 @@
 
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
+import type { NoticeModel } from '../notice.types';
 
 const visible = ref(false);
-const model = reactive({
+const model = reactive<NoticeModel>({
+  id: '',
   title: '',
   content: '',
   createName: '',
-  createTime: '',
+  createTime: undefined,
+  noticeStatusId: '',
 })
-const detail = (records: any) => {
+const detail = (records: NoticeModel) => {
   visible.value = true;
   model.title = records.title;
   model.content = records.content;

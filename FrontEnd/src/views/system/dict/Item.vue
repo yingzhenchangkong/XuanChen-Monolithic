@@ -39,6 +39,7 @@ import { useList } from '@/hooks/useList'
 import { watch } from 'vue';
 import OperationItem from './modal/OperationItem.vue';
 
+import { DictApiUrl } from './dict.api';
 import { queryParamsItem, columnsItem } from './dict.data';
 
 const props = defineProps({
@@ -56,8 +57,8 @@ watch(() => props.mainId, (newVal, oldVal) => {
 
 /** url */
 const url = {
-  list: '/system/dict/listItem',
-  delete: '/system/dict/deleteItem',
+  list: DictApiUrl.DICT_ITEM_LIST,
+  delete: DictApiUrl.DICT_ITEM_DELETE,
 }
 
 /** 重置 */

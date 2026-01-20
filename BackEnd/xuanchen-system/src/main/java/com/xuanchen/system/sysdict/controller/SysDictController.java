@@ -113,7 +113,7 @@ public class SysDictController {
     }
 
     /**
-     * 校验 参数 是否已存在
+     * 校验 DICT参数 是否已存在
      *
      * @param sysDict
      * @return
@@ -183,5 +183,21 @@ public class SysDictController {
     public Result deleteItem(@RequestParam(name = "id", required = true) String id) {
         sysDictItemService.removeById(id);
         return Result.success(TipConst.DEL_SUCC);
+    }
+
+    /**
+     * 校验 ITEM参数 是否已存在
+     *
+     * @param sysDictItem
+     * @return
+     */
+    @GetMapping("/validateItem")
+    public Result validateItem(SysDictItem sysDictItem) {
+        boolean exists = StringUtil.isEmpty(sysDictItem.getId())
+                ? sysDictItemService.ifExistsNoId(sysDictItem)
+                : sysDictItemService.ifExistsId(sysDictItem);
+        return exists
+                ? Result.error()
+                : Result.success();
     }
 }

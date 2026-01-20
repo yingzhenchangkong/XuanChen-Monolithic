@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.xuanchen.system.sysdict.entity.SysDictItem;
 import com.xuanchen.system.sysdict.mapper.SysDictItemMapper;
 import com.xuanchen.system.sysdict.service.ISysDictItemService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -14,4 +15,16 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class SysDictItemServiceImpl extends ServiceImpl<SysDictItemMapper, SysDictItem> implements ISysDictItemService {
+    @Autowired
+    private SysDictItemMapper sysDictItemMapper;
+
+    @Override
+    public Boolean ifExistsId(SysDictItem sysDictItem) {
+        return sysDictItemMapper.ifExistsId(sysDictItem).size() > 0;
+    }
+
+    @Override
+    public Boolean ifExistsNoId(SysDictItem sysDictItem) {
+        return sysDictItemMapper.ifExistsNoId(sysDictItem).size() > 0;
+    }
 }
