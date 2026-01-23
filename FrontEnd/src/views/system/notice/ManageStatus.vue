@@ -10,14 +10,14 @@ import { useList } from '@/hooks/useList'
 import { watch } from 'vue';
 
 import { queryParamsStatus, columnsStatus } from './notice.data';
-
+import { NoticeApiUrl } from './notice.api';
 const props = defineProps({
   mainId: String
 })
 
 /** url */
 const url = {
-  list: '/system/notice/listManageStatus',
+  list: NoticeApiUrl.LIST_MANAGE_STATUS,
 }
 
 watch(() => props.mainId, (newVal, oldVal) => {

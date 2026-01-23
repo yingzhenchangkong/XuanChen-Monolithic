@@ -106,10 +106,16 @@ public class SysUser implements Serializable {
     @TableField(exist = false)
     private String[] deptIds;
     /**
+     * 岗位IDS
+     */
+    @ExcelIgnore
+    @TableField(exist = false)
+    private String[] postIds;
+    /**
      * 文件列表
      */
     @ExcelIgnore
     @TableField(exist = false)
-    private String fileList;
+    private String[] fileList;
 
 }

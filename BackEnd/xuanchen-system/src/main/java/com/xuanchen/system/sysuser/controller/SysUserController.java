@@ -18,6 +18,8 @@ import com.xuanchen.system.sysuser.entity.SysUser;
 import com.xuanchen.system.sysuser.service.ISysUserService;
 import com.xuanchen.system.sysuserdept.entity.SysUserDept;
 import com.xuanchen.system.sysuserdept.service.ISysUserDeptService;
+import com.xuanchen.system.sysuserpost.entity.SysUserPost;
+import com.xuanchen.system.sysuserpost.service.ISysUserPostService;
 import com.xuanchen.system.sysuserrole.entity.SysUserRole;
 import com.xuanchen.system.sysuserrole.service.ISysUserRoleService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -54,6 +56,8 @@ public class SysUserController {
     private ISysUserRoleService sysUserRoleService;
     @Autowired
     private ISysUserDeptService sysUserDeptService;
+    @Autowired
+    private ISysUserPostService sysUserPostService;
     @Value("${xuanchen.path.upload}")
     private String uploadPath;
 
@@ -158,6 +162,9 @@ public class SysUserController {
         sysUserRoleService.add(sysUser.getId(), sysUser.getRoleIds());
         // 添加 用户、部门关系
         sysUserDeptService.add(sysUser.getId(), sysUser.getDeptIds());
+        // 添加 用户、岗位关系
+        sysUserPostService.add(sysUser.getId(), sysUser.getPostIds());
+
         return Result.success(TipConst.ADD_SUCC);
     }
 
@@ -182,6 +189,13 @@ public class SysUserController {
         sysUserDeptService.remove(qwUserDept);
         // 添加 用户、部门关系
         sysUserDeptService.add(sysUser.getId(), sysUser.getDeptIds());
+
+        // 根据用户编码 删除 用户、岗位关系
+        QueryWrapper<SysUserPost> qwUserPost = new QueryWrapper<>();
+        qwUserPost.eq("user_id", sysUser.getId());
+        sysUserPostService.remove(qwUserPost);
+        // 添加 用户、岗位关系
+        sysUserPostService.add(sysUser.getId(), sysUser.getPostIds());
         return Result.success(TipConst.EDIT_SUCC);
     }
 

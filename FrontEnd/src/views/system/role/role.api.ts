@@ -24,9 +24,15 @@ enum RoleApiUrl {
   ASSIGN_USER_AUTH_BATCH = '/system/userrole/authBatch',
   ASSIGN_USER_CANCEL_AUTH = '/system/userrole/cancelAuth',
   ASSIGN_USER_CANCEL_AUTH_BATCH = '/system/userrole/cancelAuthBatch',
+  SELECT = '/system/role/select',
 }
 
 export { RoleApiUrl };
+
+export const getRoleSelect = async () => {
+  const res: any = await getAction(RoleApiUrl.SELECT, {});
+  return res.data;
+}
 
 export const validateRoleCodeApi = async (id: string, roleCode: string) => {
   const res: any = await getAction(RoleApiUrl.OPERATION_VALIDATE, { id, roleCode });

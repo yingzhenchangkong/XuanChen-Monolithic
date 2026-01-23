@@ -52,7 +52,7 @@
     <a-table :dataSource="dataSource" :columns="columns" :pagination="ipagination" :loading="loading"
       :row-selection="{ selectedRowKeys: state.selectedRowKeys, onChange: onSelectChange }" bordered rowKey="id"
       size="small" @change="handleTableChange">
-      <template #bodyCell="{ column, text, record }">
+      <template #bodyCell="{ column, text, record, index }">
         <template v-if="column.dataIndex === 'operation'">
           <a @click="handleEdit(record)">
             <EditOutlined /> 编辑
@@ -113,8 +113,9 @@
           </a-avatar>
         </template>
         <template v-else-if="column.dataIndex === 'status'">
-          <a-tag :color="record.status === 1 ? 'green' : 'volcano'">
-            {{ record.status === 1 ? '启用' : '冻结' }}
+          <a-tag :color="record.status === 1 ? 'green' : 'volcano'" :style="{ cursor: 'pointer' }"
+            @click="handleStatusChange(record, index)">
+            {{ dataSource[index].status === 1 ? '正常' : '冻结' }}
           </a-tag>
         </template>
       </template>
@@ -127,7 +128,7 @@
 </template>
 
 <script setup lang="ts">
-//TODO:列表中实现点击启用或冻结按钮，修改状态，新增和编辑时添加修改状态按钮
+//TODO:列表中实现点击启用或冻结按钮，修改状态，新增和编辑时添加修改状态按钮,岗位添加修改
 import { useList } from '@/hooks/useList'
 import { ref } from 'vue';
 import { getImageView } from '@/utils/ImageUtil';
@@ -154,6 +155,13 @@ const handleReset = () => {
   queryParams.nickName = ''
   queryParams.mobile = ''
   loadData()
+}
+
+const handleStatusChange = (record: any, index: number) => {
+  dataSource.value[index].status = record.status === 1 ? 2 : 1
+  console.log(dataSource.value[index]);
+  
+  //postAction(url.changeStatus, dataSource.value[index])
 }
 
 const refResetPassword = ref();

@@ -32,17 +32,22 @@
           </template>
         </a-select>
       </a-form-item>
+      <a-form-item name="postIds" label="岗位" :labelCol="labelCol" :wrapperCol="wrapperCol">
+        <a-select v-model:value="model.postIds" mode="multiple" style="width: 100%" :options="optionsPostIds"
+          :fieldNames="{ label: 'postName', value: 'id' }" placeholder="请选择岗位" :max-tag-count="maxTagCount" allowClear>
+          <template #maxTagPlaceholder="omittedValues">
+            <span style="color: red">+ {{ omittedValues.length }} ...</span>
+          </template>
+        </a-select>
+      </a-form-item>
+      <a-form-item name="status" label="账号状态" :labelCol="labelCol" :wrapperCol="wrapperCol">
+        <a-radio-group v-model:value="model.status">
+          <a-radio value="1">正常</a-radio>
+          <a-radio value="0">禁用</a-radio>
+        </a-radio-group>
+      </a-form-item>
       <a-form-item name="avatar" label="头像" :labelCol="labelCol" :wrapperCol="wrapperCol">
-        <a-upload v-model:file-list="fileList" name="file" list-type="picture-card" class="avatar-uploader"
-          :show-upload-list="false" :action="url.upload" :headers="headers" :data="{ customPath: customPath }"
-          :before-upload="beforeUpload" @change="handleChange">
-          <img v-if="model.avatar" :src="imageUrl" alt="avatar" width="100px" height="100px" />
-          <div v-else>
-            <loading-outlined v-if="loading"></loading-outlined>
-            <plus-outlined v-else></plus-outlined>
-            <div class="ant-upload-text">上传头像</div>
-          </div>
-        </a-upload>
+        <UploadImageXC v-model:file-list="model.fileList" image-path="avatar" :max-count="maxCount" />
       </a-form-item>
     </a-form>
   </a-modal>
@@ -50,20 +55,18 @@
 
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
-import { PlusOutlined, LoadingOutlined } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
-import type { UploadChangeParam } from 'ant-design-vue';
 import type { Rule } from 'ant-design-vue/es/form';
-import { getAction, httpAction } from '@/utils/httpAction';
-import { useAuthStore } from '@/stores';
+import UploadImageXC from '@/components/xuanchen/UploadImageXC.vue';
+
+import { validateUserNameApi, validateMobileApi, validateEmailApi, saveOrUpdate } from '../user.api';
+import { getRoleSelect } from '../../role/role.api';
+import { getDeptTreeApi } from '../../dept/dept.api';
+import { getPostSelect } from '../../post/post.api';
 
 const labelCol = { span: 4 };
 const wrapperCol = { span: 18 };
 
-const authStore = useAuthStore();
-const headers = reactive({
-  "XC-ACCESS-TOKEN": authStore.getToken(),
-})
 defineProps({
   modalTitle: {
     type: String,
@@ -71,37 +74,15 @@ defineProps({
   }
 })
 const emit = defineEmits(['childOK']);
-const url = {
-  add: '/system/user/add',
-  edit: '/system/user/edit',
-  selectDept: '/system/dept/getDeptTree',
-  selectRole: '/system/role/select',
-  upload: import.meta.env.APP_FILE_UPLOAD_PATH,
-  validate: '/system/user/validate',
+
+const validateUserName = async (_rule: Rule, value: string) => {
+  await validateUserNameApi(model.id, value);
 }
-const validateUserName = async (rule: Rule, value: string) => {
-  const res: any = await getAction(url.validate, { id: model.id, userName: value });
-  if (res.code === 500) {
-    return Promise.reject("用户名已存在!");
-  } else {
-    return Promise.resolve();
-  }
+const validateMobile = async (_rule: Rule, value: string) => {
+  await validateMobileApi(model.id, value);
 }
-const validateMobile = async (rule: Rule, value: string) => {
-  const res: any = await getAction(url.validate, { id: model.id, mobile: value });
-  if (res.code === 500) {
-    return Promise.reject("手机号已存在!");
-  } else {
-    return Promise.resolve();
-  }
-}
-const validateEmail = async (rule: Rule, value: string) => {
-  const res: any = await getAction(url.validate, { id: model.id, email: value });
-  if (res.code === 500) {
-    return Promise.reject("邮箱已存在!");
-  } else {
-    return Promise.resolve();
-  }
+const validateEmail = async (_rule: Rule, value: string) => {
+  await validateEmailApi(model.id, value);
 }
 
 const rulesRef = ref()
@@ -125,8 +106,6 @@ const rules: Record<string, Rule[]> = {
   ],
 }
 
-const customPath = "avatar";
-
 const visible = ref(false);
 const userNameDisabled = ref(false);
 const passwordVisible = ref(true);
@@ -140,22 +119,32 @@ const model = reactive({
   password: undefined,
   roleIds: undefined,
   deptIds: undefined,
+  postIds: undefined,
   avatar: undefined,
+  fileList: [] as string[],
+  status: 1
 })
 
+const maxCount = ref(1);
 const maxTagCount = ref(3);
-const optionsRoleIds = ref([])
 
+const optionsRoleIds = ref([])
 const getSelectRole = async () => {
-  const res = await getAction(url.selectRole, {});
-  optionsRoleIds.value = res.data;
+  optionsRoleIds.value = await getRoleSelect();
 }
+getSelectRole();
 
 const treeData = ref();
 const getDeptTree = async () => {
-  treeData.value = await getAction(url.selectDept, {});
+  treeData.value = await getDeptTreeApi();
 }
 getDeptTree();
+
+const optionsPostIds = ref([]);
+const getSelectPost = async () => {
+  optionsPostIds.value = await getPostSelect();
+}
+getSelectPost();
 
 //打开弹窗
 const add = () => {
@@ -173,7 +162,7 @@ const add = () => {
   model.password = undefined;
   model.roleIds = undefined;
   model.avatar = undefined;
-  fileList.value = [];
+  model.fileList = [];
 }
 const edit = (records: any) => {
   visible.value = true;
@@ -196,71 +185,20 @@ const edit = (records: any) => {
     model.deptIds = undefined;
   }
   model.avatar = records.avatar;
-  imageUrl.value = import.meta.env.APP_FILE_VIEW_PATH + records.avatar;
-  fileList.value = [];
-}
-/** 上传开始 */
-function getBase64(img: any, callback: (base64Url: string) => void) {
-  const reader = new FileReader();
-  reader.addEventListener('load', () => callback(reader.result as string));
-  reader.readAsDataURL(img);
+  model.fileList = [];
+  model.fileList.push(records.avatar);
+  model.status = records.status;
 }
 
-const fileList = ref();
-const loading = ref<boolean>(false);
-const imageUrl = ref<string>('');
-
-const handleChange = (info: UploadChangeParam) => {
-  if (info.file.status === 'uploading') {
-    loading.value = true;
-    return;
-  }
-  if (info.file.status === 'done') {
-    getBase64(info.file.originFileObj, (base64Url: string) => {
-      imageUrl.value = base64Url;
-      loading.value = false;
-      if (fileList.value && fileList.value.length > 0) {
-        model.avatar = fileList.value[0].response.msg;
-      }
-    });
-  }
-  if (info.file.status === 'error') {
-    loading.value = false;
-    message.error('上传失败');
-  }
-};
-
-const beforeUpload = (file: any) => {
-  const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
-  if (!isJpgOrPng) {
-    message.error('请上传jpg/png图片');
-  }
-  const isLt2M = file.size / 1024 / 1024 < 2;
-  if (!isLt2M) {
-    message.error('请上传小于2M的图片');
-  }
-  return isJpgOrPng && isLt2M;
-};
-/** 上传结束 */
-const handleOk = () => {
-  rulesRef.value.validate().then(() => {
-    let httpurl = '';
-    let method = '';
-    if (model.id === '') {
-      httpurl += url.add;
-      method = 'post';
-    } else {
-      httpurl += url.edit;
-      method = 'put';
-    }
-    httpAction(httpurl, model, method).then((res: any) => {
-      message.success(res.msg);
-      emit('childOK');
-    })
-    visible.value = false;
-  }).catch(() => {
-    message.error('输入有误，请重新输入');
-  })
+const handleOk = async () => {
+  await rulesRef.value.validate();
+  const fileList: any = model.fileList[0];
+  model.avatar = fileList?.response?.msg ?? '';
+  model.fileList = [];
+  const res: any = await saveOrUpdate(model);
+  message.success(res.msg);
+  emit('childOK');
+  visible.value = false;
 };
 
 //子组件方法默认为私有
@@ -268,23 +206,4 @@ defineExpose({
   add,
   edit
 })
-
-getSelectRole()
 </script>
-
-<style scoped>
-.avatar-uploader>.ant-upload {
-  width: 128px;
-  height: 128px;
-}
-
-.ant-upload-select-picture-card i {
-  font-size: 32px;
-  color: #999;
-}
-
-.ant-upload-select-picture-card .ant-upload-text {
-  margin-top: 8px;
-  color: #666;
-}
-</style>

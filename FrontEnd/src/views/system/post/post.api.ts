@@ -15,9 +15,15 @@ enum PostApiUrl {
   RECBIN_DELETE_BATCH = '/system/post/deleteRecycleBinBatch',
   RECBIN_REVERT = '/system/post/revertRecycleBin',
   RECBIN_REVERT_BATCH = '/system/post/revertRecycleBinBatch',
+  SELECT = '/system/post/select',
 }
 
 export { PostApiUrl };
+
+export const getPostSelect = async () => {
+  const res: any = await getAction(PostApiUrl.SELECT, {});
+  return res.data;
+}
 
 export const validatePostCodeApi = async (id: string, postCode: string) => {
   const res: any = await getAction(PostApiUrl.OPERATION_VALIDATE, { id, postCode });

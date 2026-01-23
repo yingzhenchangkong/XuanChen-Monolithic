@@ -10,4 +10,5 @@ import com.xuanchen.system.sysuserpost.entity.SysUserPost;
  * @date 2026-01-10
  */
 public interface ISysUserPostService extends IService<SysUserPost> {
+    Boolean add(String userId, String[] postIds);
 }

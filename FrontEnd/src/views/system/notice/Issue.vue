@@ -22,12 +22,13 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
 import type { Rule } from 'ant-design-vue/es/form';
-import { getAction, httpAction } from '@/utils/httpAction';
 import { message } from 'ant-design-vue';
+import { getUserSelect } from '../user/user.api';
 
 // Quill 局部导入组件和样式
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
+import { issueApi } from './notice.api';
 
 // Quill 编辑器配置项
 const editorOptions = {
@@ -54,11 +55,6 @@ const editorOptions = {
 const labelCol = { span: 2 };
 const wrapperCol = { span: 22 };
 
-const url = {
-  issue: '/system/notice/issue',
-  selectUser: '/system/user/select',
-}
-
 const model = reactive({
   title: '',
   content: '',
@@ -80,19 +76,14 @@ const rules: Record<string, Rule[]> = {
 
 const optionsUser = ref([]);
 const getSelectUser = async () => {
-  const res = await getAction(url.selectUser, {});
-  optionsUser.value = res.data;
+  optionsUser.value = await getUserSelect();
 };
 getSelectUser();
 
-const issueSubmit = () => {
-  rulesRef.value.validate().then(() => {
-    httpAction(url.issue, model, 'post').then((res: any) => {
-      message.success(res.msg);
-    });
-  }).catch(() => {
-    message.error('输入有误，请重新输入');
-  })
+const issueSubmit = async () => {
+  await rulesRef.value.validate();
+  const res: any = await issueApi(model);
+  message.success(res.msg);
 };
 </script>
 

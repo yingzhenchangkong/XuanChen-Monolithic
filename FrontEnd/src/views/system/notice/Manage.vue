@@ -1,7 +1,7 @@
 <template>
   <a-card>
     <!-- 查询区域 -->
-    <QueryFormXC v-model="queryParamsManage" :formItems="queryFormItemsManage" @search="loadData"
+    <QueryFormXC v-model="queryParamsManage" :formItems="queryFormItemsManage" @search="handleSearch"
       @reset="handleReset" />
     <!--表格区域-->
     <a-table :dataSource="dataSource" :columns="columnsManage" :pagination="ipagination" :loading="loading"
@@ -41,22 +41,18 @@
 <script lang="ts" setup>
 import { useList } from '@/hooks/useList'
 import { ref, onMounted } from 'vue';
-import { postAction } from '@/utils/httpAction';
 import { message } from 'ant-design-vue';
 import DetailManage from './modal/DetailManage.vue';
 import ManageStatus from './ManageStatus.vue';
 
 import QueryFormXC from '@/components/xuanchen/QueryFormXC.vue';
 import { queryParamsManage, queryFormItemsManage, columnsManage } from './notice.data';
-
-/** url */
-const url = {
-  list: '/system/notice/listManage',
-  cancel: '/system/notice/cancel',
-  recover: '/system/notice/recover'
-}
+import { cancelApi, recoverApi, NoticeApiUrl } from './notice.api';
 const mainId = ref('');
 
+const url = {
+  list: NoticeApiUrl.LIST_MANAGE,
+}
 /** 搜索 */
 const handleSearch = () => {
   loadData();
@@ -75,35 +71,25 @@ const handleDetail = (record: any) => {
   refDetail.value.detail(record);
 }
 /** 撤销 */
-const handleCancel = (id: string) => {
-  if (!url.cancel) {
-    message.error('请设置url.delete属性!')
-    return
+const handleCancel = async (id: string) => {
+  const res: any = await cancelApi(id);
+  if (res.code == 200) {
+    message.success(res.msg);
+    handleReset();
+  } else {
+    message.warning(res.msg);
   }
-  postAction(url.cancel, { id: id }).then((res: any) => {
-    if (res.code == 200) {
-      message.success(res.msg);
-      handleReset();
-    } else {
-      message.warning(res.msg);
-    }
-  })
 }
 
 /** 恢复 */
-const handleRecover = (id: string) => {
-  if (!url.recover) {
-    message.error('请设置url.recover属性!')
-    return
+const handleRecover = async (id: string) => {
+  const res: any = await recoverApi(id);
+  if (res.code == 200) {
+    message.success(res.msg);
+    handleReset();
+  } else {
+    message.warning(res.msg);
   }
-  postAction(url.recover, { id: id }).then((res: any) => {
-    if (res.code == 200) {
-      message.success(res.msg);
-      handleReset();
-    } else {
-      message.warning(res.msg);
-    }
-  })
 }
 
 /** 选择行改变时 改变已选择行的数组 */

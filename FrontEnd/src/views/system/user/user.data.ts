@@ -84,3 +84,61 @@ export const columns = [
     width: 240
   },
 ];
+
+/** 查询配置 */
+export const queryFormItemsRcvBin = [
+  {
+    name: 'userName',
+    label: '用户名',
+    type: 'input' as const,
+    placeholder: '请输入用户名'
+  },
+  {
+    name: 'nickName',
+    label: '昵称',
+    type: 'input' as const,
+    placeholder: '请输入昵称'
+  },
+];
+
+/** 定义表格的列 */
+export const columnsRcvBin = [
+  {
+    title: '#',
+    dataIndex: '',
+    key: 'rowIndex',
+    align: 'center',
+    customRender:
+      function (text: any, record: any, index: any, column: any) {
+        return parseInt(text.index) + 1;
+      }
+  },
+  {
+    title: '用户名',
+    dataIndex: 'userName',
+    align: 'center',
+    width: 110
+  },
+  {
+    title: '昵称',
+    dataIndex: 'nickName',
+    align: 'center',
+    width: 150
+  },
+  {
+    title: '手机号',
+    dataIndex: 'mobile',
+    align: 'center',
+  },
+  {
+    title: '邮箱',
+    dataIndex: 'email',
+    align: 'center',
+  },
+  {
+    title: '操作',
+    dataIndex: 'operation',
+    align: 'center',
+    width: 240
+  },
+];
