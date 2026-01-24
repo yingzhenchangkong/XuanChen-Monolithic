@@ -87,7 +87,7 @@ public class SysUserController {
         }
         Page<SysUser> page = new Page<>(pageNo, pageSize);
         IPage<SysUser> pageList = sysUserService.page(page, queryWrapper);
-        //加入角色、部门数据 开始
+        //加入角色、部门、岗位数据 开始
         List<SysUser> listSysUser = pageList.getRecords();
         for (int i = 0; i < listSysUser.size(); i++) {
             SysUser item = listSysUser.get(i);
@@ -115,27 +115,22 @@ public class SysUserController {
                 item.setDeptIds(userDeptArr);
                 listSysUser.set(i, item);
             }
+            //岗位
+            QueryWrapper<SysUserPost> qwUserPost = new QueryWrapper<>();
+            qwUserPost.eq("user_id", item.getId());
+            List<SysUserPost> listUserPost = sysUserPostService.list(qwUserPost);
+            if (listUserPost.size() > 0) {
+                String[] userPostArr = new String[listUserPost.size()];
+                for (int j = 0; j < listUserPost.size(); j++) {
+                    userPostArr[j] = listUserPost.get(j).getPostId();
+                }
+                item.setPostIds(userPostArr);
+                listSysUser.set(i, item);
+            }
         }
         pageList.setRecords(listSysUser);
-        //加入角色、部门数据 结束
+        //加入角色、部门、岗位数据 结束
         return Result.success(pageList);
-    }
-
-    /**
-     * 下拉框
-     *
-     * @param roleNames
-     * @return
-     */
-    @GetMapping("/select")
-    public Result select(@RequestParam(name = "roleNames", required = false) String roleNames) {
-        QueryWrapper<SysUser> queryWrapper = new QueryWrapper<>();
-        if (StringUtil.isNotEmpty(roleNames)) {
-            queryWrapper.like("role_names", roleNames);
-        }
-        queryWrapper.eq("status", true).orderByDesc("create_time");
-        List<SysUser> list = sysUserService.list(queryWrapper);
-        return Result.success(list);
     }
 
     /**
@@ -444,6 +439,38 @@ public class SysUserController {
         String ids = map.get("ids");
         sysUserService.revertRecycleBin(ids);
         return Result.success("还原成功！");
+    }
+
+    /**
+     * 下拉框
+     *
+     * @param roleNames
+     * @return
+     */
+    @GetMapping("/select")
+    public Result select(@RequestParam(name = "roleNames", required = false) String roleNames) {
+        QueryWrapper<SysUser> queryWrapper = new QueryWrapper<>();
+        if (StringUtil.isNotEmpty(roleNames)) {
+            queryWrapper.like("role_names", roleNames);
+        }
+        queryWrapper.eq("status", true).orderByDesc("create_time");
+        List<SysUser> list = sysUserService.list(queryWrapper);
+        return Result.success(list);
+    }
+
+    /**
+     * 状态修改
+     *
+     * @param sysUser
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "/changeStatus", method = {RequestMethod.PUT, RequestMethod.POST})
+    public Result changeStatus(@RequestBody SysUser sysUser, HttpServletRequest request) {
+        UpdateWrapper<SysUser> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.set("status", sysUser.getStatus()).eq("id", sysUser.getId());
+        sysUserService.update(updateWrapper);
+        return Result.success("状态修改成功！");
     }
 
     /**

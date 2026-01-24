@@ -145,7 +145,7 @@ const modelInfo = reactive({
   mobile: userInfo.mobile,
   email: userInfo.email,
 })
-const validateMobile = async (rule: Rule, value: string) => {
+const validateMobile = async (_rule: Rule, value: string) => {
   const res: any = await getAction(url.validateMobile, { id: modelInfo.id, mobile: value });
   if (res.code === 500) {
     return Promise.reject(res.msg);
@@ -153,7 +153,7 @@ const validateMobile = async (rule: Rule, value: string) => {
     return Promise.resolve();
   }
 }
-const validateEmail = async (rule: Rule, value: string) => {
+const validateEmail = async (_rule: Rule, value: string) => {
   const res: any = await getAction(url.validateEmail, { id: modelInfo.id, email: value });
   if (res.code === 500) {
     return Promise.reject(res.msg);
@@ -190,7 +190,7 @@ const modelPWD = reactive({
   password: '',
   confirmPassword: '',
 })
-const validateConfirmPassword = (rule: Rule, value: string) => {
+const validateConfirmPassword = (_rule: Rule, value: string) => {
   if (value !== modelPWD.password) {
     return Promise.reject('两次输入的密码不一致！');
   } else {

@@ -27,7 +27,7 @@
       :row-selection="{ selectedRowKeys: state.selectedRowKeys, onChange: onSelectChange, type: 'radio' }" bordered
       rowKey="id" size="small" :expandedRowKeys="expandedRowKeys" @expandedRowsChange="expandedRowsChange"
       @change="handleTableChange">
-      <template #bodyCell="{ column, text, record }">
+      <template #bodyCell="{ column, text, record, index }">
         <template v-if="column.dataIndex === 'operation'">
           <a href="javascript:;" @click="handleAddSub(record.id)">
             <PlusSquareOutlined /> 新增
@@ -44,8 +44,9 @@
           </a-popconfirm>
         </template>
         <template v-else-if="column.dataIndex === 'status'">
-          <a-tag :color="record.status === true ? 'green' : 'volcano'">
-            {{ record.status === true ? '启用' : '停用' }}
+          <a-tag :color="record.status === true ? 'green' : 'volcano'" :style="{ cursor: 'pointer' }"
+            @click="handleStatusChange(record, index)">
+            {{ dataSource[index].status === true ? '启用' : '停用' }}
           </a-tag>
         </template>
         <template v-else-if="column.dataIndex === 'title'">
@@ -62,12 +63,14 @@
 </template>
 
 <script lang="ts" setup>
-import { useList } from '@/hooks/useList'
 import { ref } from 'vue';
+import { message } from 'ant-design-vue';
+import { useList } from '@/hooks/useList';
+
 import Operation from './modal/Operation.vue';
 
+import { MenuApiUrl, changeStatusApi } from './menu.api';
 import { columns } from './menu.data';
-import { MenuApiUrl } from './menu.api';
 
 /** url */
 const url = {
@@ -104,6 +107,16 @@ const collapseAll = () => {
 const expandedRowsChange = (expandedRows: any) => {
   expandedRowKeys.value = expandedRows; // 点击树形表格内的展开折叠图标时
 };
+
+const handleStatusChange = async (record: any, index: number) => {
+  dataSource.value[index].status = record.status === true ? false : true;
+  const res: any = await changeStatusApi(dataSource.value[index].id, dataSource.value[index].status);
+  if (res.code === 200) {
+    message.success(res.msg);
+  } else {
+    message.error(res.msg);
+  }
+}
 
 const {
   loadData,

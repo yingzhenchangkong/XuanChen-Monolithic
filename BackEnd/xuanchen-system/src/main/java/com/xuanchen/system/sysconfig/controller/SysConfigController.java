@@ -3,6 +3,7 @@ package com.xuanchen.system.sysconfig.controller;
 import cn.idev.excel.FastExcel;
 import cn.idev.excel.support.ExcelTypeEnum;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xuanchen.common.constant.TipConst;
@@ -63,19 +64,6 @@ public class SysConfigController {
         Page<SysConfig> page = new Page<>(pageNo, pageSize);
         IPage<SysConfig> pageList = sysConfigService.page(page, queryWrapper);
         return Result.success(pageList);
-    }
-
-    /**
-     * 下拉框
-     *
-     * @return
-     */
-    @GetMapping("/select")
-    public Result select() {
-        QueryWrapper<SysConfig> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("del_flag", false).eq("status", true).orderByAsc("order_no");
-        List<SysConfig> list = sysConfigService.list(queryWrapper);
-        return Result.success(list);
     }
 
     /**
@@ -252,6 +240,34 @@ public class SysConfigController {
         String ids = map.get("ids");
         sysConfigService.revertRecycleBin(ids);
         return Result.success(TipConst.REVERT_SUCC);
+    }
+
+    /**
+     * 下拉框
+     *
+     * @return
+     */
+    @GetMapping("/select")
+    public Result select() {
+        QueryWrapper<SysConfig> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("del_flag", false).eq("status", true).orderByAsc("order_no");
+        List<SysConfig> list = sysConfigService.list(queryWrapper);
+        return Result.success(list);
+    }
+
+    /**
+     * 状态修改
+     *
+     * @param sysConfig
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "/changeStatus", method = {RequestMethod.PUT, RequestMethod.POST})
+    public Result changeStatus(@RequestBody SysConfig sysConfig, HttpServletRequest request) {
+        UpdateWrapper<SysConfig> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.set("status", sysConfig.getStatus()).eq("id", sysConfig.getId());
+        sysConfigService.update(updateWrapper);
+        return Result.success("状态修改成功！");
     }
 
     /**

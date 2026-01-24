@@ -15,7 +15,7 @@
     <a-table :dataSource="dataSource" :columns="columnsIndex" :pagination="ipagination" :loading="loading"
       :row-selection="{ selectedRowKeys: state.selectedRowKeys, onChange: onSelectChange, type: 'radio' }" bordered
       rowKey="id" size="small" @change="handleTableChange">
-      <template #bodyCell="{ column, text, record }">
+      <template #bodyCell="{ column, text, record, index }">
         <template v-if="column.dataIndex === 'operation'">
           <a @click="handleEdit(record)">
             <EditOutlined /> 编辑
@@ -28,8 +28,9 @@
           </a-popconfirm>
         </template>
         <template v-else-if="column.dataIndex === 'status'">
-          <a-tag :color="record.status === true ? 'green' : 'volcano'">
-            {{ record.status === true ? '启用' : '停用' }}
+          <a-tag :color="record.status === true ? 'green' : 'volcano'" :style="{ cursor: 'pointer' }"
+            @click="handleStatusChange(record, index)">
+            {{ dataSource[index].status === true ? '启用' : '停用' }}
           </a-tag>
         </template>
       </template>
@@ -46,15 +47,17 @@
 </template>
 
 <script lang="ts" setup>
-import { useList } from '@/hooks/useList';
 import { ref, onMounted } from 'vue';
 import { message } from 'ant-design-vue';
+import { useList } from '@/hooks/useList';
+
 import OperationIndex from './modal/OperationIndex.vue';
 import Item from './Item.vue';
 
 import QueryFormXC from '@/components/xuanchen/QueryFormXC.vue';
+import { DictApiUrl, deleteDictApi, changeStatusApi } from './dict.api';
 import { queryParamsIndex, queryFormItemsIndex, columnsIndex } from './dict.data';
-import { DictApiUrl, deleteDictApi } from './dict.api';
+
 
 /** url */
 const url = {
@@ -83,6 +86,17 @@ const handleDelete = async (id: string) => {
     message.warning(res.msg);
   }
 }
+
+const handleStatusChange = async (record: any, index: number) => {
+  dataSource.value[index].status = record.status === true ? false : true;
+  const res: any = await changeStatusApi(dataSource.value[index].id, dataSource.value[index].status);
+  if (res.code === 200) {
+    message.success(res.msg);
+  } else {
+    message.error(res.msg);
+  }
+}
+
 /** 选择行改变时 改变已选择行的数组 */
 const onSelectChange = (selectedRowKeys: any, selectionRows: any) => {
   state.selectedRowKeys = selectedRowKeys;

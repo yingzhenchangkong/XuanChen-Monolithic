@@ -1,4 +1,4 @@
-import { getAction, httpAction } from '@/utils/httpAction';
+import { getAction, postAction, httpAction } from '@/utils/httpAction';
 import type { ConfigModel } from './config.types';
 
 enum ConfigApiUrl {
@@ -7,9 +7,12 @@ enum ConfigApiUrl {
   INDEX_DELETE_BATCH = '/system/config/deleteBatch',
   INDEX_EXPORT_EXCEL = '/system/config/exportExcel',
   INDEX_IMPORT_EXCEL = '/system/config/importExcel',
+  INDEX_CHANGE_STATUS = '/system/config/changeStatus',
+
   OPERATION_ADD = '/system/config/add',
   OPERATION_EDIT = '/system/config/edit',
   OPERATION_VALIDATE = '/system/config/validate',
+
   RECBIN_LIST = '/system/config/listRecycleBin',
   RECBIN_DELETE = '/system/config/deleteRecycleBin',
   RECBIN_DELETE_BATCH = '/system/config/deleteRecycleBinBatch',
@@ -53,6 +56,10 @@ export const validateConfigValueApi = async (id: string, configValue: string) =>
   } else {
     return Promise.resolve();
   }
+}
+
+export const changeStatusApi = async (id: string, status: number) => {
+  return await postAction(ConfigApiUrl.INDEX_CHANGE_STATUS, { id, status });
 }
 
 export const saveOrUpdate = async (data: ConfigModel) => {

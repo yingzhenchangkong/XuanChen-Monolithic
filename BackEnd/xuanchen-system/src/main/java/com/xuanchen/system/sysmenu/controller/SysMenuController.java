@@ -2,6 +2,7 @@ package com.xuanchen.system.sysmenu.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.xuanchen.auth.utils.JwtUtil;
 import com.xuanchen.common.constant.AuthConst;
 import com.xuanchen.common.constant.TipConst;
@@ -47,21 +48,6 @@ public class SysMenuController {
         Map<String, Object> map = new HashMap<>();
         map.put("records", listTree);
         return Result.success(map);
-    }
-
-    /**
-     * 菜单
-     *
-     * @return
-     */
-    @RequestMapping("/authList")
-    public Result authList(HttpServletRequest request) {
-        String token = request.getHeader(AuthConst.XC_ACCESS_TOKEN);
-        String userName = JwtUtil.getUsername(token);
-        List<SysMenu> listMenu = sysMenuService.listMenuByUserName(userName);
-        List<SysMenuTree> listMenuTree = new ArrayList<>();
-        sysMenuService.listToTree(listMenuTree, listMenu, null);
-        return Result.success(listMenuTree);
     }
 
     /**
@@ -133,6 +119,36 @@ public class SysMenuController {
             }
         }
         return Result.success(TipConst.DEL_SUCC);
+    }
+
+    /**
+     * 菜单
+     *
+     * @return
+     */
+    @RequestMapping("/authList")
+    public Result authList(HttpServletRequest request) {
+        String token = request.getHeader(AuthConst.XC_ACCESS_TOKEN);
+        String userName = JwtUtil.getUsername(token);
+        List<SysMenu> listMenu = sysMenuService.listMenuByUserName(userName);
+        List<SysMenuTree> listMenuTree = new ArrayList<>();
+        sysMenuService.listToTree(listMenuTree, listMenu, null);
+        return Result.success(listMenuTree);
+    }
+
+    /**
+     * 状态修改
+     *
+     * @param sysMenu
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "/changeStatus", method = {RequestMethod.PUT, RequestMethod.POST})
+    public Result changeStatus(@RequestBody SysMenu sysMenu, HttpServletRequest request) {
+        UpdateWrapper<SysMenu> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.set("status", sysMenu.getStatus()).eq("id", sysMenu.getId());
+        sysMenuService.update(updateWrapper);
+        return Result.success("状态修改成功！");
     }
 
     /**

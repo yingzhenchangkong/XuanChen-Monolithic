@@ -7,23 +7,29 @@ enum RoleApiUrl {
   INDEX_DELETE_BATCH = '/system/role/deleteBatch',
   INDEX_EXPORT_EXCEL = '/system/role/exportExcel',
   INDEX_IMPORT_EXCEL = '/system/role/importExcel',
+  INDEX_CHANGE_STATUS = '/system/role/changeStatus',
+
   OPERATION_ADD = '/system/role/add',
   OPERATION_EDIT = '/system/role/edit',
   OPERATION_VALIDATE = '/system/role/validate',
+
   RECBIN_LIST = '/system/role/listRecycleBin',
   RECBIN_DELETE = '/system/role/deleteRecycleBin',
   RECBIN_DELETE_BATCH = '/system/role/deleteRecycleBinBatch',
   RECBIN_REVERT = '/system/role/revertRecycleBin',
   RECBIN_REVERT_BATCH = '/system/role/revertRecycleBinBatch',
+
   ASSIGN_MENU_LIST_ALL_MENU = '/system/menu/list',
   ASSIGN_MENU_LIST_AUTH_MENU = '/system/rolemenu/listAuthMenu',
   ASSIGN_MENU_SAVE_AUTH_MENU = '/system/rolemenu/saveAuthMenu',
+
   ASSIGN_USER_LIST_AUTH_USER = '/system/userrole/listAuthUser',
   ASSIGN_USER_LIST_UN_AUTH_USER = '/system/userrole/listUnAuthUser',
   ASSIGN_USER_AUTH = '/system/userrole/auth',
   ASSIGN_USER_AUTH_BATCH = '/system/userrole/authBatch',
   ASSIGN_USER_CANCEL_AUTH = '/system/userrole/cancelAuth',
   ASSIGN_USER_CANCEL_AUTH_BATCH = '/system/userrole/cancelAuthBatch',
+
   SELECT = '/system/role/select',
 }
 
@@ -50,6 +56,10 @@ export const validateRoleNameApi = async (id: string, roleName: string) => {
   } else {
     return Promise.resolve();
   }
+}
+
+export const changeStatusApi = async (id: string, status: number) => {
+  return await postAction(RoleApiUrl.INDEX_CHANGE_STATUS, { id, status });
 }
 
 export const saveOrUpdate = async (data: RoleModel) => {

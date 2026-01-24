@@ -1,6 +1,7 @@
 package com.xuanchen.system.sysdict.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xuanchen.common.constant.TipConst;
@@ -56,23 +57,6 @@ public class SysDictController {
     }
 
     /**
-     * 下拉框
-     *
-     * @return
-     */
-    @GetMapping("/select")
-    public Result select(@RequestParam(name = "dictCode") String dictCode) {
-        List<SysDictItem> list = new ArrayList<>();
-        if (StringUtil.isNotEmpty(dictCode)) {
-            QueryWrapper<SysDictItem> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("dict_code", dictCode);
-            queryWrapper.orderByAsc("order_no");
-            list = sysDictItemService.list(queryWrapper);
-        }
-        return Result.success(list);
-    }
-
-    /**
      * 添加
      *
      * @param sysDict
@@ -110,22 +94,6 @@ public class SysDictController {
         sysDictItemService.remove(queryWrapperItem);
         sysDictService.removeById(id);
         return Result.success(TipConst.DEL_SUCC);
-    }
-
-    /**
-     * 校验 DICT参数 是否已存在
-     *
-     * @param sysDict
-     * @return
-     */
-    @GetMapping("/validate")
-    public Result validate(SysDict sysDict) {
-        boolean exists = StringUtil.isEmpty(sysDict.getId())
-                ? sysDictService.ifExistsNoId(sysDict)
-                : sysDictService.ifExistsId(sysDict);
-        return exists
-                ? Result.error()
-                : Result.success();
     }
 
     /**
@@ -183,6 +151,69 @@ public class SysDictController {
     public Result deleteItem(@RequestParam(name = "id", required = true) String id) {
         sysDictItemService.removeById(id);
         return Result.success(TipConst.DEL_SUCC);
+    }
+
+    /**
+     * 下拉框
+     *
+     * @return
+     */
+    @GetMapping("/select")
+    public Result select(@RequestParam(name = "dictCode") String dictCode) {
+        List<SysDictItem> list = new ArrayList<>();
+        if (StringUtil.isNotEmpty(dictCode)) {
+            QueryWrapper<SysDictItem> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("dict_code", dictCode);
+            queryWrapper.orderByAsc("order_no");
+            list = sysDictItemService.list(queryWrapper);
+        }
+        return Result.success(list);
+    }
+
+    /**
+     * 状态修改
+     *
+     * @param sysDict
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "/changeStatus", method = {RequestMethod.PUT, RequestMethod.POST})
+    public Result changeStatus(@RequestBody SysDict sysDict, HttpServletRequest request) {
+        UpdateWrapper<SysDict> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.set("status", sysDict.getStatus()).eq("id", sysDict.getId());
+        sysDictService.update(updateWrapper);
+        return Result.success("状态修改成功！");
+    }
+
+    /**
+     * 状态修改
+     *
+     * @param sysDictItem
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "/changeStatusItem", method = {RequestMethod.PUT, RequestMethod.POST})
+    public Result changeStatusItem(@RequestBody SysDictItem sysDictItem, HttpServletRequest request) {
+        UpdateWrapper<SysDictItem> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.set("status", sysDictItem.getStatus()).eq("id", sysDictItem.getId());
+        sysDictItemService.update(updateWrapper);
+        return Result.success("状态修改成功！");
+    }
+
+    /**
+     * 校验 DICT参数 是否已存在
+     *
+     * @param sysDict
+     * @return
+     */
+    @GetMapping("/validate")
+    public Result validate(SysDict sysDict) {
+        boolean exists = StringUtil.isEmpty(sysDict.getId())
+                ? sysDictService.ifExistsNoId(sysDict)
+                : sysDictService.ifExistsId(sysDict);
+        return exists
+                ? Result.error()
+                : Result.success();
     }
 
     /**

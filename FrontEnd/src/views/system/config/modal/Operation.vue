@@ -67,18 +67,22 @@ const model = reactive<ConfigModel>({
 })
 
 const validateConfigCode = async (_rule: Rule, value: string) => {
+  if(!value) return;
   await validateConfigCodeApi(model.id, value);
 }
 
 const validateConfigName = async (_rule: Rule, value: string) => {
+  if(!value) return;
   await validateConfigNameApi(model.id, value);
 }
 
 const validateConfigKey = async (_rule: Rule, value: string) => {
+  if(!value) return;
   await validateConfigKeyApi(model.id, value);
 }
 
 const validateConfigValue = async (_rule: Rule, value: string) => {
+  if(!value) return;
   await validateConfigValueApi(model.id, value);
 }
 

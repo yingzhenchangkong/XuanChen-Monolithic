@@ -42,10 +42,12 @@ const props = defineProps({
 const emit = defineEmits(['childOK']);
 
 const validateDictItemText = async (_rule: Rule, value: string) => {
+  if(!value) return;
   await validateDictItemTextApi(model.id, model.dictCode, value);
 }
 
 const validateDictItemValue = async (_rule: Rule, value: string) => {
+  if(!value) return;
   await validateDictItemValueApi(model.id, model.dictCode, value);
 }
 

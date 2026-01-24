@@ -1,17 +1,17 @@
 /*
  Navicat Premium Dump SQL
 
- Source Server         : 本地_MySQL
+ Source Server         : 本地MySQL
  Source Server Type    : MySQL
- Source Server Version : 80041 (8.0.41)
+ Source Server Version : 80044 (8.0.44)
  Source Host           : localhost:3306
  Source Schema         : xuanchen-monolithic
 
  Target Server Type    : MySQL
- Target Server Version : 80041 (8.0.41)
+ Target Server Version : 80044 (8.0.44)
  File Encoding         : 65001
 
- Date: 16/01/2026 21:54:57
+ Date: 25/01/2026 06:34:09
 */
 
 SET NAMES utf8mb4;
@@ -103,6 +103,7 @@ CREATE TABLE `sys_dict`  (
 -- ----------------------------
 INSERT INTO `sys_dict` VALUES ('1988219272327151617', 'yes_no', '是否', 1, 1, 0, 'admin', '2025-11-11 20:16:29', NULL, NULL);
 INSERT INTO `sys_dict` VALUES ('2012158527658344450', 'config_type', '参数类型', 2, 1, 0, 'admin', '2026-01-16 21:42:32', NULL, NULL);
+INSERT INTO `sys_dict` VALUES ('2015181385600995330', 'user_status', '账号状态', 3, 1, 0, 'admin', '2026-01-25 05:54:17', NULL, NULL);
 
 -- ----------------------------
 -- Table structure for sys_dict_item
@@ -130,6 +131,8 @@ INSERT INTO `sys_dict_item` VALUES ('1988219316371537922', 'yes_no', '是', 'tru
 INSERT INTO `sys_dict_item` VALUES ('1988219354069942274', 'yes_no', '否', 'false', 2, 1, 0, 'admin', '2025-11-11 20:16:48', NULL, NULL);
 INSERT INTO `sys_dict_item` VALUES ('2012158582834413569', 'config_type', '系统', '1', 1, 1, 0, 'admin', '2026-01-16 21:42:45', NULL, NULL);
 INSERT INTO `sys_dict_item` VALUES ('2012158635976245250', 'config_type', '业务', '2', 2, 1, 0, 'admin', '2026-01-16 21:42:58', NULL, NULL);
+INSERT INTO `sys_dict_item` VALUES ('2015181432967270402', 'user_status', '正常', '1', 1, 1, 0, 'admin', '2026-01-25 05:54:29', NULL, NULL);
+INSERT INTO `sys_dict_item` VALUES ('2015181480673284097', 'user_status', '冻结', '2', 2, 1, 0, 'admin', '2026-01-25 05:54:40', NULL, NULL);
 
 -- ----------------------------
 -- Table structure for sys_menu
@@ -338,13 +341,13 @@ CREATE TABLE `sys_user`  (
 -- ----------------------------
 -- Records of sys_user
 -- ----------------------------
-INSERT INTO `sys_user` VALUES ('1757768950749499393', 'admin', '管理员', '0c633818ae54281006d5ef2ee7559d6af1df38d4fe93aea77c733adc9a817df2d3149ce6c7e053e97d67de3d028ec61c921e4b4b6b66e3b787e193bb0a6e5d39', '18931540689', 'admin@xuanchen.com', 'avatar\\2025-04-21_221928_1745246499366.png', 1, 'hBOpLQrn', 0, 'super', '2024-02-14 22:09:10', 'admin', '2026-01-06 07:05:27');
+INSERT INTO `sys_user` VALUES ('1757768950749499393', 'admin', '管理员', '0c633818ae54281006d5ef2ee7559d6af1df38d4fe93aea77c733adc9a817df2d3149ce6c7e053e97d67de3d028ec61c921e4b4b6b66e3b787e193bb0a6e5d39', '18931540689', 'admin@xuanchen.com', 'avatar\\pic1_1769293937728.png', 1, 'hBOpLQrn', 0, 'super', '2024-02-14 22:09:10', 'admin', '2026-01-25 06:32:19');
 INSERT INTO `sys_user` VALUES ('1757769284339273730', 'test01', '测试01', '77a399ac55ae7b8400f27ef6c7d936d623bf54137a6c356cd96d97d14895dcae756e60f1cfd70bc3b2069800f206950ef1ef13169898df979b034217af528acb', '18931541689', 'test01@xuanchen.com', 'avatar\\2025-04-21_221928_1745245996042.png', 1, 'RAtMIWos', 0, 'admin', '2024-02-14 22:10:30', 'admin', '2026-01-06 07:05:51');
 INSERT INTO `sys_user` VALUES ('1757769358909804546', 'test02', '测试02', '9e83250f13f5ad1d60c468602bdc399237cfa5462d1f431fca9726a888f14fb086ab3abba7197b420397f23cfa87f072f57afb3b77d8b343e0c4a434861d2b52', '18931542689', 'test02@xuanchen.com', 'avatar\\2025-04-21_221928_1745246499366.png', 1, 'icXXjqXS', 0, 'admin', '2024-02-14 22:10:48', 'admin', '2025-11-11 18:33:15');
 INSERT INTO `sys_user` VALUES ('1772395839434694658', 'test03', '测试03', 'f867ff114a35884dce6879007c0d6f80ed5215cd584bc21aa94425dc5795216d7d2b6fc7110abd503eba305eeed65bbd165093ee0742346b6a20170ae8f8c2d5', '18931543689', 'test03@xuanchen.com', 'avatar\\2025-04-21_221928_1745246712100.png', 1, 'WV!cdspi', 0, NULL, '2024-03-26 06:51:12', 'admin', '2025-11-11 18:33:22');
-INSERT INTO `sys_user` VALUES ('1772396269187276802', 'test04', '测试04', '8adc7121a7680e80c2bf7220d04e025ecdf5fca6110f603c29c4e94cf2873d161d5cf22b14ac30d0d7d58cea9000e7bd9a595f09b2e67514579932cf6d0b8bd8', '18931544689', 'test04@xuanchen.com', NULL, 1, 'fucgEGEe', 0, NULL, '2024-03-26 06:52:55', 'admin', '2026-01-06 07:06:13');
+INSERT INTO `sys_user` VALUES ('1772396269187276802', 'test04', '测试04', '8adc7121a7680e80c2bf7220d04e025ecdf5fca6110f603c29c4e94cf2873d161d5cf22b14ac30d0d7d58cea9000e7bd9a595f09b2e67514579932cf6d0b8bd8', '18931544689', 'test04@xuanchen.com', '', 1, 'fucgEGEe', 0, NULL, '2024-03-26 06:52:55', 'admin', '2026-01-06 07:06:13');
 INSERT INTO `sys_user` VALUES ('1779508954504761345', 'test05', '测试05', 'dfccc65fb09352a3f7fb7e971d96aaa9feafbc38fd5d61815ef2dc8c721743b009e4bcdc9c19cef1805a905157ee8fb66d588334803d93519608a9117631aacd', '18931545689', 'test05@xuanchen.com', '', 1, 'cFy&xQYO', 0, 'admin', '2024-04-14 21:56:11', 'admin', '2026-01-06 07:06:28');
-INSERT INTO `sys_user` VALUES ('1779511801023696897', 'test06', '测试06', 'd67ed4a624a53499d0bfa739aaf4e59071314a9cf1dd9cf59a17577a6d80d8d5f90c2dab9e3819b81321532261fea439d0869869961c5a0e980c98941389cc61', '18931546689', 'test06@xuanchen.com', 'avatar\\lieying_1713103665263.jpg', 1, 'iRbcpUG%', 0, 'admin', '2024-04-14 22:07:30', 'admin', '2026-01-06 07:06:38');
+INSERT INTO `sys_user` VALUES ('1779511801023696897', 'test06', '测试06', 'd67ed4a624a53499d0bfa739aaf4e59071314a9cf1dd9cf59a17577a6d80d8d5f90c2dab9e3819b81321532261fea439d0869869961c5a0e980c98941389cc61', '18931546689', 'test06@xuanchen.com', '', 1, 'iRbcpUG%', 0, 'admin', '2024-04-14 22:07:30', 'admin', '2026-01-25 06:01:48');
 
 -- ----------------------------
 -- Table structure for sys_user_dept
@@ -360,12 +363,12 @@ CREATE TABLE `sys_user_dept`  (
 -- ----------------------------
 -- Records of sys_user_dept
 -- ----------------------------
-INSERT INTO `sys_user_dept` VALUES ('2008313926982893569', '1757768950749499393', 'XC001');
 INSERT INTO `sys_user_dept` VALUES ('2008314025419014145', '1757769284339273730', 'XC001001001');
 INSERT INTO `sys_user_dept` VALUES ('2008314025419014146', '1757769284339273730', 'XC001001002');
 INSERT INTO `sys_user_dept` VALUES ('2008314119774076929', '1772396269187276802', 'XC001002');
 INSERT INTO `sys_user_dept` VALUES ('2008314179647766530', '1779508954504761345', 'XC001002003');
-INSERT INTO `sys_user_dept` VALUES ('2008314220831637506', '1779511801023696897', 'XC001002005');
+INSERT INTO `sys_user_dept` VALUES ('2015183277303402498', '1779511801023696897', 'XC001002005');
+INSERT INTO `sys_user_dept` VALUES ('2015190956537221122', '1757768950749499393', 'XC001');
 
 -- ----------------------------
 -- Table structure for sys_user_post
@@ -381,6 +384,8 @@ CREATE TABLE `sys_user_post`  (
 -- ----------------------------
 -- Records of sys_user_post
 -- ----------------------------
+INSERT INTO `sys_user_post` VALUES ('2015183277370511361', '1779511801023696897', '2010976815773552641');
+INSERT INTO `sys_user_post` VALUES ('2015190956537221123', '1757768950749499393', '2010855310054043650');
 
 -- ----------------------------
 -- Table structure for sys_user_role
@@ -398,10 +403,10 @@ CREATE TABLE `sys_user_role`  (
 -- ----------------------------
 INSERT INTO `sys_user_role` VALUES ('1988193296251699201', '1757769358909804546', '1745438525662351362');
 INSERT INTO `sys_user_role` VALUES ('1988193324286427138', '1772395839434694658', '1745438525662351362');
-INSERT INTO `sys_user_role` VALUES ('2008313926919979010', '1757768950749499393', '1750881083171422209');
 INSERT INTO `sys_user_role` VALUES ('2008314025351905282', '1757769284339273730', '1745438525662351362');
 INSERT INTO `sys_user_role` VALUES ('2008314119623081985', '1772396269187276802', '1745438525662351362');
 INSERT INTO `sys_user_role` VALUES ('2008314179647766529', '1779508954504761345', '1745438525662351362');
-INSERT INTO `sys_user_role` VALUES ('2008314220764528641', '1779511801023696897', '1745438525662351362');
+INSERT INTO `sys_user_role` VALUES ('2015183277303402497', '1779511801023696897', '1745438525662351362');
+INSERT INTO `sys_user_role` VALUES ('2015190956470112257', '1757768950749499393', '1750881083171422209');
 
 SET FOREIGN_KEY_CHECKS = 1;

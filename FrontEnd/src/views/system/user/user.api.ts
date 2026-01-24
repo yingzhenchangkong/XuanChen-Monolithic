@@ -1,12 +1,17 @@
-import { getAction, httpAction } from '@/utils/httpAction';
+import { getAction, postAction, httpAction } from '@/utils/httpAction';
 
 enum UserApiUrl {
-  SELECT = '/system/user/select',
-  ADD = '/system/user/add',
-  EDIT = '/system/user/edit',
-  UPLOAD = import.meta.env.APP_FILE_UPLOAD_PATH,
-  VALIDATE = '/system/user/validate',
-  CHANGE_STATUS = '/system/user/changeStatus',
+  INDEX_LIST = '/system/user/list',
+  INDEX_DELETE = '/system/user/delete',
+  INDEX_DELETE_BATCH = '/system/user/deleteBatch',
+  INDEX_EXPORT_EXCEL = '/system/user/exportExcel',
+  INDEX_IMPORT_EXCEL = '/system/user/importExcel',
+  INDEX_CHANGE_STATUS = '/system/user/changeStatus',
+
+  OPERATION_ADD = '/system/user/add',
+  OPERATION_EDIT = '/system/user/edit',
+  OPERATION_UPLOAD = import.meta.env.APP_FILE_UPLOAD_PATH,
+  OPERATION_VALIDATE = '/system/user/validate',
 
   REC_BIN_LIST = '/system/user/listRecycleBin',
   REC_BIN_DELETE = '/system/user/deleteRecycleBin',
@@ -14,6 +19,8 @@ enum UserApiUrl {
   REC_BIN_REVERT = '/system/user/revertRecycleBin',
   REC_BIN_REVERT_BATCH = '/system/user/revertRecycleBinBatch',
 
+  SELECT = '/system/user/select',
+  RESET_PASSWORD = '/system/user/resetPassword',
 }
 
 export { UserApiUrl };
@@ -32,7 +39,7 @@ export const getUserSelect = async () => {
 }
 
 export const validateUserNameApi = async (id: string, userName: string) => {
-  const res: any = await getAction(UserApiUrl.VALIDATE, { id, userName });
+  const res: any = await getAction(UserApiUrl.OPERATION_VALIDATE, { id, userName });
   if (res.code === 500) {
     return Promise.reject("用户名已存在!");
   } else {
@@ -40,7 +47,7 @@ export const validateUserNameApi = async (id: string, userName: string) => {
   }
 }
 export const validateMobileApi = async (id: string, mobile: string) => {
-  const res: any = await getAction(UserApiUrl.VALIDATE, { id, mobile });
+  const res: any = await getAction(UserApiUrl.OPERATION_VALIDATE, { id, mobile });
   if (res.code === 500) {
     return Promise.reject("手机号已存在!");
   } else {
@@ -48,7 +55,7 @@ export const validateMobileApi = async (id: string, mobile: string) => {
   }
 }
 export const validateEmailApi = async (id: string, email: string) => {
-  const res: any = await getAction(UserApiUrl.VALIDATE, { id, email });
+  const res: any = await getAction(UserApiUrl.OPERATION_VALIDATE, { id, email });
   if (res.code === 500) {
     return Promise.reject("邮箱已存在!");
   } else {
@@ -57,11 +64,15 @@ export const validateEmailApi = async (id: string, email: string) => {
 }
 
 export const changeStatusApi = async (id: string, status: number) => {
-  
+  return await postAction(UserApiUrl.INDEX_CHANGE_STATUS, { id, status });
 }
 
 export const saveOrUpdate = async (data: any) => {
-  const httpUrl = data.id ? UserApiUrl.EDIT : UserApiUrl.ADD;
+  const httpUrl = data.id ? UserApiUrl.OPERATION_EDIT : UserApiUrl.OPERATION_ADD;
   const method = data.id ? 'put' : 'post';
   return await httpAction(httpUrl, data, method);
+};
+
+export const resetPassword = async (id: string, password: string) => {
+  return await postAction(UserApiUrl.RESET_PASSWORD, { id, password });
 };

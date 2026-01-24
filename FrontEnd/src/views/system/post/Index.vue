@@ -51,7 +51,7 @@
     <a-table :dataSource="dataSource" :columns="columnsIndex" :pagination="ipagination" :loading="loading"
       :row-selection="{ selectedRowKeys: state.selectedRowKeys, onChange: onSelectChange }" bordered rowKey="id"
       size="small" @change="handleTableChange">
-      <template #bodyCell="{ column, text, record }">
+      <template #bodyCell="{ column, text, record, index }">
         <template v-if="column.dataIndex === 'operation'">
           <a @click="handleEdit(record)">
             <EditOutlined />编辑
@@ -64,8 +64,9 @@
           </a-popconfirm>
         </template>
         <template v-else-if="column.dataIndex === 'status'">
-          <a-tag :color="record.status === true ? 'green' : 'volcano'">
-            {{ record.status === true ? '启用' : '停用' }}
+          <a-tag :color="record.status === true ? 'green' : 'volcano'" :style="{ cursor: 'pointer' }"
+            @click="handleStatusChange(record, index)">
+            {{ dataSource[index].status === true ? '启用' : '停用' }}
           </a-tag>
         </template>
       </template>
@@ -77,14 +78,16 @@
 </template>
 
 <script lang="ts" setup>
-import { useList } from '@/hooks/useList'
 import { reactive, ref } from 'vue';
+import { message } from 'ant-design-vue';
+import { useList } from '@/hooks/useList';
+
 import Operation from './modal/Operation.vue';
 import RecycleBin from './modal/RecycleBin.vue';
 
 import QueryFormXC from '@/components/xuanchen/QueryFormXC.vue';
 import { queryParams, queryFormItems, columnsIndex } from './post.data';
-import { PostApiUrl } from './post.api';
+import { PostApiUrl, changeStatusApi } from './post.api';
 
 /** url */
 const url = reactive({
@@ -106,6 +109,16 @@ const refRecycleBin = ref();
 /** 回收站 */
 const handleRecycleBin = () => {
   refRecycleBin.value.show()
+}
+
+const handleStatusChange = async (record: any, index: number) => {
+  dataSource.value[index].status = record.status === true ? false : true;
+  const res: any = await changeStatusApi(dataSource.value[index].id, dataSource.value[index].status);
+  if (res.code === 200) {
+    message.success(res.msg);
+  } else {
+    message.error(res.msg);
+  }
 }
 
 const {

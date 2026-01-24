@@ -1,4 +1,4 @@
-import { getAction, httpAction } from '@/utils/httpAction';
+import { getAction, postAction, httpAction } from '@/utils/httpAction';
 import type { PostModel } from './post.types';
 
 enum PostApiUrl {
@@ -7,14 +7,18 @@ enum PostApiUrl {
   INDEX_DELETE_BATCH = '/system/post/deleteBatch',
   INDEX_EXPORT_EXCEL = '/system/post/exportExcel',
   INDEX_IMPORT_EXCEL = '/system/post/importExcel',
+  INDEX_CHANGE_STATUS = '/system/post/changeStatus',
+
   OPERATION_ADD = '/system/post/add',
   OPERATION_EDIT = '/system/post/edit',
   OPERATION_VALIDATE = '/system/post/validate',
+
   RECBIN_LIST = '/system/post/listRecycleBin',
   RECBIN_DELETE = '/system/post/deleteRecycleBin',
   RECBIN_DELETE_BATCH = '/system/post/deleteRecycleBinBatch',
   RECBIN_REVERT = '/system/post/revertRecycleBin',
   RECBIN_REVERT_BATCH = '/system/post/revertRecycleBinBatch',
+
   SELECT = '/system/post/select',
 }
 
@@ -41,6 +45,10 @@ export const validatePostNameApi = async (id: string, postName: string) => {
   } else {
     return Promise.resolve();
   }
+}
+
+export const changeStatusApi = async (id: string, status: number) => {
+  return await postAction(PostApiUrl.INDEX_CHANGE_STATUS, { id, status });
 }
 
 export const saveOrUpdate = async (data: PostModel) => {

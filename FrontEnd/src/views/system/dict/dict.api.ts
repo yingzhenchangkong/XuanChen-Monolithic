@@ -1,4 +1,4 @@
-import { getAction, deleteAction, httpAction } from '@/utils/httpAction';
+import { getAction, postAction, deleteAction, httpAction } from '@/utils/httpAction';
 import type { DictModel, DictItemModel } from './dict.types';
 
 enum DictApiUrl {
@@ -6,6 +6,7 @@ enum DictApiUrl {
   DICT_DELETE = '/system/dict/delete',
   DICT_ADD = '/system/dict/add',
   DICT_EDIT = '/system/dict/edit',
+  DICT_CHANGE_STATUS = '/system/dict/changeStatus',
   VALIDATE = '/system/dict/validate',
   SELECT = '/system/dict/select',
 
@@ -13,6 +14,7 @@ enum DictApiUrl {
   DICT_ITEM_DELETE = '/system/dict/deleteItem',
   DICT_ITEM_ADD = '/system/dict/addItem',
   DICT_ITEM_EDIT = '/system/dict/editItem',
+  DICT_ITEM_CHANGE_STATUS = '/system/dict/changeStatusItem',
   VALIDATE_ITEM = '/system/dict/validateItem',
 }
 
@@ -53,6 +55,10 @@ export const deleteDictApi = async (id: string) => {
   return await deleteAction(DictApiUrl.DICT_DELETE, { id });
 }
 
+export const changeStatusApi = async (id: string, status: number) => {
+  return await postAction(DictApiUrl.DICT_CHANGE_STATUS, { id, status });
+}
+
 export const saveOrUpdateDict = async (data: DictModel) => {
   const httpUrl = data.id ? DictApiUrl.DICT_EDIT : DictApiUrl.DICT_ADD;
   const method = data.id ? 'put' : 'post';
@@ -75,6 +81,10 @@ export const validateDictItemValueApi = async (id: string, dictCode: string, dic
   } else {
     return Promise.resolve();
   }
+}
+
+export const changeStatusItemApi = async (id: string, status: number) => {
+  return await postAction(DictApiUrl.DICT_ITEM_CHANGE_STATUS, { id, status });
 }
 
 export const saveOrUpdateDictItem = async (data: DictItemModel) => {

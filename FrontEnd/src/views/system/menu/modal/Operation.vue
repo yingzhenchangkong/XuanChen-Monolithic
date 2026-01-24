@@ -74,9 +74,11 @@ const model = reactive<MenuModel>({
 })
 
 const validateName = async (_rule: Rule, value: string) => {
+  if(!value) return;
   return await validateNameApi(model.id, value);
 }
 const validatePath = async (_rule: Rule, value: string) => {
+  if(!value) return;
   return await validatePathApi(model.id, value);
 }
 

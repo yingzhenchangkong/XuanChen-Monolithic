@@ -52,10 +52,12 @@ const model = reactive<RoleModel>({
 })
 
 const validateRoleCode = async (_rule: Rule, value: string) => {
+  if(!value) return;
   await validateRoleCodeApi(model.id, value);
 }
 
 const validateRoleName = async (_rule: Rule, value: string) => {
+  if(!value) return;
   await validateRoleNameApi(model.id, value);
 }
 

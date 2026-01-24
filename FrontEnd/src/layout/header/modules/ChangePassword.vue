@@ -37,7 +37,7 @@ const url = {
   logout: '/logout',
 }
 
-const validateConfirmPassword = (rule: Rule, value: string) => {
+const validateConfirmPassword = (_rule: Rule, value: string) => {
   if (value !== model.password) {
     return Promise.reject('两次输入的密码不一致！');
   } else {

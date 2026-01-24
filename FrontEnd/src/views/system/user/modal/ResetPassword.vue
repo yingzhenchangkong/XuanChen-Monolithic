@@ -1,6 +1,7 @@
 <template>
   <a-modal v-model:open="visible" title="重置密码" :width="500" @ok="handleOk" ok-text="确认" cancel-text="取消">
-    <a-form layout="inline" :model="model" :rules="rules" ref="rulesRef" @keyup.enter="handleOk" class="modal-form-style">
+    <a-form layout="inline" :model="model" :rules="rules" ref="rulesRef" @keyup.enter="handleOk"
+      class="modal-form-style">
       <a-form-item label="新密码" name="password" :labelCol="labelCol" :wrapperCol="wrapperCol">
         <a-input-password v-model:value="model.password" placeholder="请输入新密码" allowClear autocomplete="off" />
       </a-form-item>
@@ -13,9 +14,9 @@
 
 <script setup lang="ts">
 import { message } from 'ant-design-vue';
-import { postAction } from '@/utils/httpAction';
 import { reactive, ref } from 'vue';
 import type { Rule } from 'ant-design-vue/es/form';
+import { resetPassword } from '../user.api';
 
 const visible = ref(false);
 
@@ -28,10 +29,7 @@ const model = reactive({
   confirmPassword: '',
 })
 
-const url = {
-  resetPassword: '/system/user/resetPassword',
-}
-const validateConfirmPassword = (rule: Rule, value: string) => {
+const validateConfirmPassword = (_rule: Rule, value: string) => {
   if (value !== model.password) {
     return Promise.reject('两次输入的密码不一致！');
   } else {
@@ -60,19 +58,11 @@ const show = (id: string) => {
   }
 }
 
-const handleOk = () => {
-  rulesRef.value.validate().then(() => {
-    postAction(url.resetPassword, { id: model.id, password: model.password }).then((res: any) => {
-      if (res.code === 200) {
-        message.success(res.msg);
-      } else {
-        message.error(res.msg);
-      }
-    })
-    visible.value = false;
-  }).catch(() => {
-    message.error('输入有误，请重新输入');
-  })
+const handleOk = async () => {
+  await rulesRef.value.validate();
+  const res: any = await resetPassword(model.id, model.password);
+  message.success(res.msg);
+  visible.value = false;
 }
 
 defineExpose({

@@ -1,7 +1,9 @@
-import { getAction, httpAction } from '@/utils/httpAction';
+import { getAction, postAction, httpAction } from '@/utils/httpAction';
 import type { MenuModel } from './menu.types';
 
 enum MenuApiUrl {
+  INDEX_CHANGE_STATUS = '/system/menu/changeStatus',
+  
   LIST = '/system/menu/list',
   ADD = '/system/menu/add',
   EDIT = '/system/menu/edit',
@@ -31,6 +33,10 @@ export const validatePathApi = async (id: string, path: string) => {
   } else {
     return Promise.resolve();
   }
+}
+
+export const changeStatusApi = async (id: string, status: number) => {
+  return await postAction(MenuApiUrl.INDEX_CHANGE_STATUS, { id, status });
 }
 
 export const saveOrUpdate = async (data: MenuModel) => {

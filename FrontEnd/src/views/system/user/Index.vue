@@ -128,7 +128,6 @@
 </template>
 
 <script setup lang="ts">
-//TODO:列表中实现点击启用或冻结按钮，修改状态，新增和编辑时添加修改状态按钮,岗位添加修改
 import { useList } from '@/hooks/useList'
 import { ref } from 'vue';
 import { getImageView } from '@/utils/ImageUtil';
@@ -138,15 +137,17 @@ import RecycleBin from './modal/RecycleBin.vue';
 import ResetPassword from './modal/ResetPassword.vue';
 
 import QueryFormXC from '@/components/xuanchen/QueryFormXC.vue';
+import { UserApiUrl, changeStatusApi } from './user.api';
 import { queryParams, queryFormItems, columns } from './user.data';
+import { message } from 'ant-design-vue';
 
 /** url */
 const url = {
-  list: '/system/user/list',
-  delete: '/system/user/delete',
-  deleteBatch: '/system/user/deleteBatch',
-  exportExcel: '/system/user/exportExcel',
-  importExcel: '/system/user/importExcel',
+  list: UserApiUrl.INDEX_LIST,
+  delete: UserApiUrl.INDEX_DELETE,
+  deleteBatch: UserApiUrl.INDEX_DELETE_BATCH,
+  exportExcel: UserApiUrl.INDEX_EXPORT_EXCEL,
+  importExcel: UserApiUrl.INDEX_IMPORT_EXCEL,
 }
 
 /** 重置 */
@@ -157,11 +158,14 @@ const handleReset = () => {
   loadData()
 }
 
-const handleStatusChange = (record: any, index: number) => {
-  dataSource.value[index].status = record.status === 1 ? 2 : 1
-  console.log(dataSource.value[index]);
-  
-  //postAction(url.changeStatus, dataSource.value[index])
+const handleStatusChange = async (record: any, index: number) => {
+  dataSource.value[index].status = record.status === 1 ? 2 : 1;
+  const res: any = await changeStatusApi(dataSource.value[index].id, dataSource.value[index].status);
+  if (res.code === 200) {
+    message.success(res.msg);
+  } else {
+    message.error(res.msg);
+  }
 }
 
 const refResetPassword = ref();

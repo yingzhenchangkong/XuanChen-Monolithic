@@ -52,10 +52,12 @@ const model = reactive<PostModel>({
 })
 
 const validatePostCode = async (_rule: Rule, value: string) => {
+  if(!value) return;
   return await validatePostCodeApi(model.id, value);
 }
 
 const validatePostName = async (_rule: Rule, value: string) => {
+  if(!value) return;
   return await validatePostNameApi(model.id, value);
 }
 

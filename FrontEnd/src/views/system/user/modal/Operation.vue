@@ -41,10 +41,8 @@
         </a-select>
       </a-form-item>
       <a-form-item name="status" label="账号状态" :labelCol="labelCol" :wrapperCol="wrapperCol">
-        <a-radio-group v-model:value="model.status">
-          <a-radio value="1">正常</a-radio>
-          <a-radio value="0">禁用</a-radio>
-        </a-radio-group>
+        <a-select v-model:value="model.status" :options="optionsStatus"
+          :fieldNames="{ label: 'dictItemText', value: 'dictItemValue' }" placeholder="请选择账号状态" allowClear></a-select>
       </a-form-item>
       <a-form-item name="avatar" label="头像" :labelCol="labelCol" :wrapperCol="wrapperCol">
         <UploadImageXC v-model:file-list="model.fileList" image-path="avatar" :max-count="maxCount" />
@@ -63,6 +61,7 @@ import { validateUserNameApi, validateMobileApi, validateEmailApi, saveOrUpdate 
 import { getRoleSelect } from '../../role/role.api';
 import { getDeptTreeApi } from '../../dept/dept.api';
 import { getPostSelect } from '../../post/post.api';
+import { getDictSelect } from '../../dict/dict.api';
 
 const labelCol = { span: 4 };
 const wrapperCol = { span: 18 };
@@ -76,12 +75,15 @@ defineProps({
 const emit = defineEmits(['childOK']);
 
 const validateUserName = async (_rule: Rule, value: string) => {
+  if(!value) return;
   await validateUserNameApi(model.id, value);
 }
 const validateMobile = async (_rule: Rule, value: string) => {
+  if(!value) return;
   await validateMobileApi(model.id, value);
 }
 const validateEmail = async (_rule: Rule, value: string) => {
+  if(!value) return;
   await validateEmailApi(model.id, value);
 }
 
@@ -122,7 +124,7 @@ const model = reactive({
   postIds: undefined,
   avatar: undefined,
   fileList: [] as string[],
-  status: 1
+  status: undefined as string | undefined,
 })
 
 const maxCount = ref(1);
@@ -139,6 +141,13 @@ const getDeptTree = async () => {
   treeData.value = await getDeptTreeApi();
 }
 getDeptTree();
+
+const optionsStatus = ref([]);
+const getUserStatus = async () => {
+  const res: any = await getDictSelect('user_status');
+  optionsStatus.value = res;
+}
+getUserStatus();
 
 const optionsPostIds = ref([]);
 const getSelectPost = async () => {
@@ -161,8 +170,11 @@ const add = () => {
   model.email = '';
   model.password = undefined;
   model.roleIds = undefined;
+  model.deptIds = undefined;
+  model.postIds = undefined;
   model.avatar = undefined;
   model.fileList = [];
+  model.status = '1';
 }
 const edit = (records: any) => {
   visible.value = true;
@@ -184,10 +196,14 @@ const edit = (records: any) => {
   if (model.deptIds == null) {
     model.deptIds = undefined;
   }
+  model.postIds = records.postIds;
+  if (model.postIds == null) {
+    model.postIds = undefined;
+  }
   model.avatar = records.avatar;
   model.fileList = [];
   model.fileList.push(records.avatar);
-  model.status = records.status;
+  model.status = records.status != null ? String(records.status) : undefined;
 }
 
 const handleOk = async () => {

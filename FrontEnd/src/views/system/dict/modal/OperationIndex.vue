@@ -36,10 +36,12 @@ defineProps({
 const emit = defineEmits(['childOK']);
 
 const validateDictCode = async (_rule: Rule, value: string) => {
+  if(!value) return;
   await validateDictCodeApi(model.id, value);
 }
 
 const validateDictName = async (_rule: Rule, value: string) => {
+  if(!value) return;
   await validateDictNameApi(model.id, value);
 }
 

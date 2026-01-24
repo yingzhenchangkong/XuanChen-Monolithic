@@ -11,7 +11,7 @@
   <a-table :dataSource="dataSource" :columns="columnsItem" :pagination="ipagination" :loading="loading"
     :row-selection="{ selectedRowKeys: state.selectedRowKeys, onChange: onSelectChange, type: 'radio' }" bordered
     rowKey="id" size="small" @change="handleTableChange">
-    <template #bodyCell="{ column, text, record }">
+    <template #bodyCell="{ column, text, record, index }">
       <template v-if="column.dataIndex === 'operation'">
         <a @click="handleEdit(record)">
           <EditOutlined /> 编辑
@@ -24,8 +24,9 @@
         </a-popconfirm>
       </template>
       <template v-else-if="column.dataIndex === 'status'">
-        <a-tag :color="record.status === true ? 'green' : 'volcano'">
-          {{ record.status === true ? '启用' : '停用' }}
+        <a-tag :color="record.status === true ? 'green' : 'volcano'" :style="{ cursor: 'pointer' }"
+          @click="handleStatusChange(record, index)">
+          {{ dataSource[index].status === true ? '启用' : '停用' }}
         </a-tag>
       </template>
     </template>
@@ -35,11 +36,13 @@
 </template>
 
 <script lang="ts" setup>
-import { useList } from '@/hooks/useList'
 import { watch } from 'vue';
+import { useList } from '@/hooks/useList';
+import { message } from 'ant-design-vue';
+
 import OperationItem from './modal/OperationItem.vue';
 
-import { DictApiUrl } from './dict.api';
+import { DictApiUrl, changeStatusItemApi } from './dict.api';
 import { queryParamsItem, columnsItem } from './dict.data';
 
 const props = defineProps({
@@ -66,6 +69,17 @@ const handleReset = () => {
   queryParamsItem.dictCode = ''
   loadData()
 }
+
+const handleStatusChange = async (record: any, index: number) => {
+  dataSource.value[index].status = record.status === true ? false : true;
+  const res: any = await changeStatusItemApi(dataSource.value[index].id, dataSource.value[index].status);
+  if (res.code === 200) {
+    message.success(res.msg);
+  } else {
+    message.error(res.msg);
+  }
+}
+
 const queryParams = queryParamsItem;
 const {
   loadData,
