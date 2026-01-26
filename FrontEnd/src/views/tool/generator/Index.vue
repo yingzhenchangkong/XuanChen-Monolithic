@@ -136,50 +136,44 @@ const formRules = reactive({
   ],
 })
 
-const formSubmitDB = () => {
-  formRefDB.value.validate().then(() => {
-    getTableList();
-  })
+const formSubmitDB = async () => {
+  await formRefDB.value.validate();
+  await getTableList();
 }
 
-const formSubmit = () => {
-  formRef.value.validate().then(() => {
-    const mergedData = { ...formData, ...formDataDB };
-    getAction(url.generator, mergedData).then((res: any) => {
-      if (res && res.code === 200) {
-        message.success(res.msg);
-      } else {
-        message.error(res.msg);
-      }
-    })
-  })
+const formSubmit = async () => {
+  await formRef.value.validate();
+  const mergedData = { ...formData, ...formDataDB };
+  const res: any = await getAction(url.generator, mergedData);
+  if (res && res.code === 200) {
+    message.success(res.msg);
+  } else {
+    message.error(res.msg);
+  }
 }
 
-const getTableList = () => {
-  getAction(url.getTableList, formDataDB).then((res: any) => {
-    if (res && res.code === 200) {
-      optionsTable.value = res.data;
-    } else {
-      message.error(res.msg);
-    }
-  })
+const getTableList = async () => {
+  const res: any = await getAction(url.getTableList, formDataDB);
+  if (res && res.code === 200) {
+    optionsTable.value = res.data;
+  } else {
+    message.error(res.msg);
+  }
 }
 const handleChangeTable = () => {
   getTableInfo();
 }
-const getTableInfo = () => {
+const getTableInfo = async () => {
   const mergedData = { ...formData, ...formDataDB };
-  getAction(url.getTableInfo, mergedData).then((res: any) => {
-    if (res && res.code === 200) {
-      dataSource.value = res.data;
-    } else {
-      message.error(res.msg);
-    }
-  })
+  const res: any = await getAction(url.getTableInfo, mergedData);
+  if (res && res.code === 200) {
+    dataSource.value = res.data;
+  } else {
+    message.error(res.msg);
+  }
 }
 
 const tableSubmit = () => {
   console.log(dataSource.value, '11111111111111');
-
 }
 </script>

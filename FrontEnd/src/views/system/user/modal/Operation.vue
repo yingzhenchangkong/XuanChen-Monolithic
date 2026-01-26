@@ -75,15 +75,15 @@ defineProps({
 const emit = defineEmits(['childOK']);
 
 const validateUserName = async (_rule: Rule, value: string) => {
-  if(!value) return;
+  if (!value) return;
   await validateUserNameApi(model.id, value);
 }
 const validateMobile = async (_rule: Rule, value: string) => {
-  if(!value) return;
+  if (!value) return;
   await validateMobileApi(model.id, value);
 }
 const validateEmail = async (_rule: Rule, value: string) => {
-  if(!value) return;
+  if (!value) return;
   await validateEmailApi(model.id, value);
 }
 
@@ -200,9 +200,11 @@ const edit = (records: any) => {
   if (model.postIds == null) {
     model.postIds = undefined;
   }
-  model.avatar = records.avatar;
-  model.fileList = [];
-  model.fileList.push(records.avatar);
+  if (records.avatar) {
+    model.avatar = records.avatar;
+    model.fileList = [];
+    model.fileList.push(records.avatar);
+  }
   model.status = records.status != null ? String(records.status) : undefined;
 }
 

@@ -19,8 +19,12 @@ enum UserApiUrl {
   REC_BIN_REVERT = '/system/user/revertRecycleBin',
   REC_BIN_REVERT_BATCH = '/system/user/revertRecycleBinBatch',
 
+  USER_CENTER_UPDATE_AVATAR = '/system/user/userCenterUpdateAvatar',
+  USER_CENTER_EDIT = '/system/user/userCenterEdit',
+
   SELECT = '/system/user/select',
   RESET_PASSWORD = '/system/user/resetPassword',
+  CHANGE_PASSWORD = '/system/user/changePassword',
 }
 
 export { UserApiUrl };
@@ -75,4 +79,16 @@ export const saveOrUpdate = async (data: any) => {
 
 export const resetPassword = async (id: string, password: string) => {
   return await postAction(UserApiUrl.RESET_PASSWORD, { id, password });
+};
+
+export const userCenterUpdateAvatar = async (userName: string, avatar: string) => {
+  return await httpAction(UserApiUrl.USER_CENTER_UPDATE_AVATAR, { userName, avatar }, 'put');
+};
+
+export const userCenterEdit = async (data: any) => {
+  return await postAction(UserApiUrl.USER_CENTER_EDIT, data);
+};
+
+export const changePassword = async (token: string | null, password: string) => {
+  return await postAction(UserApiUrl.CHANGE_PASSWORD, { token, password });
 };

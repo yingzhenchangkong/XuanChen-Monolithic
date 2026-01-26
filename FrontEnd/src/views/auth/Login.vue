@@ -34,12 +34,12 @@
 </template>
 
 <script setup lang="ts">
-import { postAction } from '@/utils/httpAction';
 import { message } from 'ant-design-vue';
 import { ref, reactive } from 'vue';
 import { useAuthStore } from '@/stores';
 import router from '@/router';
 import SlideVerify from './modal/SlideVerify.vue';
+import { login } from './auth.api';
 
 const authStore = useAuthStore();
 // 表单数据
@@ -68,7 +68,7 @@ const showVerify = () => {
 // 登录
 const loginSubmit = async () => {
   await loginRef.value.validate();
-  const res: any = await postAction('/login', loginForm);
+  const res: any = await login(loginForm.userName, loginForm.password, loginForm.captcha, loginForm.rememberMe);
   if (res?.code === 200) {
     const { token, ...userInfo } = res.data;
     authStore.setToken(token);
