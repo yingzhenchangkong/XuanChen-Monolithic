@@ -25,12 +25,6 @@ public class SysConfig implements Serializable {
     @ExcelIgnore
     private String id;
     /**
-     * 参数编码
-     */
-    @ExcelProperty("参数编码")
-    @ColumnWidth(20)
-    private String configCode;
-    /**
      * 参数名称
      */
     @ExcelProperty("参数名称")

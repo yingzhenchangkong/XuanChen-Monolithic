@@ -40,6 +40,7 @@ import { useAuthStore } from '@/stores';
 import router from '@/router';
 import SlideVerify from './modal/SlideVerify.vue';
 import { login } from './auth.api';
+import { getConfigKeyValueApi } from '../system/config/config.api';
 
 const authStore = useAuthStore();
 // 表单数据
@@ -62,8 +63,13 @@ const loginRules = reactive({
   ],
 })
 const refOperation = ref()
-const showVerify = () => {
-  refOperation.value.show()
+const showVerify = async () => {
+  const res: any = await getConfigKeyValueApi("captchaEnabled");
+  if (res.data.configValue == "true") {
+    refOperation.value.show();
+  } else {
+    loginSubmit();
+  }
 }
 // 登录
 const loginSubmit = async () => {

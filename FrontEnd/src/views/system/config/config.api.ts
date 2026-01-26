@@ -18,18 +18,12 @@ enum ConfigApiUrl {
   RECBIN_DELETE_BATCH = '/system/config/deleteRecycleBinBatch',
   RECBIN_REVERT = '/system/config/revertRecycleBin',
   RECBIN_REVERT_BATCH = '/system/config/revertRecycleBinBatch',
+
+  GET_CONFIG_KEY_VALUE = '/system/config/getConfigKeyValue',
+  SET_CONFIG_KEY_VALUE = '/system/config/setConfigKeyValue'
 }
 
 export { ConfigApiUrl };
-
-export const validateConfigCodeApi = async (id: string, configCode: string) => {
-  const res: any = await getAction(ConfigApiUrl.OPERATION_VALIDATE, { id, configCode });
-  if (res.code === 500) {
-    return Promise.reject("参数编码已存在!");
-  } else {
-    return Promise.resolve();
-  }
-}
 
 export const validateConfigNameApi = async (id: string, configName: string) => {
   const res: any = await getAction(ConfigApiUrl.OPERATION_VALIDATE, { id, configName });
@@ -49,15 +43,6 @@ export const validateConfigKeyApi = async (id: string, configKey: string) => {
   }
 }
 
-export const validateConfigValueApi = async (id: string, configValue: string) => {
-  const res: any = await getAction(ConfigApiUrl.OPERATION_VALIDATE, { id, configValue });
-  if (res.code === 500) {
-    return Promise.reject("参数键值已存在!");
-  } else {
-    return Promise.resolve();
-  }
-}
-
 export const changeStatusApi = async (id: string, status: number) => {
   return await postAction(ConfigApiUrl.INDEX_CHANGE_STATUS, { id, status });
 }
@@ -67,3 +52,11 @@ export const saveOrUpdate = async (data: ConfigModel) => {
   const method = data.id ? 'put' : 'post';
   return await httpAction(httpUrl, data, method);
 };
+
+export const getConfigKeyValueApi = async (configKey: string) => {
+  return await getAction(ConfigApiUrl.GET_CONFIG_KEY_VALUE, { configKey });
+}
+
+export const setConfigKeyValueApi = async (configKey: string, configValue: string) => {
+  return await postAction(ConfigApiUrl.SET_CONFIG_KEY_VALUE, { configKey, configValue });
+}

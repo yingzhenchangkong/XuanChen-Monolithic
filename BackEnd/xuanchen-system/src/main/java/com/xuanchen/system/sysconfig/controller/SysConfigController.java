@@ -158,7 +158,7 @@ public class SysConfigController {
             List<SysConfig> dataList = listenter.getDataList();
             List<SysConfig> listSysConfig = new ArrayList<>();
             for (SysConfig sysConfig : dataList) {
-                SysConfig sysConfigTemp = sysConfigService.getOne(new QueryWrapper<SysConfig>().eq("config_code", sysConfig.getConfigCode()));
+                SysConfig sysConfigTemp = sysConfigService.getOne(new QueryWrapper<SysConfig>().eq("config_key", sysConfig.getConfigKey()));
                 if (sysConfigTemp != null) {
                     continue;
                 }
@@ -284,5 +284,38 @@ public class SysConfigController {
         return exists
                 ? Result.error()
                 : Result.success();
+    }
+
+    /**
+     * 通过键获取值
+     *
+     * @param sysConfig
+     * @return
+     */
+    @GetMapping("/getConfigKeyValue")
+    public Result getConfigKeyValue(SysConfig sysConfig) {
+        QueryWrapper<SysConfig> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("config_key", sysConfig.getConfigKey());
+        SysConfig sysConfigResult = sysConfigService.getOne(queryWrapper);
+        return Result.success(sysConfigResult);
+    }
+
+    /**
+     * 通过键设置值
+     *
+     * @param sysConfig
+     * @return
+     */
+    @PostMapping("setConfigKeyValue")
+    public Result setConfigKeyValue(@RequestBody SysConfig sysConfig) {
+        QueryWrapper<SysConfig> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("config_key", sysConfig.getConfigKey());
+        SysConfig sysConfigResult = sysConfigService.getOne(queryWrapper);
+        if (sysConfigResult == null) {
+            return Result.error("参数不存在");
+        }
+        sysConfigResult.setConfigValue(sysConfig.getConfigValue());
+        sysConfigService.updateById(sysConfigResult);
+        return Result.success("修改成功");
     }
 }

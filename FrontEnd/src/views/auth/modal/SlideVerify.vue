@@ -1,6 +1,6 @@
 <template>
   <a-modal title="请完成安全验证" :width="360" v-model:open="visible" :footer="null" @cancel="handleCancel">
-    <slide-verify @success="onSuccess" :imgs="customImages" @fail="onFail" slider-text="向右滑动验证" />
+    <slide-verify :key="verifyKey" @success="onSuccess" :imgs="customImages" @fail="onFail" slider-text="向右滑动验证" />
   </a-modal>
 </template>
 
@@ -38,8 +38,10 @@ const handleCancel = () => {
   visible.value = false;
 }
 
+const verifyKey = ref(0);
 //打开弹窗
 const show = () => {
+  verifyKey.value++;
   visible.value = true;
 }
 //子组件方法默认为私有

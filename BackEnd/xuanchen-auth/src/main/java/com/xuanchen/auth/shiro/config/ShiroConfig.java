@@ -47,6 +47,7 @@ public class ShiroConfig {
         Map<String, String> filterChainDefinitionMap = new LinkedHashMap<>();
         filterChainDefinitionMap.put("/login", "anon");//登录
         filterChainDefinitionMap.put("/filemanage/static/**", "anon");//文件路径
+        filterChainDefinitionMap.put("/system/config/getConfigKeyValue", "anon");//验证码开关
         filterChainDefinitionMap.put("/ws/**", "anon");//websocket
         filterChainDefinitionMap.put("/ws", "anon");//websocket
         filterChainDefinitionMap.put("/**", "jwt");

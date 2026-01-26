@@ -34,23 +34,12 @@ export const columnsIndex = [
       }
   },
   {
-    title: '参数编码',
-    dataIndex: 'configCode',
-    align: 'left',
-    width: 110
-  },
-  {
     title: '参数名称',
     dataIndex: 'configName',
     align: 'left',
     width: 150
   },
-  {
-    title: '参数描述',
-    dataIndex: 'configDescription',
-    align: 'left',
-    width: 150
-  },
+
   {
     title: '参数键名',
     dataIndex: 'configKey',
@@ -60,6 +49,12 @@ export const columnsIndex = [
   {
     title: '参数键值',
     dataIndex: 'configValue',
+    align: 'left',
+    width: 150
+  },
+  {
+    title: '参数描述',
+    dataIndex: 'configDescription',
     align: 'left',
   },
   {
@@ -95,21 +90,9 @@ export const columnsRecBin = [
       }
   },
   {
-    title: '参数编码',
-    dataIndex: 'configCode',
-    align: 'center',
-    width: 110
-  },
-  {
     title: '参数名称',
     dataIndex: 'configName',
     align: 'center',
-    width: 150
-  },
-  {
-    title: '参数描述',
-    dataIndex: 'configDescription',
-    align: 'left',
     width: 150
   },
   {
@@ -121,6 +104,12 @@ export const columnsRecBin = [
   {
     title: '参数键值',
     dataIndex: 'configValue',
+    align: 'left',
+    width: 150
+  },
+  {
+    title: '参数描述',
+    dataIndex: 'configDescription',
     align: 'left',
   },
   {

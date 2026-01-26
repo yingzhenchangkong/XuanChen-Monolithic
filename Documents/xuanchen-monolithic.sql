@@ -1,17 +1,17 @@
 /*
  Navicat Premium Dump SQL
 
- Source Server         : 本地MySQL
+ Source Server         : 本地_MySQL
  Source Server Type    : MySQL
- Source Server Version : 80044 (8.0.44)
+ Source Server Version : 80041 (8.0.41)
  Source Host           : localhost:3306
  Source Schema         : xuanchen-monolithic
 
  Target Server Type    : MySQL
- Target Server Version : 80044 (8.0.44)
+ Target Server Version : 80041 (8.0.41)
  File Encoding         : 65001
 
- Date: 25/01/2026 06:34:09
+ Date: 26/01/2026 23:34:50
 */
 
 SET NAMES utf8mb4;
@@ -23,11 +23,10 @@ SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS `sys_config`;
 CREATE TABLE `sys_config`  (
   `id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '主键',
-  `config_code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '参数编码',
   `config_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '参数名称',
   `config_description` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '参数描述',
   `config_key` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '参数键名',
-  `config_value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '参数键值',
+  `config_value` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '参数键值',
   `config_type` tinyint NULL DEFAULT NULL COMMENT '参数类型(1系统2业务)',
   `order_no` int NULL DEFAULT NULL COMMENT '排序码',
   `status` tinyint(1) NULL DEFAULT NULL COMMENT '状态（1启用，0停用）',
@@ -42,6 +41,7 @@ CREATE TABLE `sys_config`  (
 -- ----------------------------
 -- Records of sys_config
 -- ----------------------------
+INSERT INTO `sys_config` VALUES ('2015795773986979841', '验证码开关', '是否启用验证码true启用false关闭', 'captchaEnabled', 'true', 1, 1, 1, 0, 'admin', '2026-01-26 22:35:39', 'admin', '2026-01-26 23:30:33');
 
 -- ----------------------------
 -- Table structure for sys_dept

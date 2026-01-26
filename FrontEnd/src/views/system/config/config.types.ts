@@ -1,6 +1,5 @@
 export interface ConfigModel {
   id: string;// 主键
-  configCode: string;//参数编码
   configName: string;//参数名称
   configDescription: string;//参数描述
   configKey: string;//参数键名

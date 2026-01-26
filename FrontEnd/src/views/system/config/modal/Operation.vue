@@ -1,9 +1,6 @@
 <template>
   <a-modal v-model:open="visible" :title="operationTitle" :width="500" @ok="handleOk" ok-text="确认" cancel-text="取消">
     <a-form layout="inline" :model="model" :rules="rules" ref="rulesRef" autoComplete="off" class="modal-form-style">
-      <a-form-item name="configCode" label="参数编码" :labelCol="labelCol" :wrapperCol="wrapperCol">
-        <a-input v-model:value="model.configCode" placeholder="请输入参数编码" allowClear :disabled="configCodeDisabled" />
-      </a-form-item>
       <a-form-item name="configName" label="参数名称" :labelCol="labelCol" :wrapperCol="wrapperCol">
         <a-input v-model:value="model.configName" placeholder="请输入参数名称" allowClear />
       </a-form-item>
@@ -35,7 +32,7 @@ import { reactive, ref } from 'vue';
 import type { Rule } from 'ant-design-vue/es/form';
 import { message } from 'ant-design-vue';
 import type { ConfigModel } from '../config.types';
-import { validateConfigCodeApi, validateConfigNameApi, validateConfigKeyApi, validateConfigValueApi, saveOrUpdate } from '../config.api';
+import { validateConfigNameApi, validateConfigKeyApi, validateConfigValueApi, saveOrUpdate } from '../config.api';
 import { getDictSelect } from '../../dict/dict.api';
 
 defineProps({
@@ -51,12 +48,10 @@ const wrapperCol = { span: 18 };
 const emit = defineEmits(['childOK']);
 
 const visible = ref(false);
-const configCodeDisabled = ref(false);
 const optionsConfigType = ref([]);
 
 const model = reactive<ConfigModel>({
   id: '',
-  configCode: '',
   configName: '',
   configDescription: '',
   configKey: '',
@@ -66,32 +61,18 @@ const model = reactive<ConfigModel>({
   status: true,
 })
 
-const validateConfigCode = async (_rule: Rule, value: string) => {
-  if(!value) return;
-  await validateConfigCodeApi(model.id, value);
-}
-
 const validateConfigName = async (_rule: Rule, value: string) => {
-  if(!value) return;
+  if (!value) return;
   await validateConfigNameApi(model.id, value);
 }
 
 const validateConfigKey = async (_rule: Rule, value: string) => {
-  if(!value) return;
+  if (!value) return;
   await validateConfigKeyApi(model.id, value);
-}
-
-const validateConfigValue = async (_rule: Rule, value: string) => {
-  if(!value) return;
-  await validateConfigValueApi(model.id, value);
 }
 
 const rulesRef = ref();
 const rules: Record<string, Rule[]> = {
-  configCode: [
-    { required: true, message: '请输入参数编码', trigger: 'blur' },
-    { required: true, validator: validateConfigCode, trigger: 'blur' }
-  ],
   configName: [
     { required: true, message: '请输入参数名称', trigger: 'blur' },
     { required: true, validator: validateConfigName, trigger: 'blur' }
@@ -104,20 +85,17 @@ const rules: Record<string, Rule[]> = {
     { required: true, validator: validateConfigKey, trigger: 'blur' }
   ],
   configValue: [
-    { required: true, message: '请输入参数键值', trigger: 'blur' },
-    { required: true, validator: validateConfigValue, trigger: 'blur' }
+    { required: true, message: '请输入参数键值', trigger: 'blur' }
   ]
 }
 
 //打开弹窗
 const add = () => {
   visible.value = true;
-  configCodeDisabled.value = false;
   if (rulesRef.value) {
     rulesRef.value.resetFields();
   }
   model.id = '';
-  model.configCode = '';
   model.configName = '';
   model.configDescription = '';
   model.configKey = '';
@@ -128,12 +106,10 @@ const add = () => {
 }
 const edit = (records: any) => {
   visible.value = true;
-  configCodeDisabled.value = true;
   if (rulesRef.value) {
     rulesRef.value.resetFields();
   }
   model.id = records.id;
-  model.configCode = records.configCode;
   model.configName = records.configName;
   model.configDescription = records.configDescription;
   model.configKey = records.configKey;

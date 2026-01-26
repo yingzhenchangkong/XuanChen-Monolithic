@@ -5,7 +5,6 @@
     <select id="listRecycleBin" resultType="com.xuanchen.system.sysconfig.entity.SysConfig">
         SELECT
         id,
-        config_code,
         config_name,
         config_description,
         config_key,
@@ -51,9 +50,6 @@
         FROM
         (SELECT * FROM sys_config WHERE id NOT IN (#{sysConfig.id})) sys_config
         WHERE 1=1
-        <if test="sysConfig.configCode != '' and sysConfig.configCode != null">
-            AND config_code = #{sysConfig.configCode}
-        </if>
         <if test="sysConfig.configName != '' and sysConfig.configName != null">
             AND config_name = #{sysConfig.configName}
         </if>
@@ -71,9 +67,6 @@
         FROM
             sys_config
         WHERE 1=1
-        <if test="sysConfig.configCode != '' and sysConfig.configCode != null">
-            AND config_code = #{sysConfig.configCode}
-        </if>
         <if test="sysConfig.configName != '' and sysConfig.configName != null">
             AND config_name = #{sysConfig.configName}
         </if>
