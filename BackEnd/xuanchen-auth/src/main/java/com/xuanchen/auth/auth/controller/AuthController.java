@@ -154,7 +154,7 @@ public class AuthController {
         if (failTimes != null) {
             val = Integer.parseInt(failTimes.toString());
         }
-        redisUtil.set(key, ++val, 10 * 60);//10分钟过期
+        redisUtil.set(key, String.valueOf(++val), 10 * 60);//10分钟过期
     }
 
     /**

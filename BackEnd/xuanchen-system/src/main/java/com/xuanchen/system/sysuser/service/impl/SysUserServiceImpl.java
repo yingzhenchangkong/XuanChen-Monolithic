@@ -1,5 +1,6 @@
 package com.xuanchen.system.sysuser.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -46,5 +47,12 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Override
     public Boolean ifExistsNoId(SysUser sysUser) {
         return sysUserMapper.ifExistsNoId(sysUser).size() > 0;
+    }
+
+    @Override
+    public SysUser getByUsername(String username) {
+        QueryWrapper<SysUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_name", username);
+        return sysUserMapper.selectOne(queryWrapper);
     }
 }

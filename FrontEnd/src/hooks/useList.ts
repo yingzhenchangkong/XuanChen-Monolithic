@@ -54,6 +54,8 @@ export const useList = (opts: any) => {
       const res = await getAction(url.list, queryParams);
       if (res) {
         dataSource.value = res.data.records;
+        console.log(res,'tttttttt');
+        
         ipagination.total = res.data.total || 0;
         handleCancelSelect()
       }

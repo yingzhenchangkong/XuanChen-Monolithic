@@ -85,7 +85,6 @@ public class ShiroRealm extends AuthorizingRealm {
             throw new AuthenticationException("Token验证失败!");
         }
         // 3、验证密码，我们可以使用一个AuthenticationInfo实现类 SimpleAuthenticationInfo shiro会自动验证
-        SimpleAuthenticationInfo simpleAuthenticationInfo = new SimpleAuthenticationInfo(authUser, token, getName());
-        return simpleAuthenticationInfo;
+        return new SimpleAuthenticationInfo(authUser, token, getName());
     }
 }

@@ -23,14 +23,13 @@ import java.util.Map;
 public class ShiroConfig {
     @Bean(name = "shiroRealm")
     public ShiroRealm shiroRealm() {
-        ShiroRealm shiroRealm = new ShiroRealm();
-        return shiroRealm;
+        return new ShiroRealm();
     }
 
     @Bean(name = "securityManager")
     public DefaultWebSecurityManager getDefaultSecurityManager(@Qualifier("shiroRealm") ShiroRealm shiroRealm) {
         DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager();
-        securityManager.setRealm(shiroRealm);
+        securityManager.setRealm(shiroRealm);//绑定自定义Realm
         return securityManager;
     }
 
@@ -54,6 +53,5 @@ public class ShiroConfig {
         shiroFilterFactoryBean.setFilterChainDefinitionMap(filterChainDefinitionMap);
 
         return shiroFilterFactoryBean;
-
     }
 }

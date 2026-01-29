@@ -1,10 +1,11 @@
 package com.xuanchen.common.utils;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -16,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class RedisUtil {
     @Autowired
-    private RedisTemplate redisTemplate;
+    private StringRedisTemplate stringRedisTemplate;
 
     /**
      * 获取缓存
@@ -25,7 +26,7 @@ public class RedisUtil {
      * @return 值
      */
     public Object get(String key) {
-        return key == null ? null : redisTemplate.opsForValue().get(key);
+        return key == null ? null : stringRedisTemplate.opsForValue().get(key);
     }
 
     /**
@@ -35,9 +36,9 @@ public class RedisUtil {
      * @param value 值
      * @return true 成功 false 失败
      */
-    public boolean set(String key, Object value) {
+    public boolean set(String key, String value) {
         try {
-            redisTemplate.opsForValue().set(key, value);
+            stringRedisTemplate.opsForValue().set(key, value);
             return true;
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -53,10 +54,10 @@ public class RedisUtil {
      * @param time  时间(秒) time要大于0 如果time小于等于0 将设置无限期
      * @return true 成功 false 失败
      */
-    public boolean set(String key, Object value, long time) {
+    public boolean set(String key, String value, long time) {
         try {
             if (time > 0) {
-                redisTemplate.opsForValue().set(key, value, time, TimeUnit.SECONDS);
+                stringRedisTemplate.opsForValue().set(key, value, time, TimeUnit.SECONDS);
             } else {
                 set(key, value);
             }
@@ -76,10 +77,26 @@ public class RedisUtil {
     public void del(String... key) {
         if (key != null && key.length > 0) {
             if (key.length == 1) {
-                redisTemplate.delete(key[0]);
+                stringRedisTemplate.delete(key[0]);
             } else {
-                redisTemplate.delete(Arrays.asList(key));
+                stringRedisTemplate.delete(Arrays.asList(key));
             }
+        }
+    }
+
+    /**
+     * 获取匹配的键
+     *
+     * @param pattern 匹配模式
+     * @return 匹配的键集合
+     */
+    @SuppressWarnings("unchecked")
+    public Set<String> keys(String pattern) {
+        try {
+            return stringRedisTemplate.keys(pattern);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
         }
     }
 }
