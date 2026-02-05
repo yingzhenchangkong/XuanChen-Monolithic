@@ -20,11 +20,6 @@
             <artifactId>xuanchen-common</artifactId>
             <version>${xuanchen.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.xuanchen</groupId>
-            <artifactId>xuanchen-auth</artifactId>
-            <version>${xuanchen.version}</version>
-        </dependency>
     </dependencies>
 
 </project>

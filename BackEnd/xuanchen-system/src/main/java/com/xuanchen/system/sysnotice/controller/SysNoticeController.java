@@ -5,9 +5,9 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.xuanchen.auth.utils.JwtUtil;
 import com.xuanchen.common.entity.Result;
 import com.xuanchen.common.server.WebSocketServer;
+import com.xuanchen.common.service.IAuthServiceCommon;
 import com.xuanchen.system.sysnotice.entity.SysNotice;
 import com.xuanchen.system.sysnotice.entity.SysNoticeStatus;
 import com.xuanchen.system.sysnotice.service.ISysNoticeService;
@@ -37,13 +37,15 @@ public class SysNoticeController {
     private ISysNoticeStatusService sysNoticeStatusService;
     @Autowired
     private WebSocketServer webSocketServer;
+    @Autowired
+    private IAuthServiceCommon authServiceCommon;
 
     @GetMapping("/listUser")
     public Result listUser(SysNotice sysNotice,
                            @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
                            @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
                            HttpServletRequest req) {
-        String userName = JwtUtil.getUsername(req.getHeader("XC-ACCESS-TOKEN"));
+        String userName = authServiceCommon.getUserNameByToken(req.getHeader("XC-ACCESS-TOKEN"));
         sysNotice.setUserName(userName);
         Page<SysNotice> page = new Page<>(pageNo, pageSize);
         IPage<SysNotice> pageList = sysNoticeService.listUser(page, sysNotice);
@@ -96,7 +98,7 @@ public class SysNoticeController {
      */
     @GetMapping(value = "/getNoticeCount")
     public Result getNoticeCount(HttpServletRequest request) {
-        String userName = JwtUtil.getUsername(request.getHeader("XC-ACCESS-TOKEN"));
+        String userName = authServiceCommon.getUserNameByToken(request.getHeader("XC-ACCESS-TOKEN"));
         Map<String, Object> map = getNoticeCountByUserName(userName);
         return Result.success(map);
     }
@@ -145,7 +147,7 @@ public class SysNoticeController {
      */
     @PostMapping(value = "/cancel")
     public Result cancel(@RequestBody SysNotice sysNotice, HttpServletRequest request) {
-        String userName = JwtUtil.getUsername(request.getHeader("XC-ACCESS-TOKEN"));
+        String userName = authServiceCommon.getUserNameByToken(request.getHeader("XC-ACCESS-TOKEN"));
         cancelRecover(sysNotice.getId(), 2, userName);
         return Result.success("撤销成功！");
     }
@@ -159,7 +161,7 @@ public class SysNoticeController {
      */
     @PostMapping(value = "/recover")
     public Result recover(@RequestBody SysNotice sysNotice, HttpServletRequest request) {
-        String userName = JwtUtil.getUsername(request.getHeader("XC-ACCESS-TOKEN"));
+        String userName = authServiceCommon.getUserNameByToken(request.getHeader("XC-ACCESS-TOKEN"));
         cancelRecover(sysNotice.getId(), 1, userName);
         return Result.success("恢复成功！");
     }
@@ -203,7 +205,7 @@ public class SysNoticeController {
         sysNoticeStatus.setReadTime(LocalDateTime.now());
         sysNoticeStatusService.updateById(sysNoticeStatus);
 
-        String userName = JwtUtil.getUsername(request.getHeader("XC-ACCESS-TOKEN"));
+        String userName = authServiceCommon.getUserNameByToken(request.getHeader("XC-ACCESS-TOKEN"));
         Map<String, Object> map = getNoticeCountByUserName(userName);
         List<Map<String, Object>> listNotice = new ArrayList<>();
         listNotice.add(map);
@@ -226,7 +228,7 @@ public class SysNoticeController {
                 .in("id", listIds);
         sysNoticeStatusService.update(updateWrapper);
 
-        String userName = JwtUtil.getUsername(request.getHeader("XC-ACCESS-TOKEN"));
+        String userName = authServiceCommon.getUserNameByToken(request.getHeader("XC-ACCESS-TOKEN"));
         Map<String, Object> map = getNoticeCountByUserName(userName);
         List<Map<String, Object>> listNotice = new ArrayList<>();
         listNotice.add(map);
@@ -242,7 +244,7 @@ public class SysNoticeController {
      */
     @PostMapping(value = "/setReadAll")
     public Result setReadAll(HttpServletRequest request) {
-        String userName = JwtUtil.getUsername(request.getHeader("XC-ACCESS-TOKEN"));
+        String userName = authServiceCommon.getUserNameByToken(request.getHeader("XC-ACCESS-TOKEN"));
         UpdateWrapper<SysNoticeStatus> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq("user_id", userName).eq("read_status", false);
         updateWrapper.set("read_status", true);

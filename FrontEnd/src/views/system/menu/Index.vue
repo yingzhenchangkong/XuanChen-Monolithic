@@ -44,9 +44,8 @@
           </a-popconfirm>
         </template>
         <template v-else-if="column.dataIndex === 'status'">
-          <a-tag :color="record.status === true ? 'green' : 'volcano'" :style="{ cursor: 'pointer' }"
-            @click="handleStatusChange(record, index)">
-            {{ dataSource[index].status === true ? '启用' : '停用' }}
+          <a-tag :color="record.status === true ? 'green' : 'volcano'">
+            {{ record.status === true ? '启用' : '停用' }}
           </a-tag>
         </template>
         <template v-else-if="column.dataIndex === 'title'">
@@ -69,7 +68,7 @@ import { useList } from '@/hooks/useList';
 
 import Operation from './modal/Operation.vue';
 
-import { MenuApiUrl, changeStatusApi } from './menu.api';
+import { MenuApiUrl } from './menu.api';
 import { columns } from './menu.data';
 
 /** url */
@@ -107,16 +106,6 @@ const collapseAll = () => {
 const expandedRowsChange = (expandedRows: any) => {
   expandedRowKeys.value = expandedRows; // 点击树形表格内的展开折叠图标时
 };
-
-const handleStatusChange = async (record: any, index: number) => {
-  dataSource.value[index].status = record.status === true ? false : true;
-  const res: any = await changeStatusApi(dataSource.value[index].id, dataSource.value[index].status);
-  if (res.code === 200) {
-    message.success(res.msg);
-  } else {
-    message.error(res.msg);
-  }
-}
 
 const {
   loadData,

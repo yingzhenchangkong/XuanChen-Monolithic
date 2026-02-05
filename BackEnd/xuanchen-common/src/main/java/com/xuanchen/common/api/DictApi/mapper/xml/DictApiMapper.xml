@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xuanchen.common.api.DictApi.mapper.DictApiMapper">
+    <select id="translateFieldToString" resultType="String">
+        SELECT ${text}
+        FROM ${table}
+        WHERE ${code} = #{codeValue}
+    </select>
+</mapper>

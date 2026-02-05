@@ -21,16 +21,9 @@
             <version>${xuanchen.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.xuanchen</groupId>
-            <artifactId>xuanchen-auth</artifactId>
-            <version>${xuanchen.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.xuanchen</groupId>
-            <artifactId>xuanchen-system</artifactId>
-            <version>${xuanchen.version}</version>
-            <scope>compile</scope>
+            <groupId>com.github.oshi</groupId>
+            <artifactId>oshi-core</artifactId>
+            <version>${oshi.version}</version>
         </dependency>
     </dependencies>
-
 </project>

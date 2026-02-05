@@ -25,6 +25,7 @@ import java.util.Set;
 @RestController
 @RequestMapping("/monitor/cache")
 public class CacheController {
+    //TODO 待整理Redis信息，添加关注的，减少没意义的
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
 

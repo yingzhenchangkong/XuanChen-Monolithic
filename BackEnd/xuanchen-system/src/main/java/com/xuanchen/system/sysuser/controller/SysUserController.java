@@ -8,10 +8,10 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.xuanchen.auth.utils.JwtUtil;
 import com.xuanchen.common.constant.TipConst;
 import com.xuanchen.common.entity.Result;
 import com.xuanchen.common.fastexcel.FastExcelListener;
+import com.xuanchen.common.service.IAuthServiceCommon;
 import com.xuanchen.common.utils.SaltUtil;
 import com.xuanchen.common.utils.StringUtil;
 import com.xuanchen.system.sysuser.entity.SysUser;
@@ -24,8 +24,6 @@ import com.xuanchen.system.sysuserrole.entity.SysUserRole;
 import com.xuanchen.system.sysuserrole.service.ISysUserRoleService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.shiro.authz.annotation.RequiresRoles;
-import org.apache.shiro.crypto.hash.Sha512Hash;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
@@ -52,6 +50,8 @@ import java.util.Map;
 public class SysUserController {
     @Autowired
     private ISysUserService sysUserService;
+    @Autowired
+    private IAuthServiceCommon authServiceCommon;
     @Autowired
     private ISysUserRoleService sysUserRoleService;
     @Autowired
@@ -149,8 +149,7 @@ public class SysUserController {
         if (StringUtil.isEmpty(password)) {
             password = "XuanChen@888888";
         }
-        Sha512Hash sha512Hash = new Sha512Hash(password, salt, 1024);
-        sysUser.setPassword(sha512Hash.toHex());
+        sysUser.setPassword(authServiceCommon.encryptPassword(password, salt));
         //保存密码
         sysUserService.save(sysUser);
         // 添加 用户、角色关系
@@ -203,7 +202,7 @@ public class SysUserController {
     @RequestMapping(value = "/resetPassword", method = {RequestMethod.PUT, RequestMethod.POST})
     public Result resetPassword(@RequestBody SysUser sysUser) {
         String salt = SaltUtil.getSalt(8);
-        String password = new Sha512Hash(sysUser.getPassword(), salt, 1024).toHex();
+        String password = authServiceCommon.encryptPassword(sysUser.getPassword(), salt);
         UpdateWrapper<SysUser> updateWrapper = new UpdateWrapper<>();
         updateWrapper.set("salt", salt)
                 .set("password", password)
@@ -224,10 +223,10 @@ public class SysUserController {
         String paramStr = request.getReader().readLine();
         JSONObject paramJsonObject = JSON.parseObject(paramStr);
         String token = paramJsonObject.getString("token");
-        String username = JwtUtil.getUsername(token);
+        String username = authServiceCommon.getUserNameByToken(token);
         String passwordTemp = paramJsonObject.getString("password");
         String salt = SaltUtil.getSalt(8);
-        String password = new Sha512Hash(passwordTemp, salt, 1024).toHex();
+        String password = authServiceCommon.encryptPassword(passwordTemp, salt);
         UpdateWrapper<SysUser> updateWrapper = new UpdateWrapper<>();
         updateWrapper.set("password", password)
                 .set("salt", salt)
@@ -358,7 +357,7 @@ public class SysUserController {
                     continue;
                 }
                 String salt = SaltUtil.getSalt(8);
-                String encodePassword = new Sha512Hash("XuanChen@888888", salt, 1024).toHex();
+                String encodePassword = authServiceCommon.encryptPassword("XuanChen@888888", salt);
                 sysUser.setPassword(encodePassword);
                 listSysUser.add(sysUser);
             }
@@ -380,7 +379,6 @@ public class SysUserController {
      * @param req
      * @return
      */
-    @RequiresRoles("admin")
     @GetMapping("/listRecycleBin")
     public Result listRecycleBin(SysUser sysUser,
                                  @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,

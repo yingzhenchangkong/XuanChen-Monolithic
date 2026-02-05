@@ -3,10 +3,10 @@ package com.xuanchen.system.sysmenu.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import com.xuanchen.auth.utils.JwtUtil;
 import com.xuanchen.common.constant.AuthConst;
 import com.xuanchen.common.constant.TipConst;
 import com.xuanchen.common.entity.Result;
+import com.xuanchen.common.service.IAuthServiceCommon;
 import com.xuanchen.common.utils.StringUtil;
 import com.xuanchen.system.sysmenu.entity.SysMenu;
 import com.xuanchen.system.sysmenu.entity.SysMenuTree;
@@ -31,6 +31,8 @@ import java.util.Map;
 public class SysMenuController {
     @Autowired
     private ISysMenuService sysMenuService;
+    @Autowired
+    private IAuthServiceCommon authServiceCommon;
 
     /**
      * 树形列表 无分页
@@ -129,7 +131,7 @@ public class SysMenuController {
     @RequestMapping("/authList")
     public Result authList(HttpServletRequest request) {
         String token = request.getHeader(AuthConst.XC_ACCESS_TOKEN);
-        String userName = JwtUtil.getUsername(token);
+        String userName = authServiceCommon.getUserNameByToken(token);
         List<SysMenu> listMenu = sysMenuService.listMenuByUserName(userName);
         List<SysMenuTree> listMenuTree = new ArrayList<>();
         sysMenuService.listToTree(listMenuTree, listMenu, null);

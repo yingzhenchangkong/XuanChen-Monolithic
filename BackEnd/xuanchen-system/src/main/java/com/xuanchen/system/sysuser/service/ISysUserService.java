@@ -38,12 +38,4 @@ public interface ISysUserService extends IService<SysUser> {
     Boolean ifExistsId(SysUser sysUser);
 
     Boolean ifExistsNoId(SysUser sysUser);
-
-    /**
-     * 根据用户名获取用户信息
-     *
-     * @param username 用户名
-     * @return 用户信息
-     */
-    SysUser getByUsername(String username);
 }

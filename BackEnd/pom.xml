@@ -42,6 +42,8 @@
 
         <shiro.version>2.0.6</shiro.version>
         <jwt.version>4.5.0</jwt.version>
+
+        <oshi.version>6.9.3</oshi.version>
     </properties>
 
     <dependencyManagement>

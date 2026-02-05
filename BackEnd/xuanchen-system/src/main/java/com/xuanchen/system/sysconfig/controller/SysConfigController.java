@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.xuanchen.common.aspect.annotation.LogOperation;
 import com.xuanchen.common.constant.TipConst;
 import com.xuanchen.common.entity.Result;
 import com.xuanchen.common.fastexcel.FastExcelListener;
@@ -48,6 +49,7 @@ public class SysConfigController {
      * @param req
      * @return
      */
+    @LogOperation(value = "配置信息分页列表", module = "SYSTEM")
     @GetMapping("/list")
     public Result list(SysConfig sysConfig,
                        @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
