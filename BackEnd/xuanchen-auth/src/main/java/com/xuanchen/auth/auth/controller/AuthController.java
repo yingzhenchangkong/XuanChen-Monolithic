@@ -7,7 +7,7 @@ import com.xuanchen.auth.auth.service.IAuthService;
 import com.xuanchen.auth.utils.JwtUtil;
 import com.xuanchen.common.constant.AuthConst;
 import com.xuanchen.common.entity.Result;
-import com.xuanchen.common.service.ILogServiceCommon;
+import com.xuanchen.common.service.ILogLoginServiceCommon;
 import com.xuanchen.common.utils.RedisUtil;
 import com.xuanchen.common.utils.StringUtil;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,7 +34,7 @@ public class AuthController {
     private RedisUtil redisUtil;
 
     @Autowired
-    private ILogServiceCommon logServiceCommon;
+    private ILogLoginServiceCommon logLoginServiceCommon;
 
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     public Result login(@RequestBody Auth auth, HttpServletRequest request) {
@@ -43,17 +43,17 @@ public class AuthController {
         Auth sysUser = this.getUserInfo(username);
         //校验登录失败次数
         if (isLoginFailOverTimes(username)) {
-            logServiceCommon.recordLoginLog(username, false, "登录失败次数过多", request);
+            logLoginServiceCommon.recordLoginLog(username, false, "登录失败次数过多", request);
             return Result.error("登录失败次数过多，请稍后再试！");
         }
         //校验用户是否存在，校验用户名密码是否正确
         if (!isLoginSucc(username, password, sysUser)) {
-            logServiceCommon.recordLoginLog(username, false, "用户名或密码错误", request);
+            logLoginServiceCommon.recordLoginLog(username, false, "用户名或密码错误", request);
             return Result.error("用户名或密码错误！");
         }
         //返回用户信息
         UserInfo userInfo = this.getUserInfo(sysUser);
-        logServiceCommon.recordLoginLog(username, true, "登录成功", request);
+        logLoginServiceCommon.recordLoginLog(username, true, "登录成功", request);
         return Result.success("登录成功，欢迎回来！", userInfo);
     }
 

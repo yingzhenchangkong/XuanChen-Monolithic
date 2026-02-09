@@ -52,32 +52,48 @@ export const columns = [
       }
   },
   {
-    title: '用户名',
+    title: '操作用户',
     dataIndex: 'userName_dictText',
-    align: 'left',
-    width: 100
+    align: 'left'
   },
   {
-    title: '登录时间',
-    dataIndex: 'loginTime',
-    align: 'left',
-    width: 150
+    title: '模块',
+    dataIndex: 'module',
+    align: 'left'
+  },
+  {
+    title: '操作时间',
+    dataIndex: 'operationTime',
+    align: 'left'
+  },
+  {
+    title: '操作类型',
+    dataIndex: 'operationType',
+    align: 'center'
+  },
+  {
+    title: '请求URL',
+    dataIndex: 'requestUrl',
+    align: 'left'
+  },
+  {
+    title: '请求参数',
+    dataIndex: 'requestParams',
+    align: 'left'
   },
   {
     title: 'IP地址',
     dataIndex: 'ipAddress',
-    align: 'left',
-    width: 150
+    align: 'left'
   },
   {
-    title: '登录状态',
+    title: '状态',
     dataIndex: 'status',
-    align: 'center',
-    width: 100
+    align: 'left'
   },
   {
-    title: '描述信息',
+    title: '操作描述',
     dataIndex: 'description',
-    align: 'left',
+    align: 'left'
   }
 ];

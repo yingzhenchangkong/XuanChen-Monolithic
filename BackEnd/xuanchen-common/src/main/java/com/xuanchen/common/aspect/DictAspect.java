@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 字典AOP类
+ * AOP切面-->字典
  *
  * @author XuanChen
  * @date 2026-02-05

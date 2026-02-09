@@ -49,7 +49,7 @@ public class SysConfigController {
      * @param req
      * @return
      */
-    @LogOperation(value = "配置信息分页列表", module = "SYSTEM")
+    @LogOperation(type = "列表", module = "system")
     @GetMapping("/list")
     public Result list(SysConfig sysConfig,
                        @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
@@ -74,6 +74,7 @@ public class SysConfigController {
      * @param sysConfig
      * @return
      */
+    @LogOperation(type = "新增", module = "system")
     @PostMapping(value = "/add")
     public Result add(@RequestBody SysConfig sysConfig) {
         sysConfigService.save(sysConfig);
@@ -86,6 +87,7 @@ public class SysConfigController {
      * @param sysConfig
      * @return
      */
+    @LogOperation(type = "修改", module = "system")
     @RequestMapping(value = "/edit", method = {RequestMethod.PUT, RequestMethod.POST})
     public Result edit(@RequestBody SysConfig sysConfig) {
         sysConfigService.updateById(sysConfig);
@@ -98,6 +100,7 @@ public class SysConfigController {
      * @param id
      * @return
      */
+    @LogOperation(type = "删除", module = "system")
     @DeleteMapping(value = "/delete")
     public Result delete(@RequestParam(name = "id", required = true) String id) {
         sysConfigService.removeById(id);
@@ -110,6 +113,7 @@ public class SysConfigController {
      * @param ids
      * @return
      */
+    @LogOperation(type = "批量删除", module = "system")
     @DeleteMapping(value = "/deleteBatch")
     public Result deleteBatch(@RequestParam(name = "ids", required = true) String ids) {
         sysConfigService.removeByIds(Arrays.asList(ids.split(",")));
@@ -122,6 +126,7 @@ public class SysConfigController {
      * @param response
      * @throws IOException
      */
+    @LogOperation(type = "导出excel", module = "system")
     @GetMapping(value = "/exportExcel")
     public void exportExcel(HttpServletResponse response) throws IOException {
         List<SysConfig> list = sysConfigService.list();
@@ -144,6 +149,7 @@ public class SysConfigController {
      * @param response
      * @return
      */
+    @LogOperation(type = "导入excel", module = "system")
     @RequestMapping(value = "/importExcel", method = RequestMethod.POST)
     public Result importExcel(HttpServletRequest request, HttpServletResponse response) throws IOException {
         MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
@@ -184,6 +190,7 @@ public class SysConfigController {
      * @param req
      * @return
      */
+    @LogOperation(type = "回收站 列表", module = "system")
     @GetMapping("/listRecycleBin")
     public Result listRecycleBin(SysConfig sysConfig,
                                  @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
@@ -200,6 +207,7 @@ public class SysConfigController {
      * @param id
      * @return
      */
+    @LogOperation(type = "回收站 彻底删除 单条", module = "system")
     @DeleteMapping("/deleteRecycleBin")
     public Result deleteRecycleBin(@RequestParam("id") String id) {
         sysConfigService.deleteRecycleBin(id);
@@ -212,6 +220,7 @@ public class SysConfigController {
      * @param ids
      * @return
      */
+    @LogOperation(type = "回收站 彻底删除 多条", module = "system")
     @DeleteMapping("/deleteRecycleBinBatch")
     public Result deleteRecycleBinBatch(@RequestParam("ids") String ids) {
         sysConfigService.deleteRecycleBin(ids);
@@ -224,6 +233,7 @@ public class SysConfigController {
      * @param map
      * @return
      */
+    @LogOperation(type = "回收站 还原 单条", module = "system")
     @PutMapping("/revertRecycleBin")
     public Result revertRecycleBin(@RequestBody Map<String, String> map) {
         String id = map.get("id");
@@ -237,6 +247,7 @@ public class SysConfigController {
      * @param map
      * @return
      */
+    @LogOperation(type = "回收站 还原 多条", module = "system")
     @PutMapping("/revertRecycleBinBatch")
     public Result revertRecycleBinBatch(@RequestBody Map<String, String> map) {
         String ids = map.get("ids");
@@ -264,6 +275,7 @@ public class SysConfigController {
      * @param request
      * @return
      */
+    @LogOperation(type = "状态修改", module = "system")
     @RequestMapping(value = "/changeStatus", method = {RequestMethod.PUT, RequestMethod.POST})
     public Result changeStatus(@RequestBody SysConfig sysConfig, HttpServletRequest request) {
         UpdateWrapper<SysConfig> updateWrapper = new UpdateWrapper<>();
