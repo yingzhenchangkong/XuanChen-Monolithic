@@ -12,11 +12,11 @@ onMounted(() => {
     const option = {
       radar: {
         indicator: [
-          { name: '1', max: 100 },
-          { name: '2', max: 100 },
-          { name: '3', max: 100 },
-          { name: '4', max: 100 },
-          { name: '5', max: 100 }
+          { name: '雷达1', max: 100 },
+          { name: '雷达2', max: 100 },
+          { name: '雷达3', max: 100 },
+          { name: '雷达4', max: 100 },
+          { name: '雷达5', max: 100 }
         ],
         name: {
           textStyle: {
@@ -43,7 +43,7 @@ onMounted(() => {
       },
 
       legend: {
-        data: ['text'],
+        data: ['雷达'],
         textStyle: {
           color: '#000000',
           fontSize: 12
@@ -56,7 +56,7 @@ onMounted(() => {
       },
       series: [
         {
-          name: 'text',
+          name: '雷达',
           type: 'radar',
           areaStyle: {
             color: 'rgba(144, 224, 239, 0.3)'
@@ -68,7 +68,7 @@ onMounted(() => {
           data: [
             {
               value: [60, 40, 50, 80, 70],
-              name: 'text'
+              name: '雷达'
             }
           ]
         }

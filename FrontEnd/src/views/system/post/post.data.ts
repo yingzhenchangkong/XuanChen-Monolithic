@@ -67,7 +67,7 @@ export const columnsIndex = [
     title: '操作',
     dataIndex: 'operation',
     align: 'center',
-    width: 140
+    width: 220
   },
 ];
 /** 定义表格的列 回收站*/
@@ -105,5 +105,37 @@ export const columnsRecBin = [
     dataIndex: 'operation',
     align: 'center',
     width: 180
+  },
+];
+
+/** 定义表格的列 分配用户*/
+export const columnsAssignUser = [
+  {
+    title: '#',
+    dataIndex: '',
+    key: 'rowIndex',
+    align: 'center',
+    customRender:
+      function (text: any, record: any, index: any, column: any) {
+        return parseInt(text.index) + 1;
+      }
+  },
+  {
+    title: '用户名',
+    dataIndex: 'userName',
+    align: 'center',
+    width: 140
+  },
+  {
+    title: '昵称',
+    dataIndex: 'nickName',
+    align: 'center',
+    width: 140
+  },
+  {
+    title: '操作',
+    dataIndex: 'operation',
+    align: 'center',
+    width: 240
   },
 ];

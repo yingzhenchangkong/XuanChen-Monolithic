@@ -14,7 +14,7 @@
             sys_user_role
                 LEFT JOIN sys_user ON sys_user.id = sys_user_role.user_id
         WHERE
-            role_id = #{roleId}
+            sys_user_role.role_id = #{roleId}
     </select>
     <select id="listUnAuthUser" parameterType="String" resultType="com.xuanchen.system.sysuserrole.entity.SysUserRole">
         SELECT

@@ -57,6 +57,10 @@
             <EditOutlined />编辑
           </a>
           <a-divider type="vertical"></a-divider>
+          <a @click="handleAssignUser(record.id)">
+            <UserAddOutlined />员工
+          </a>
+          <a-divider type="vertical"></a-divider>
           <a-popconfirm title="确定删除吗？" @confirm="() => handleDelete(record.id)" placement="left">
             <a>
               <DeleteOutlined />删除
@@ -74,6 +78,7 @@
     <!--弹窗区域-->
     <Operation ref="refOperation" :operationTitle="operationTitle" @childOK="loadData" />
     <RecycleBin ref="refRecycleBin" @childOK="loadData" />
+    <AssignUser ref="refAssignUser" />
   </a-card>
 </template>
 
@@ -84,6 +89,7 @@ import { useList } from '@/hooks/useList';
 
 import Operation from './modal/Operation.vue';
 import RecycleBin from './modal/RecycleBin.vue';
+import AssignUser from './modal/AssignUser.vue';
 
 import QueryFormXC from '@/components/xuanchen/QueryFormXC.vue';
 import { queryParams, queryFormItems, columnsIndex } from './post.data';
@@ -119,6 +125,12 @@ const handleStatusChange = async (record: any, index: number) => {
   } else {
     message.error(res.msg);
   }
+}
+
+/** 分配员工 */
+const refAssignUser = ref();
+const handleAssignUser = (postId: string) => {
+  refAssignUser.value.show(postId);
 }
 
 const {

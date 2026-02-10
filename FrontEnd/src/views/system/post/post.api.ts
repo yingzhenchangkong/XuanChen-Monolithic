@@ -20,6 +20,13 @@ enum PostApiUrl {
   RECBIN_REVERT_BATCH = '/system/post/revertRecycleBinBatch',
 
   SELECT = '/system/post/select',
+
+  ASSIGN_USER_LIST_ASSIGN_USER = '/system/userpost/listAssignUser',
+  ASSIGN_USER_LIST_UN_ASSIGN_USER = '/system/userpost/listUnAssignUser',
+  ASSIGN_USER_ASSIGN = '/system/userpost/assign',
+  ASSIGN_USER_ASSIGN_BATCH = '/system/userpost/assignBatch',
+  ASSIGN_USER_CANCEL_ASSIGN = '/system/userpost/cancelAssign',
+  ASSIGN_USER_CANCEL_ASSIGN_BATCH = '/system/userpost/cancelAssignBatch',
 }
 
 export { PostApiUrl };
@@ -56,3 +63,23 @@ export const saveOrUpdate = async (data: PostModel) => {
   const method = data.id ? 'put' : 'post';
   return await httpAction(httpUrl, data, method);
 };
+
+export const cancelAssignUser = async (userId: string, postId: string) => {
+  return await postAction(PostApiUrl.ASSIGN_USER_CANCEL_ASSIGN, { userId, postId });
+};
+
+export const cancleAssignUserBatch = async (userIds: string[], postId: string) => {
+  return await postAction(PostApiUrl.ASSIGN_USER_CANCEL_ASSIGN_BATCH, { userIds, postId });
+}
+
+export const assignUser = async (userId: string, postId: string) => {
+  return await postAction(PostApiUrl.ASSIGN_USER_ASSIGN, { userId, postId });
+};
+
+export const assignUserBatch = async (userIds: string[], postId: string) => {
+  return await postAction(PostApiUrl.ASSIGN_USER_ASSIGN_BATCH, { userIds, postId });
+}
+
+export const getListUnAssignUser = async (postId: string) => {
+  return await getAction(PostApiUrl.ASSIGN_USER_LIST_UN_ASSIGN_USER, { postId });
+}

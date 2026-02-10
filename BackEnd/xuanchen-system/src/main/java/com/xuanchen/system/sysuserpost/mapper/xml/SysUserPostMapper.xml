@@ -1,4 +1,32 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.xuanchen.system.sysuserpost.mapper.SysUserPostMapper">
+    <select id="listAssignUser" parameterType="String" resultType="com.xuanchen.system.sysuserpost.entity.SysUserPost">
+        SELECT
+            sys_user.id,
+            sys_user_post.post_id,
+            sys_user_post.user_id,
+            sys_user.user_name,
+            sys_user.nick_name,
+            sys_user.mobile,
+            sys_user.email
+        FROM
+            sys_user_post
+            LEFT JOIN sys_user ON sys_user.id = sys_user_post.user_id
+        WHERE
+            sys_user_post.post_id = #{postId}
+    </select>
+    <select id="listUnAssignUser" parameterType="String" resultType="com.xuanchen.system.sysuserpost.entity.SysUserPost">
+        SELECT
+            sys_user.id,
+            sys_user.id as user_id,
+            sys_user.user_name,
+            sys_user.nick_name,
+            sys_user.mobile,
+            sys_user.email
+        FROM
+            sys_user
+        WHERE
+            sys_user.del_flag = 0 AND sys_user.id not in (SELECT user_id FROM sys_user_post WHERE post_id = #{postId})
+    </select>
 </mapper>

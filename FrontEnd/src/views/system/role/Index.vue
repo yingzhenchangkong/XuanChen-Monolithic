@@ -58,11 +58,11 @@
           </a>
           <a-divider type="vertical"></a-divider>
           <a @click="handleAssignUser(record.id)">
-            <UserAddOutlined />分配用户
+            <UserAddOutlined />用户
           </a>
           <a-divider type="vertical"></a-divider>
           <a @click="handleAssignMenu(record.id)">
-            <MenuOutlined />分配菜单
+            <MenuOutlined />菜单
           </a>
           <a-divider type="vertical"></a-divider>
           <a-popconfirm title="确定删除吗？" @confirm="() => handleDelete(record.id)" placement="left">
@@ -112,8 +112,8 @@ const url = reactive({
 
 /** 重置 */
 const handleReset = () => {
-  queryParams.roleName = ''
-  queryParams.roleDescription = ''
+  queryParams.roleName = '';
+  queryParams.roleDescription = '';
   loadData();
 }
 
@@ -123,11 +123,11 @@ const refRecycleBin = ref();
 
 /** 分配用户 */
 const handleAssignUser = (roleId: string) => {
-  refAssignUser.value.show(roleId)
+  refAssignUser.value.show(roleId);
 }
 /** 分配菜单 */
 const handleAssignMenu = (roleId: string) => {
-  refAssignMenu.value.show(roleId)
+  refAssignMenu.value.show(roleId);
 }
 /** 回收站 */
 const handleRecycleBin = () => {

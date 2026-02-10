@@ -13,7 +13,7 @@ onMounted(() => {
     let data = [];
     for (let i = 1; i <= 5; i++) {
       data.push({
-        label: String(i).padStart(2, "0"),
+        label: String(i).padStart(2, "饼0"),
         arr: Array.from({ length: 20 }).map(() =>
           Math.floor(Math.random() * 500 + 50)
         ),
@@ -56,7 +56,7 @@ onMounted(() => {
         left: '1%',
         right: '0%',
         top: '5%',
-        bottom: '5%',
+        bottom: '15%',
       },
       tooltip: {
         trigger: "item",
@@ -67,19 +67,18 @@ onMounted(() => {
       // 图例移到右边（竖排）
       legend: {
         orient: "vertical",
-        right: "10%",
+        right: "8%",
         top: "middle",
         textStyle: { color: "#000000", fontSize: 14 },
         itemWidth: 14,
         itemHeight: 14,
       },
-
       series: [
         {
           name: "数据占比",
           type: "pie",
           radius: ["35%", "65%"],
-          center: ["38%", "65%"],  // 为让位图例，整体饼图左移
+          center: ["40%", "50%"],  // 为让位图例，整体饼图左移
           label: {
             color: "#000000",
             fontSize: 14,

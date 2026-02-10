@@ -66,7 +66,7 @@ export const columnsIndex = [
     title: '操作',
     dataIndex: 'operation',
     align: 'center',
-    width: 320
+    width: 280
   },
 ];
 

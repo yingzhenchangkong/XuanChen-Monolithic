@@ -12,7 +12,7 @@ onMounted(() => {
     const option = {
       backgroundColor: "transparent",
       title: {
-        text: "到馆人次/借阅册次分析",
+        text: "柱1/柱2分析",
         left: "center",
         top: 10,
         textStyle: {
@@ -30,7 +30,7 @@ onMounted(() => {
         },
       },
       legend: {
-        data: ["新增馆藏", "新增读者"],
+        data: ["柱1", "柱2"],
         bottom: 10,
         textStyle: {
           color: "#000000",
@@ -84,7 +84,7 @@ onMounted(() => {
       ],
       series: [
         {
-          name: "新增馆藏",
+          name: "柱1",
           type: "bar",
           barWidth: "35%",
           barCategoryGap: "20%",
@@ -111,7 +111,7 @@ onMounted(() => {
           data: [43000, 33000, 68000, 79000, 55000, 62000, 42000],
         },
         {
-          name: "新增读者",
+          name: "柱2",
           type: "bar",
           barWidth: "35%",
           barCategoryGap: "20%",
