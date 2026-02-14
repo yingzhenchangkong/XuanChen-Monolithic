@@ -17,7 +17,7 @@ export const queryFormItemsIndex = reactive([
     name: 'readStatus',
     label: '是否已读',
     type: 'select' as const,
-    placeholder: '请输选择是否已读',
+    placeholder: '请选择是否已读',
     width: '180px',
     options: [],
     fieldNames: {

@@ -50,8 +50,20 @@ public class MonLogOperationController {
                        @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
                        HttpServletRequest req) {
         QueryWrapper<MonLogOperation> queryWrapper = new QueryWrapper<>();
+        // 用户名精确查询
         if (StringUtil.isNotEmpty(monLogOperation.getUserName())) {
-            queryWrapper.like("user_name", monLogOperation.getUserName());
+            queryWrapper.eq("user_name", monLogOperation.getUserName());
+        }
+        // 登录状态精确查询
+        if (StringUtil.isNotEmpty(monLogOperation.getStatus())) {
+            queryWrapper.eq("status", monLogOperation.getStatus());
+        }
+        // 时间区间查询
+        if (monLogOperation.getBeginTime() != null) {
+            queryWrapper.ge("operation_time", monLogOperation.getBeginTime());
+        }
+        if (monLogOperation.getEndTime() != null) {
+            queryWrapper.le("operation_time", monLogOperation.getEndTime());
         }
         queryWrapper.orderByDesc("operation_time");
         Page<MonLogOperation> page = new Page<>(pageNo, pageSize);

@@ -3,9 +3,11 @@ package com.xuanchen.monitor.monloglogin.entity;
 import cn.idev.excel.annotation.ExcelIgnore;
 import cn.idev.excel.annotation.ExcelProperty;
 import cn.idev.excel.annotation.write.style.ColumnWidth;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.xuanchen.common.aspect.annotation.Dict;
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -39,7 +41,28 @@ public class MonLogLogin implements Serializable {
     @ExcelProperty("登录时间")
     @ColumnWidth(20)
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime loginTime;
+    /**
+     * 时间区间查询
+     */
+    @ExcelIgnore
+    @TableField(exist = false)
+    private String[] timeRange;
+
+    /**
+     * 开始时间（用于区间查询）
+     */
+    @ExcelIgnore
+    @TableField(exist = false)
+    private String beginTime;
+
+    /**
+     * 结束时间（用于区间查询）
+     */
+    @ExcelIgnore
+    @TableField(exist = false)
+    private String endTime;
 
     /**
      * 登录IP地址

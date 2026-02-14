@@ -3,6 +3,7 @@ package com.xuanchen.monitor.monlogoperation.entity;
 import cn.idev.excel.annotation.ExcelIgnore;
 import cn.idev.excel.annotation.ExcelProperty;
 import cn.idev.excel.annotation.write.style.ColumnWidth;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.xuanchen.common.aspect.annotation.Dict;
 import lombok.Data;
@@ -47,6 +48,26 @@ public class MonLogOperation implements Serializable {
     @ColumnWidth(20)
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime operationTime;
+    /**
+     * 时间区间查询
+     */
+    @ExcelIgnore
+    @TableField(exist = false)
+    private String[] timeRange;
+
+    /**
+     * 开始时间（用于区间查询）
+     */
+    @ExcelIgnore
+    @TableField(exist = false)
+    private String beginTime;
+
+    /**
+     * 结束时间（用于区间查询）
+     */
+    @ExcelIgnore
+    @TableField(exist = false)
+    private String endTime;
 
     /**
      * 操作类型（如：新增、修改、删除等）

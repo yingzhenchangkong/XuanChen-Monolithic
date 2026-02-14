@@ -33,6 +33,7 @@ import java.util.List;
 public class MonLogLoginController {
     @Autowired
     private IMonLogLoginService monLogLoginService;
+
     /**
      * 分页列表查询
      *
@@ -48,13 +49,21 @@ public class MonLogLoginController {
                        @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
                        @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
                        HttpServletRequest req) {
-        //TODO:查询条件待优化
         QueryWrapper<MonLogLogin> queryWrapper = new QueryWrapper<>();
+        // 用户名精确查询
         if (StringUtil.isNotEmpty(monLogLogin.getUserName())) {
-            queryWrapper.like("user_name", monLogLogin.getUserName());
+            queryWrapper.eq("user_name", monLogLogin.getUserName());
         }
+        // 登录状态精确查询
         if (StringUtil.isNotEmpty(monLogLogin.getStatus())) {
-            queryWrapper.like("status", monLogLogin.getStatus());
+            queryWrapper.eq("status", monLogLogin.getStatus());
+        }
+        // 时间区间查询
+        if (monLogLogin.getBeginTime() != null) {
+            queryWrapper.ge("login_time", monLogLogin.getBeginTime());
+        }
+        if (monLogLogin.getEndTime() != null) {
+            queryWrapper.le("login_time", monLogLogin.getEndTime());
         }
         queryWrapper.orderByDesc("login_time");
         Page<MonLogLogin> page = new Page<>(pageNo, pageSize);

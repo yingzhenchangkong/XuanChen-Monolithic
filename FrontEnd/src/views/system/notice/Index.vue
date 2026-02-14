@@ -53,7 +53,7 @@ import Detail from './modal/Detail.vue';
 
 import QueryFormXC from '@/components/xuanchen/QueryFormXC.vue';
 import { queryParamsIndex, queryFormItemsIndex, columnsIndex } from './notice.data';
-import { getDictSelect } from '../dict/dict.api';
+import { getDictSelect } from '@/views/system/dict/dict.api';
 import { NoticeApiUrl, setReadBatchApi, setReadAllApi } from './notice.api';
 
 /** url */

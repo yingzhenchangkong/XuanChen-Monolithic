@@ -18,10 +18,7 @@ CREATE TABLE `mon_log_login`  (
 -- ----------------------------
 -- Records of mon_log_login
 -- ----------------------------
-INSERT INTO `mon_log_login` VALUES ('2019893636106960897', 'admin', '2026-02-07 05:59:05', '0:0:0:0:0:0:0:1', 1, '登录成功');
-INSERT INTO `mon_log_login` VALUES ('2020636937552973825', 'admin', '2026-02-09 07:12:42', '0:0:0:0:0:0:0:1', 1, '登录成功');
-INSERT INTO `mon_log_login` VALUES ('2020659369531297794', 'admin', '2026-02-09 08:41:50', '0:0:0:0:0:0:0:1', 1, '登录成功');
-INSERT INTO `mon_log_login` VALUES ('2020860258882183170', 'admin', '2026-02-09 22:00:06', '0:0:0:0:0:0:0:1', 1, '登录成功');
+INSERT INTO `mon_log_login` VALUES ('2022685121386786818', 'admin', '2026-02-14 22:51:27', '0:0:0:0:0:0:0:1', 1, '登录成功');
 
 -- ----------------------------
 -- Table structure for mon_log_operation
@@ -44,8 +41,8 @@ CREATE TABLE `mon_log_operation`  (
 -- ----------------------------
 -- Records of mon_log_operation
 -- ----------------------------
-INSERT INTO `mon_log_operation` VALUES ('2020862125347479554', 'admin', 'system', '0:0:0:0:0:0:0:1', '2026-02-09 22:07:31', '列表', '/system/config/list', 'configName=&configDescription=&', 1, '操作成功!');
-INSERT INTO `mon_log_operation` VALUES ('2020862142560903170', 'admin', 'system', '0:0:0:0:0:0:0:1', '2026-02-09 22:07:35', '导出excel', '/system/config/exportExcel', '', 1, '操作成功!');
+INSERT INTO `mon_log_operation` VALUES ('2022685082077769729', 'admin', 'system', '0:0:0:0:0:0:0:1', '2026-02-14 22:51:18', '修改', '/system/config/edit', '', 1, '操作成功!');
+INSERT INTO `mon_log_operation` VALUES ('2022685082333622273', 'admin', 'system', '0:0:0:0:0:0:0:1', '2026-02-14 22:51:18', '列表', '/system/config/list', 'configName=&configDescription=&', 1, '操作成功!');
 
 -- ----------------------------
 -- Table structure for sys_config
@@ -71,7 +68,7 @@ CREATE TABLE `sys_config`  (
 -- ----------------------------
 -- Records of sys_config
 -- ----------------------------
-INSERT INTO `sys_config` VALUES ('2015795773986979841', '验证码开关', '是否启用验证码true启用false关闭', 'captchaEnabled', 'false', 1, 1, 1, 0, 'admin', '2026-01-26 22:35:39', 'admin', '2026-02-03 21:22:34');
+INSERT INTO `sys_config` VALUES ('2015795773986979841', '验证码开关', '是否启用验证码true启用false关闭', 'captchaEnabled', 'true', 1, 1, 1, 0, 'admin', '2026-01-26 22:35:39', 'admin', '2026-02-14 22:51:18');
 
 -- ----------------------------
 -- Table structure for sys_dept
@@ -132,8 +129,9 @@ CREATE TABLE `sys_dict`  (
 -- Records of sys_dict
 -- ----------------------------
 INSERT INTO `sys_dict` VALUES ('1988219272327151617', 'yes_no', '是否', 1, 1, 0, 'admin', '2025-11-11 20:16:29', NULL, NULL);
-INSERT INTO `sys_dict` VALUES ('2012158527658344450', 'config_type', '参数类型', 2, 1, 0, 'admin', '2026-01-16 21:42:32', NULL, NULL);
-INSERT INTO `sys_dict` VALUES ('2015181385600995330', 'user_status', '账号状态', 3, 1, 0, 'admin', '2026-01-25 05:54:17', NULL, NULL);
+INSERT INTO `sys_dict` VALUES ('2012158527658344450', 'config_type', '参数类型', 3, 1, 0, 'admin', '2026-01-16 21:42:32', 'admin', '2026-02-14 22:52:43');
+INSERT INTO `sys_dict` VALUES ('2015181385600995330', 'user_status', '账号状态', 4, 1, 0, 'admin', '2026-01-25 05:54:17', 'admin', '2026-02-14 22:52:47');
+INSERT INTO `sys_dict` VALUES ('2022685399402033153', 'succ_fail', '成功失败', 2, 1, 0, 'admin', '2026-02-14 22:52:34', NULL, NULL);
 
 -- ----------------------------
 -- Table structure for sys_dict_item
@@ -163,6 +161,8 @@ INSERT INTO `sys_dict_item` VALUES ('2012158582834413569', 'config_type', '系�
 INSERT INTO `sys_dict_item` VALUES ('2012158635976245250', 'config_type', '业务', '2', 2, 1, 0, 'admin', '2026-01-16 21:42:58', NULL, NULL);
 INSERT INTO `sys_dict_item` VALUES ('2015181432967270402', 'user_status', '正常', '1', 1, 1, 0, 'admin', '2026-01-25 05:54:29', NULL, NULL);
 INSERT INTO `sys_dict_item` VALUES ('2015181480673284097', 'user_status', '冻结', '2', 2, 1, 0, 'admin', '2026-01-25 05:54:40', NULL, NULL);
+INSERT INTO `sys_dict_item` VALUES ('2022685559305678850', 'succ_fail', '成功', 'true', 1, 1, 0, 'admin', '2026-02-14 22:53:12', NULL, NULL);
+INSERT INTO `sys_dict_item` VALUES ('2022685602842554369', 'succ_fail', '失败', 'false', 2, 1, 0, 'admin', '2026-02-14 22:53:22', NULL, NULL);
 
 -- ----------------------------
 -- Table structure for sys_menu

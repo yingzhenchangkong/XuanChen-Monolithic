@@ -1,42 +1,47 @@
 import { reactive } from 'vue';
 /** 查询参数 */
 export const queryParams = reactive({
-  userName: '',
-  loginTimeStart: '',
-  loginTimeEnd: '',
-  status: '',
+  userName: undefined,
+  timeRange: [],
+  beginTime: undefined,
+  endTime: undefined,
+  status: undefined,
 })
 /** 查询参数 */
-export const queryFormItems = [
+export const queryFormItems = reactive([
   {
     name: 'userName',
     label: '用户名',
-    type: 'input' as const,
-    placeholder: '请输入用户名'
+    type: 'select' as const,
+    placeholder: '请选择用户名',
+    width: '180px',
+    options: [],
+    fieldNames: {
+      label: 'nickName',
+      value: 'userName'
+    }
   },
   {
-    name: 'loginTimeStart',
-    label: '登录时间(起)',
-    type: 'input' as const,
-    placeholder: '请输入登录时间(起)'
-  },
-  {
-    name: 'loginTimeEnd',
-    label: '登录时间(止)',
-    type: 'input' as const,
-    placeholder: '请输入登录时间(止)'
+    name: 'timeRange',
+    label: '时间范围',
+    type: 'rangePicker' as const,
+    placeholder: ['开始日期', '结束日期'],
+    showTime: false,
+    valueFormat: 'YYYY-MM-DD',
+    displayFormat: 'YYYY-MM-DD',
   },
   {
     name: 'status',
     label: '登录状态',
     type: 'select' as const,
     placeholder: '请选择登录状态',
-    options: [
-      { label: '成功', value: '1' },
-      { label: '失败', value: '0' },
-    ]
+    options: [],
+    fieldNames: {
+      label: 'dictItemText',
+      value: 'dictItemValue'
+    }
   }
-];
+]);
 
 /** 定义表格的列 列表页*/
 export const columns = [

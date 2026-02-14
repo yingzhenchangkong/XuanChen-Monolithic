@@ -451,7 +451,7 @@ public class SysUserController {
         if (StringUtil.isNotEmpty(roleNames)) {
             queryWrapper.like("role_names", roleNames);
         }
-        queryWrapper.eq("status", true).orderByDesc("create_time");
+        queryWrapper.eq("status", true).eq("del_flag", false).orderByDesc("create_time");
         List<SysUser> list = sysUserService.list(queryWrapper);
         return Result.success(list);
     }
