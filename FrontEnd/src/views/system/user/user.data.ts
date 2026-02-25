@@ -8,7 +8,7 @@ export const queryParams = reactive({
 })
 
 /** 查询配置 */
-export const queryFormItems = [
+export const queryFormItems = reactive([
   {
     name: 'userName',
     label: '用户名',
@@ -27,7 +27,7 @@ export const queryFormItems = [
     type: 'input' as const,
     placeholder: '请输入手机号'
   },
-];
+]);
 
 /** 定义表格的列 */
 export const columns = [
@@ -86,7 +86,7 @@ export const columns = [
 ];
 
 /** 查询配置 */
-export const queryFormItemsRcvBin = [
+export const queryFormItemsRcvBin = reactive([
   {
     name: 'userName',
     label: '用户名',
@@ -99,7 +99,7 @@ export const queryFormItemsRcvBin = [
     type: 'input' as const,
     placeholder: '请输入昵称'
   },
-];
+]);
 
 /** 定义表格的列 */
 export const columnsRcvBin = [

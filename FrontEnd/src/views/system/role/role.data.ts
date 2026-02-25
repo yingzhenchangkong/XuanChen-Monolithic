@@ -5,7 +5,7 @@ export const queryParams = reactive({
   roleDescription: '',
 })
 /** 查询配置 */
-export const queryFormItems = [
+export const queryFormItems = reactive([
   {
     name: 'roleName',
     label: '角色名称',
@@ -18,7 +18,7 @@ export const queryFormItems = [
     type: 'input' as const,
     placeholder: '请输入角色描述'
   }
-];
+]);
 
 /** 定义表格的列 列表页*/
 export const columnsIndex = [

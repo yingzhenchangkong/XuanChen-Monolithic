@@ -5,7 +5,7 @@ export const queryParams = reactive({
   configDescription: '',
 })
 /** 查询参数 */
-export const queryFormItems = [
+export const queryFormItems = reactive([
   {
     name: 'configName',
     label: '参数名称',
@@ -18,7 +18,7 @@ export const queryFormItems = [
     type: 'input' as const,
     placeholder: '请输入参数描述'
   }
-];
+]);
 
 /** 定义表格的列 列表页*/
 export const columnsIndex = [

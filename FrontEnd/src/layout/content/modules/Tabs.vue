@@ -9,6 +9,7 @@
               <a-menu-item key="closeLeft">关闭左侧</a-menu-item>
               <a-menu-item key="closeRight">关闭右侧</a-menu-item>
               <a-menu-item key="closeOther">关闭其他</a-menu-item>
+              <a-menu-item key="closeAll">关闭全部</a-menu-item>
             </a-menu>
           </template>
         </a-dropdown>
@@ -41,7 +42,7 @@ const state = useMenuStore().state;
 const setActiveTab = () => {
   activeKey.value = route.name as string;
   state.selectedKeys = [route.name as string];
-  state.openKeys = [route.matched[1].name as string];
+  state.openKeys = route.matched && route.matched[1] ? [route.matched[1].name as string] : [];
 };
 const listTabPane = ref();
 const pushTabList = () => {
@@ -120,6 +121,9 @@ const handleContextMenu = (key: string, tabPane: any) => {
         ? [listTabPane.value[homeIndex]]
         : [listTabPane.value[homeIndex], listTabPane.value[currentIndex]];
       tabStore.setTabsList(listTabPane.value);
+      break;
+    case 'closeAll':
+      closeAll();
       break;
   }
   // 确保当前标签页保持激活状态

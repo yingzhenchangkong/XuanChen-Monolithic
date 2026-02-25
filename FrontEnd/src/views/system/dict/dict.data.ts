@@ -4,14 +4,14 @@ export const queryParamsIndex = reactive({
   dictName: '',
 })
 /** 查询配置 */
-export const queryFormItemsIndex = [
+export const queryFormItemsIndex = reactive([
   {
     name: 'dictName',
     label: '字典名称',
     type: 'input' as const,
     placeholder: '请输入字典名称'
   },
-];
+]);
 
 /** 定义表格的列 */
 export const columnsIndex = [

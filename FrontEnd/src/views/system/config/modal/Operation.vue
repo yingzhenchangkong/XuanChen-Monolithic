@@ -32,8 +32,8 @@ import { reactive, ref } from 'vue';
 import type { Rule } from 'ant-design-vue/es/form';
 import { message } from 'ant-design-vue';
 import type { ConfigModel } from '../config.types';
-import { validateConfigNameApi, validateConfigKeyApi, validateConfigValueApi, saveOrUpdate } from '../config.api';
-import { getDictSelect } from '../../dict/dict.api';
+import { validateConfigNameApi, validateConfigKeyApi, saveOrUpdate } from '../config.api';
+import { getDictSelect } from '@/views/system/dict/dict.api';
 
 defineProps({
   operationTitle: {

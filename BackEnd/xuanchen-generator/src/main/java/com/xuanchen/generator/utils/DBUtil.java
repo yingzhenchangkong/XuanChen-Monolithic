@@ -1,7 +1,7 @@
 package com.xuanchen.generator.utils;
 
 import com.alibaba.druid.pool.DruidDataSource;
-import com.xuanchen.generator.entity.CodeGenerator;
+import com.xuanchen.generator.generator.entity.CodeGenerator;
 
 import java.sql.Connection;
 

@@ -18,11 +18,9 @@ onMounted(() => {
           { name: '雷达4', max: 100 },
           { name: '雷达5', max: 100 }
         ],
-        name: {
-          textStyle: {
-            color: '#000000',
-            fontSize: 12
-          }
+        axisName: {
+          color: '#000000',
+          fontSize: 12
         },
         splitLine: {
           lineStyle: {

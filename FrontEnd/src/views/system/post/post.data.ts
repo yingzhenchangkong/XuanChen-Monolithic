@@ -6,7 +6,7 @@ export const queryParams = reactive({
   postDescription: '',
 })
 /** 查询配置 */
-export const queryFormItems = [
+export const queryFormItems = reactive([
   {
     name: 'postName',
     label: '岗位名称',
@@ -19,7 +19,7 @@ export const queryFormItems = [
     type: 'input' as const,
     placeholder: '请输入岗位描述'
   }
-];
+]);
 
 /** 定义表格的列 列表页*/
 export const columnsIndex = [
