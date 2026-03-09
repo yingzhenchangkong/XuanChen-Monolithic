@@ -15,6 +15,14 @@ public class CodeGenerator {
      */
     private String url;
     /**
+     * 主机
+     */
+    private String host;
+    /**
+     * 端口
+     */
+    private String port;
+    /**
      * 数据库名称
      */
     private String databaseName;

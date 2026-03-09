@@ -45,7 +45,7 @@
           :fieldNames="{ label: 'dictItemText', value: 'dictItemValue' }" placeholder="请选择账号状态" allowClear></a-select>
       </a-form-item>
       <a-form-item name="avatar" label="头像" :labelCol="labelCol" :wrapperCol="wrapperCol">
-        <UploadImageXC v-model:file-list="model.fileList" image-path="avatar" :max-count="maxCount" />
+        <XCUploadImage v-model:file-list="model.fileList" image-path="avatar" :max-count="maxCount" />
       </a-form-item>
     </a-form>
   </a-modal>
@@ -55,7 +55,7 @@
 import { reactive, ref } from 'vue';
 import { message } from 'ant-design-vue';
 import type { Rule } from 'ant-design-vue/es/form';
-import UploadImageXC from '@/components/xuanchen/UploadImageXC.vue';
+import XCUploadImage from '@/components/xuanchen/XCUploadImage.vue';
 
 import { validateUserNameApi, validateMobileApi, validateEmailApi, saveOrUpdate } from '../user.api';
 import { getRoleSelect } from '../../role/role.api';

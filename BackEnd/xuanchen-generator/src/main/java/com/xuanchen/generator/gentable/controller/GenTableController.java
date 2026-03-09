@@ -5,14 +5,19 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xuanchen.common.constant.TipConst;
 import com.xuanchen.common.entity.Result;
+import com.xuanchen.generator.gendatabase.entity.GenDatabase;
 import com.xuanchen.generator.gentable.entity.GenTable;
+import com.xuanchen.generator.gentable.entity.GenTableColumn;
 import com.xuanchen.generator.gentable.service.IGenTableColumnService;
 import com.xuanchen.generator.gentable.service.IGenTableService;
+import com.xuanchen.generator.utils.DBUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 控制器 --> 数据库表
@@ -47,6 +52,20 @@ public class GenTableController {
         Page<GenTable> page = new Page<>(pageNo, pageSize);
         IPage<GenTable> pageList = genTableService.page(page, queryWrapper);
         return Result.success(pageList);
+    }
+
+    /**
+     * 列表查询
+     *
+     * @param tableId
+     * @return
+     */
+    @GetMapping("/listByTableId")
+    public Result listByTableId(String tableId) {
+        QueryWrapper<GenTableColumn> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("table_id", tableId);
+        List<GenTableColumn> list = genTableColumnService.list(queryWrapper);
+        return Result.success(list);
     }
 
     /**
@@ -95,5 +114,29 @@ public class GenTableController {
     public Result deleteBatch(@RequestParam(name = "ids", required = true) String ids) {
         genTableService.removeByIds(Arrays.asList(ids.split(",")));
         return Result.success(TipConst.DEL_BATCH_SUCC);
+    }
+
+    /**
+     * 获取数据库表列表
+     *
+     * @param genDatabase
+     * @return
+     */
+    @GetMapping("/getTableList")
+    public Result getTableList(GenDatabase genDatabase) {
+        List<Map<String, Object>> list = DBUtil.getTableList(genDatabase);
+        return Result.success(list);
+    }
+
+    /**
+     * 获取数据库表信息
+     *
+     * @param genDatabase
+     * @return
+     */
+    @GetMapping("/getTableInfo")
+    public Result getTableInfo(GenDatabase genDatabase, @RequestParam(name = "tableName") String tableName) {
+        List<Map<String, Object>> list = DBUtil.getTableInfo(genDatabase, tableName);
+        return Result.success(list);
     }
 }

@@ -1,19 +1,16 @@
 package com.xuanchen.generator.generator.service.impl;
 
-import com.alibaba.druid.pool.DruidDataSource;
 import com.baomidou.mybatisplus.generator.FastAutoGenerator;
 import com.baomidou.mybatisplus.generator.config.OutputFile;
 import com.baomidou.mybatisplus.generator.config.builder.CustomFile;
 import com.baomidou.mybatisplus.generator.engine.FreemarkerTemplateEngine;
 import com.xuanchen.generator.generator.entity.CodeGenerator;
 import com.xuanchen.generator.generator.service.ICodeGeneratorService;
-import com.xuanchen.generator.utils.DBUtil;
 import org.springframework.stereotype.Service;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Service接口实现类-->代码生成器
@@ -23,58 +20,6 @@ import java.util.*;
  */
 @Service
 public class CodeGeneratorServiceImpl implements ICodeGeneratorService {
-    @Override
-    public List<Map<String, Object>> getTableList(CodeGenerator codeGenerator) {
-        DruidDataSource druidDataSource = new DruidDataSource();
-        List<Map<String, Object>> list = new ArrayList<>();
-        try {
-            Connection conn = DBUtil.getConnection(codeGenerator, druidDataSource);
-            String strSql = "SELECT TABLE_NAME,TABLE_COMMENT FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE()";
-            PreparedStatement preparedStatement = conn.prepareStatement(strSql);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()) {
-                Map<String, Object> map = new HashMap<>();
-                map.put("tableName", resultSet.getString("TABLE_NAME"));//表名
-                map.put("tableComment", resultSet.getString("TABLE_COMMENT"));//表注释
-                list.add(map);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            druidDataSource.close();
-        }
-        return list;
-    }
-    @Override
-    public List<Map<String, Object>> getTableInfo(CodeGenerator codeGenerator) {
-        DruidDataSource druidDataSource = new DruidDataSource();
-        List<Map<String, Object>> list = new ArrayList<>();
-        try {
-            Connection conn = DBUtil.getConnection(codeGenerator, druidDataSource);
-            String strSql = "SELECT COLUMN_NAME,COLUMN_COMMENT,DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,IS_NULLABLE,COLUMN_DEFAULT,COLUMN_KEY,"
-                    + "EXTRA FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '" + codeGenerator.getDatabaseName() + "' AND TABLE_NAME = '"
-                    + codeGenerator.getTableName() + "';";
-            PreparedStatement preparedStatement = conn.prepareStatement(strSql);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()) {
-                Map<String, Object> map = new HashMap<>();
-                map.put("columnName", resultSet.getString("COLUMN_NAME"));//字段名
-                map.put("columnComment", resultSet.getString("COLUMN_COMMENT"));//字段注释
-                map.put("dataType", resultSet.getString("DATA_TYPE"));//字段类型
-                map.put("characterMaximumLength", resultSet.getString("CHARACTER_MAXIMUM_LENGTH"));//字段最大长度
-                map.put("isNullable", resultSet.getString("IS_NULLABLE"));//字段是否允许为NULL
-                map.put("columnDefault", resultSet.getString("COLUMN_DEFAULT"));//字段默认值
-                map.put("columnKey", resultSet.getString("COLUMN_KEY"));//键类型
-                map.put("extra", resultSet.getString("EXTRA"));//扩展信息
-                list.add(map);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            druidDataSource.close();
-        }
-        return list;
-    }
     @Override
     public void codeGenerator(CodeGenerator codeGenerator) {
         String url = "jdbc:mysql://" + codeGenerator.getUrl() + "/" + codeGenerator.getDatabaseName() + "?serverTimezone=GMT%2B8&characterEncoding=utf-8&allowPublicKeyRetrieval=true&useSSL=false&tinyInt1isBit=true";

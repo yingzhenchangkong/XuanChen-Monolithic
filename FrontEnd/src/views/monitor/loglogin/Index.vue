@@ -1,7 +1,7 @@
 <template>
   <a-card>
     <!-- 查询区域 -->
-    <QueryFormXC v-model="queryParams" :formItems="queryFormItems" @search="handleSearch" @reset="handleReset" />
+    <XCQueryForm v-model="queryParams" :formItems="queryFormItems" @search="handleSearch" @reset="handleReset" />
     <!--操作按钮区域-->
     <div class="btn-style">
       <a-button @click="handleExport('登录日志')">
@@ -28,7 +28,7 @@
 import { reactive } from 'vue';
 import { useList } from '@/hooks/useList';
 
-import QueryFormXC from '@/components/xuanchen/QueryFormXC.vue';
+import XCQueryForm from '@/components/xuanchen/XCQueryForm.vue';
 import { queryParams, queryFormItems, columns } from './loglogin.data';
 import { LogLoginApiUrl } from './loglogin.api';
 import { getUserSelect } from '@/views/system/user/user.api';

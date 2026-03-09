@@ -29,40 +29,75 @@ public class GenTableColumn implements Serializable {
     @ExcelProperty(value = "表id")
     private String tableId;
     /**
-     * 列名称
+     * 字段 名称
      */
-    @ExcelProperty(value = "列名称")
+    @ExcelProperty(value = "字段名称")
     private String columnName;
     /**
-     * 列注释
+     * 字段 注释
      */
-    @ExcelProperty(value = "列注释")
+    @ExcelProperty(value = "字段注释")
     private String columnComment;
     /**
-     * 是否必填
+     * 字段 类型
      */
-    @ExcelProperty(value = "是否必填")
-    private Boolean isRequired;
+    @ExcelProperty(value = "字段类型")
+    private String columnType;
     /**
-     * 是否在编辑页面显示
+     * 字段 长度
      */
-    @ExcelProperty(value = "是否在编辑页面显示")
-    private Boolean isEdit;
+    @ExcelProperty(value = "字段长度")
+    private Integer columnLength;
     /**
-     * 是否在列表页面显示
+     * 字段 小数点
      */
-    @ExcelProperty(value = "是否在列表页面显示")
-    private Boolean isList;
+    @ExcelProperty(value = "字段 小数点")
+    private Integer columnScale;
     /**
-     * 是否在查询页面显示
+     * 字段 默认值
      */
-    @ExcelProperty(value = "是否在查询页面显示")
-    private Boolean isQuery;
+    @ExcelProperty(value = "字段 默认值")
+    private String columnDefault;
     /**
-     * 查询方式
+     * 字段 是否主键
      */
-    @ExcelProperty(value = "查询方式")
-    private String queryType;
+    @ExcelProperty(value = "字段 是否主键")
+    private Boolean columnIsPk;
+    /**
+     * 字段 是否允许为NULL
+     */
+    @ExcelProperty(value = "字段 是否允许为NULL")
+    private Boolean columnIsNullable;
+    /**
+     * 界面 是否查询字段
+     */
+    @ExcelProperty(value = "界面 是否查询字段")
+    private Boolean uiIsQuery;
+    /**
+     * 界面 查询方式
+     */
+    @ExcelProperty(value = "界面 查询方式")
+    private String uiQueryType;
+    /**
+     * 界面 是否编辑字段
+     */
+    @ExcelProperty(value = "界面 是否编辑字段")
+    private Boolean uiIsEdit;
+    /**
+     * 界面 是否必填字段
+     */
+    @ExcelProperty(value = "界面 是否必填字段")
+    private Boolean uiIsRequired;
+    /**
+     * 界面 编辑方式
+     */
+    @ExcelProperty(value = "界面 编辑方式")
+    private String uiEditType;
+    /**
+     * 界面 是否列表字段
+     */
+    @ExcelProperty(value = "界面 是否列表字段")
+    private Boolean uiIsList;
     /**
      * 排序码
      */

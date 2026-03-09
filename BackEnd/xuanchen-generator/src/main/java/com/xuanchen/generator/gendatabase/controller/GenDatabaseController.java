@@ -58,7 +58,17 @@ public class GenDatabaseController {
         IPage<GenDatabase> pageList = genDatabaseService.page(page, queryWrapper);
         return Result.success(pageList);
     }
-
+    /**
+     * 获取单个数据库连接信息
+     *
+     * @param id
+     * @return
+     */
+    @GetMapping("/getOneById")
+    public Result getOneById(@RequestParam(name = "id", required = true) String id) {
+        GenDatabase genDatabase = genDatabaseService.getById(id);
+        return Result.success(genDatabase);
+    }
     /**
      * 添加
      *

@@ -34,28 +34,4 @@ public class CodeGeneratorController {
         codeGeneratorService.codeGenerator(codeGenerator);
         return Result.success("生成成功!");
     }
-
-    /**
-     * 获取数据库表列表
-     *
-     * @param codeGenerator
-     * @return
-     */
-    @RequestMapping(value = "/getTableList", method = {RequestMethod.GET})
-    public Result getTableList(CodeGenerator codeGenerator) {
-        List<Map<String, Object>> list = codeGeneratorService.getTableList(codeGenerator);
-        return Result.success(list);
-    }
-
-    /**
-     * 获取数据库表信息
-     *
-     * @param codeGenerator
-     * @return
-     */
-    @RequestMapping(value = "/getTableInfo", method = {RequestMethod.GET})
-    public Result getTableInfo(CodeGenerator codeGenerator) {
-        List<Map<String, Object>> list = codeGeneratorService.getTableInfo(codeGenerator);
-        return Result.success(list);
-    }
 }

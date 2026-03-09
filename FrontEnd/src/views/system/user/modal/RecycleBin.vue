@@ -4,7 +4,7 @@
       <a-button @click="handleCancel">关闭</a-button>
     </template>
     <!-- 查询区域 -->
-    <QueryFormXC v-model="queryParams" :formItems="queryFormItemsRcvBin" @search="loadData" @reset="handleReset" />
+    <XCQueryForm v-model="queryParams" :formItems="queryFormItemsRcvBin" @search="loadData" @reset="handleReset" />
     <!--操作按钮区域-->
     <div class="btn-style">
       <template v-if="state.selectedRowKeys.length > 0">
@@ -61,7 +61,7 @@
 import { useList } from '@/hooks/useList'
 import { reactive, ref } from 'vue';
 
-import QueryFormXC from '@/components/xuanchen/QueryFormXC.vue';
+import XCQueryForm from '@/components/xuanchen/XCQueryForm.vue';
 import { queryFormItemsRcvBin, columnsRcvBin } from '../user.data';
 import { UserApiUrl } from '../user.api';
 

@@ -1,7 +1,7 @@
 <template>
   <a-card>
     <!-- 查询区域 -->
-    <QueryFormXC v-model="queryParamsManage" :formItems="queryFormItemsManage" @search="handleSearch"
+    <XCQueryForm v-model="queryParamsManage" :formItems="queryFormItemsManage" @search="handleSearch"
       @reset="handleReset" />
     <!--表格区域-->
     <a-table :dataSource="dataSource" :columns="columnsManage" :pagination="ipagination" :loading="loading"
@@ -45,7 +45,7 @@ import { message } from 'ant-design-vue';
 import DetailManage from './modal/DetailManage.vue';
 import ManageStatus from './ManageStatus.vue';
 
-import QueryFormXC from '@/components/xuanchen/QueryFormXC.vue';
+import XCQueryForm from '@/components/xuanchen/XCQueryForm.vue';
 import { queryParamsManage, queryFormItemsManage, columnsManage } from './notice.data';
 import { cancelApi, recoverApi, NoticeApiUrl } from './notice.api';
 const mainId = ref('');

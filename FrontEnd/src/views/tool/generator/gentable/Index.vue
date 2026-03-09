@@ -1,18 +1,13 @@
 <template>
   <a-card>
     <!-- 查询区域 -->
-    <QueryFormXC v-model="queryParams" :formItems="queryFormItems" @search="loadData" @reset="handleReset" />
+    <XCQueryForm v-model="queryParams" :formItems="queryFormItems" @search="loadData" @reset="handleReset" />
     <!--操作按钮区域-->
     <div class="btn-style">
       <a-button type="primary" @click="handleAdd">
         <template #icon>
           <PlusOutlined />
         </template>新增
-      </a-button>
-      <a-button type="primary" @click="generator">
-        <template #icon>
-          <DatabaseOutlined />
-        </template>代码生成
       </a-button>
       <template v-if="state.selectedRowKeys.length > 0">
         <a-popconfirm title="确定删除吗？" @confirm="handledeleteBatch">
@@ -41,6 +36,9 @@
       size="small" @change="handleTableChange">
       <template #bodyCell="{ column, text, record, index }">
         <template v-if="column.dataIndex === 'operation'">
+          <a @click="handleGenerator(record)">
+            <DatabaseOutlined />代码生成
+          </a>
           <a @click="handleEdit(record)">
             <EditOutlined />编辑
           </a>
@@ -59,13 +57,12 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue';
-import { message } from 'ant-design-vue';
+import { reactive } from 'vue';
 import { useList } from '@/hooks/useList';
 
 import Operation from './modal/Operation.vue';
 
-import QueryFormXC from '@/components/xuanchen/QueryFormXC.vue';
+import XCQueryForm from '@/components/xuanchen/XCQueryForm.vue';
 import { GenTableApiUrl, generator } from './gentable.api';
 import { queryParams, queryFormItems, columnsIndex } from './gentable.data';
 
@@ -82,15 +79,9 @@ const handleReset = () => {
   queryParams.tableComment = '';
   loadData();
 }
-
-const handleStatusChange = async (record: any, index: number) => {
-  dataSource.value[index].status = record.status === true ? false : true;
-  const res: any = await changeStatusApi(dataSource.value[index].id, dataSource.value[index].status);
-  if (res.code === 200) {
-    message.success(res.msg);
-  } else {
-    message.error(res.msg);
-  }
+/** 代码生成 */
+const handleGenerator = async (record: any) => {
+  await generator();
 }
 
 const {

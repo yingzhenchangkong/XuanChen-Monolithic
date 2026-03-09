@@ -1,7 +1,7 @@
 <template>
   <a-card>
     <!-- 查询区域 -->
-    <QueryFormXC v-model="queryParamsIndex" :formItems="queryFormItemsIndex" @search="handleSearch"
+    <XCQueryForm v-model="queryParamsIndex" :formItems="queryFormItemsIndex" @search="handleSearch"
       @reset="handleReset" />
     <!--操作按钮区域-->
     <div class="btn-style">
@@ -54,7 +54,7 @@ import { useList } from '@/hooks/useList';
 import OperationIndex from './modal/OperationIndex.vue';
 import Item from './Item.vue';
 
-import QueryFormXC from '@/components/xuanchen/QueryFormXC.vue';
+import XCQueryForm from '@/components/xuanchen/XCQueryForm.vue';
 import { DictApiUrl, deleteDictApi, changeStatusApi } from './dict.api';
 import { queryParamsIndex, queryFormItemsIndex, columnsIndex } from './dict.data';
 

@@ -1,7 +1,7 @@
 <template>
   <a-card>
     <!-- 查询区域 -->
-    <QueryFormXC v-model="queryParams" :formItems="queryFormItems" @search="loadData" @reset="handleReset" />
+    <XCQueryForm v-model="queryParams" :formItems="queryFormItems" @search="loadData" @reset="handleReset" />
     <!--操作按钮区域-->
     <div class="btn-style">
       <a-button type="primary" @click="handleAdd">
@@ -91,7 +91,7 @@ import Operation from './modal/Operation.vue';
 import RecycleBin from './modal/RecycleBin.vue';
 import AssignUser from './modal/AssignUser.vue';
 
-import QueryFormXC from '@/components/xuanchen/QueryFormXC.vue';
+import XCQueryForm from '@/components/xuanchen/XCQueryForm.vue';
 import { queryParams, queryFormItems, columnsIndex } from './post.data';
 import { PostApiUrl, changeStatusApi } from './post.api';
 
