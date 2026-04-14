@@ -1,17 +1,17 @@
 /*
  Navicat Premium Dump SQL
 
- Source Server         : 本地_MySQL
+ Source Server         : 本地MySQL
  Source Server Type    : MySQL
- Source Server Version : 80041 (8.0.41)
+ Source Server Version : 80044 (8.0.44)
  Source Host           : localhost:3306
  Source Schema         : xuanchen-monolithic
 
  Target Server Type    : MySQL
- Target Server Version : 80041 (8.0.41)
+ Target Server Version : 80044 (8.0.44)
  File Encoding         : 65001
 
- Date: 05/03/2026 06:17:44
+ Date: 27/03/2026 09:51:38
 */
 
 SET NAMES utf8mb4;
@@ -518,6 +518,7 @@ INSERT INTO `sys_user` VALUES ('1772395839434694658', 'test03', '测试03', 'f86
 INSERT INTO `sys_user` VALUES ('1772396269187276802', 'test04', '测试04', '8adc7121a7680e80c2bf7220d04e025ecdf5fca6110f603c29c4e94cf2873d161d5cf22b14ac30d0d7d58cea9000e7bd9a595f09b2e67514579932cf6d0b8bd8', '18931544689', 'test04@xuanchen.com', '', 1, 'fucgEGEe', 0, NULL, '2024-03-26 06:52:55', 'admin', '2026-01-06 07:06:13');
 INSERT INTO `sys_user` VALUES ('1779508954504761345', 'test05', '测试05', 'dfccc65fb09352a3f7fb7e971d96aaa9feafbc38fd5d61815ef2dc8c721743b009e4bcdc9c19cef1805a905157ee8fb66d588334803d93519608a9117631aacd', '18931545689', 'test05@xuanchen.com', '', 1, 'cFy&xQYO', 0, 'admin', '2024-04-14 21:56:11', 'admin', '2026-01-06 07:06:28');
 INSERT INTO `sys_user` VALUES ('1779511801023696897', 'test06', '测试06', 'd67ed4a624a53499d0bfa739aaf4e59071314a9cf1dd9cf59a17577a6d80d8d5f90c2dab9e3819b81321532261fea439d0869869961c5a0e980c98941389cc61', '18931546689', 'test06@xuanchen.com', '', 1, 'iRbcpUG%', 0, 'admin', '2024-04-14 22:07:30', 'admin', '2026-01-25 06:01:48');
+INSERT INTO `sys_user` VALUES ('1779511801023696898', 'admin4', '管理员4', '$2a$10$lSSiQQ4P1atDCM89UxYZJOMWLSeseVtecdmIifTJNCzRJ1dbPi6EW', '18931548689', 'admin4@xuanchen.com', '', 1, NULL, 0, 'super', '2026-03-27 09:48:15', 'admin', '2026-03-27 09:49:47');
 
 -- ----------------------------
 -- Table structure for sys_user_dept
@@ -539,6 +540,7 @@ INSERT INTO `sys_user_dept` VALUES ('2008314119774076929', '1772396269187276802'
 INSERT INTO `sys_user_dept` VALUES ('2008314179647766530', '1779508954504761345', 'XC001002003');
 INSERT INTO `sys_user_dept` VALUES ('2015183277303402498', '1779511801023696897', 'XC001002005');
 INSERT INTO `sys_user_dept` VALUES ('2015190956537221122', '1757768950749499393', 'XC001');
+INSERT INTO `sys_user_dept` VALUES ('2037346309278154753', '1779511801023696898', 'XC001');
 
 -- ----------------------------
 -- Table structure for sys_user_post
@@ -556,6 +558,7 @@ CREATE TABLE `sys_user_post`  (
 -- ----------------------------
 INSERT INTO `sys_user_post` VALUES ('2015183277370511361', '1779511801023696897', '2010976815773552641');
 INSERT INTO `sys_user_post` VALUES ('2015190956537221123', '1757768950749499393', '2010855310054043650');
+INSERT INTO `sys_user_post` VALUES ('2037346309341069313', '1779511801023696898', '2010855310054043650');
 
 -- ----------------------------
 -- Table structure for sys_user_role
@@ -578,5 +581,6 @@ INSERT INTO `sys_user_role` VALUES ('2008314119623081985', '1772396269187276802'
 INSERT INTO `sys_user_role` VALUES ('2008314179647766529', '1779508954504761345', '1745438525662351362');
 INSERT INTO `sys_user_role` VALUES ('2015183277303402497', '1779511801023696897', '1745438525662351362');
 INSERT INTO `sys_user_role` VALUES ('2015190956470112257', '1757768950749499393', '1750881083171422209');
+INSERT INTO `sys_user_role` VALUES ('2037346309211045889', '1779511801023696898', '1750881083171422209');
 
 SET FOREIGN_KEY_CHECKS = 1;
