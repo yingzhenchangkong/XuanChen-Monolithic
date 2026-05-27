@@ -33,10 +33,10 @@ public class OnlineUserController {
      * @return 在线用户列表
      */
     @GetMapping("/list")
-    public Result getOnlineUserList(OnlineUserInfo onlineUserInfo,
-                                    @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
-                                    @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
-                                    HttpServletRequest req) {
+    public Result<IPage<OnlineUserInfo>> getOnlineUserList(OnlineUserInfo onlineUserInfo,
+                                                           @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+                                                           @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
+                                                           HttpServletRequest req) {
         Page<OnlineUserInfo> page = new Page<>(pageNo, pageSize);
         IPage<OnlineUserInfo> pageList = onlineUserInfoService.list(page);
         return Result.success(pageList);
@@ -49,10 +49,10 @@ public class OnlineUserController {
      * @return 操作结果
      */
     @PostMapping("/forceLogout")
-    public Result forceLogout(@RequestBody Map<String, String> params) {
+    public Result<String> forceLogout(@RequestBody Map<String, String> params) {
         String token = params.get("token");
         if (token == null || token.isEmpty()) {
-            return Result.error("令牌不能为空");
+            return Result.badRequest("令牌不能为空");
         }
         // 从Redis中删除令牌
         String key = AuthConst.PREFIX_USER_TOKEN + token;

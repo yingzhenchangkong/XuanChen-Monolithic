@@ -1,4 +1,5 @@
 package com.xuanchen.common.constant;
+
 /**
  * 常量-->提示
  *
@@ -13,4 +14,8 @@ public interface TipConst {
 
     String REVERT_SUCC = "还原成功！";
     String UPLOAD_SUCC = "上传成功！";
+
+    String PARAM_EXISTS = "参数已存在！";
+    String PARAM_NOT_EXISTS = "参数不存在！";
+    String PARAM_AVAILABLE = "参数可用！";
 }

@@ -21,7 +21,7 @@ import com.xuanchen.system.sysuserrole.entity.SysUserRole;
 import com.xuanchen.system.sysuserrole.service.ISysUserRoleService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.fesod.sheet.FastExcel;
+import org.apache.fesod.sheet.FesodSheet;
 import org.apache.fesod.sheet.support.ExcelTypeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -70,10 +70,10 @@ public class SysUserController {
      * @return
      */
     @GetMapping("/list")
-    public Result list(SysUser sysUser,
-                       @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
-                       @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
-                       HttpServletRequest req) {
+    public Result<IPage<SysUser>> list(SysUser sysUser,
+                                       @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+                                       @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
+                                       HttpServletRequest req) {
         QueryWrapper<SysUser> queryWrapper = new QueryWrapper<>();
         if (StringUtil.isNotEmpty(sysUser.getUserName())) {
             queryWrapper.like("user_name", sysUser.getUserName());
@@ -139,7 +139,7 @@ public class SysUserController {
      * @return
      */
     @PostMapping(value = "/add")
-    public Result add(@RequestBody SysUser sysUser) {
+    public Result<String> add(@RequestBody SysUser sysUser) {
         //密码加密
         String password = sysUser.getPassword();
         if (StringUtil.isEmpty(password)) {
@@ -165,7 +165,7 @@ public class SysUserController {
      * @return
      */
     @RequestMapping(value = "/edit", method = {RequestMethod.PUT, RequestMethod.POST})
-    public Result edit(@RequestBody SysUser sysUser) {
+    public Result<String> edit(@RequestBody SysUser sysUser) {
         sysUserService.updateById(sysUser);
         // 根据用户编码 删除 用户、角色关系
         QueryWrapper<SysUserRole> qwUserRole = new QueryWrapper<>();
@@ -196,7 +196,7 @@ public class SysUserController {
      * @return
      */
     @RequestMapping(value = "/resetPassword", method = {RequestMethod.PUT, RequestMethod.POST})
-    public Result resetPassword(@RequestBody SysUser sysUser) {
+    public Result<String> resetPassword(@RequestBody SysUser sysUser) {
         String password = authServiceCommon.encryptPassword(sysUser.getPassword());
         UpdateWrapper<SysUser> updateWrapper = new UpdateWrapper<>();
         updateWrapper.set("password", password)
@@ -213,7 +213,7 @@ public class SysUserController {
      * @throws IOException
      */
     @RequestMapping(value = "/changePassword", method = {RequestMethod.PUT, RequestMethod.POST})
-    public Result changePassword(HttpServletRequest request) throws IOException {
+    public Result<String> changePassword(HttpServletRequest request) throws IOException {
         String paramStr = request.getReader().readLine();
         JSONObject paramJsonObject = JSON.parseObject(paramStr);
         String token = paramJsonObject.getString("token");
@@ -234,7 +234,7 @@ public class SysUserController {
      * @return
      */
     @RequestMapping(value = "/userCenterEdit", method = {RequestMethod.PUT, RequestMethod.POST})
-    public Result userCenterEdit(@RequestBody SysUser sysUser) {
+    public Result<String> userCenterEdit(@RequestBody SysUser sysUser) {
         UpdateWrapper<SysUser> updateWrapper = new UpdateWrapper<>();
         updateWrapper.set("nick_name", sysUser.getNickName())
                 .set("mobile", sysUser.getMobile())
@@ -251,7 +251,7 @@ public class SysUserController {
      * @return
      */
     @RequestMapping(value = "/userCenterUpdateAvatar", method = {RequestMethod.PUT, RequestMethod.POST})
-    public Result userCenterUpdateAvatar(@RequestBody SysUser sysUser) {
+    public Result<String> userCenterUpdateAvatar(@RequestBody SysUser sysUser) {
         String userName = sysUser.getUserName();
         QueryWrapper<SysUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_name", userName);
@@ -274,7 +274,7 @@ public class SysUserController {
      * @return
      */
     @DeleteMapping(value = "/delete")
-    public Result delete(@RequestParam(name = "id", required = true) String id) {
+    public Result<String> delete(@RequestParam(name = "id", required = true) String id) {
         sysUserService.removeById(id);
         return Result.success(TipConst.DEL_SUCC);
     }
@@ -286,7 +286,7 @@ public class SysUserController {
      * @return
      */
     @DeleteMapping(value = "/deleteBatch")
-    public Result deleteBatch(@RequestParam(name = "ids", required = true) String ids) {
+    public Result<String> deleteBatch(@RequestParam(name = "ids", required = true) String ids) {
         sysUserService.removeByIds(Arrays.asList(ids.split(",")));
         return Result.success(TipConst.DEL_BATCH_SUCC);
     }
@@ -306,7 +306,7 @@ public class SysUserController {
         String title = "用户管理";
         String fileName = URLEncoder.encode(title, "UTF-8").replaceAll("\\+", "%20");
         response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
-        FastExcel.write(response.getOutputStream())
+        FesodSheet.write(response.getOutputStream())
                 .head(SysUser.class)
                 .excelType(ExcelTypeEnum.XLSX)
                 .sheet(title)
@@ -321,19 +321,19 @@ public class SysUserController {
      * @return
      */
     @RequestMapping(value = "/importExcel", method = RequestMethod.POST)
-    public Result importExcel(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public Result<String> importExcel(HttpServletRequest request, HttpServletResponse response) throws IOException {
         MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
         Map<String, MultipartFile> fileMap = multipartRequest.getFileMap();
         String message = "";
         for (Map.Entry<String, MultipartFile> entity : fileMap.entrySet()) {
             MultipartFile multipartFile = entity.getValue();
             InputStream inputStream = multipartFile.getInputStream();
-            FesodSheetListener<SysUser> listenter = new FesodSheetListener<>();
-            FastExcel.read(inputStream, SysUser.class, listenter)
+            FesodSheetListener<SysUser> listener = new FesodSheetListener<>();
+            FesodSheet.read(inputStream, SysUser.class, listener)
                     .sheet()
                     .headRowNumber(1)
                     .doRead();
-            List<SysUser> dataList = listenter.getDataList();
+            List<SysUser> dataList = listener.getDataList();
             List<SysUser> listSysUser = new ArrayList<>();
             for (SysUser sysUser : dataList) {
                 SysUser sysUser1 = sysUserService.getOne(new QueryWrapper<SysUser>().eq("user_name", sysUser.getUserName()));
@@ -353,10 +353,10 @@ public class SysUserController {
                 listSysUser.add(sysUser);
             }
             sysUserService.saveBatch(listSysUser);
-            Integer totcal = dataList.size();
+            Integer total = dataList.size();
             Integer success = listSysUser.size();
-            Integer fail = totcal - success;
-            message = "共" + totcal + "条数据,成功：" + success + "条数据，失败：" + fail + "条数据";
+            Integer fail = total - success;
+            message = "共" + total + "条数据,成功：" + success + "条数据，失败：" + fail + "条数据";
         }
         return Result.success(message);
     }
@@ -371,10 +371,10 @@ public class SysUserController {
      * @return
      */
     @GetMapping("/listRecycleBin")
-    public Result listRecycleBin(SysUser sysUser,
-                                 @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
-                                 @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
-                                 HttpServletRequest req) {
+    public Result<IPage<SysUser>> listRecycleBin(SysUser sysUser,
+                                                 @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+                                                 @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
+                                                 HttpServletRequest req) {
         Page<SysUser> page = new Page<>(pageNo, pageSize);
         IPage<SysUser> pageList = sysUserService.listRecycleBin(page, sysUser);
         return Result.success(pageList);
@@ -387,7 +387,7 @@ public class SysUserController {
      * @return
      */
     @DeleteMapping("/deleteRecycleBin")
-    public Result deleteRecycleBin(@RequestParam("id") String id) {
+    public Result<String> deleteRecycleBin(@RequestParam("id") String id) {
         sysUserService.deleteRecycleBin(id);
         return Result.success("彻底删除成功！");
     }
@@ -399,7 +399,7 @@ public class SysUserController {
      * @return
      */
     @DeleteMapping("/deleteRecycleBinBatch")
-    public Result deleteRecycleBinBatch(@RequestParam("ids") String ids) {
+    public Result<String> deleteRecycleBinBatch(@RequestParam("ids") String ids) {
         sysUserService.deleteRecycleBin(ids);
         return Result.success("彻底删除成功！");
     }
@@ -411,7 +411,7 @@ public class SysUserController {
      * @return
      */
     @PutMapping("/revertRecycleBin")
-    public Result revertRecycleBin(@RequestBody Map<String, String> map) {
+    public Result<String> revertRecycleBin(@RequestBody Map<String, String> map) {
         String id = map.get("id");
         sysUserService.revertRecycleBin(id);
         return Result.success("还原成功！");
@@ -424,7 +424,7 @@ public class SysUserController {
      * @return
      */
     @PutMapping("/revertRecycleBinBatch")
-    public Result revertRecycleBinBatch(@RequestBody Map<String, String> map) {
+    public Result<String> revertRecycleBinBatch(@RequestBody Map<String, String> map) {
         String ids = map.get("ids");
         sysUserService.revertRecycleBin(ids);
         return Result.success("还原成功！");
@@ -437,7 +437,7 @@ public class SysUserController {
      * @return
      */
     @GetMapping("/select")
-    public Result select(@RequestParam(name = "roleNames", required = false) String roleNames) {
+    public Result<List<SysUser>> select(@RequestParam(name = "roleNames", required = false) String roleNames) {
         QueryWrapper<SysUser> queryWrapper = new QueryWrapper<>();
         if (StringUtil.isNotEmpty(roleNames)) {
             queryWrapper.like("role_names", roleNames);
@@ -455,7 +455,7 @@ public class SysUserController {
      * @return
      */
     @RequestMapping(value = "/changeStatus", method = {RequestMethod.PUT, RequestMethod.POST})
-    public Result changeStatus(@RequestBody SysUser sysUser, HttpServletRequest request) {
+    public Result<String> changeStatus(@RequestBody SysUser sysUser, HttpServletRequest request) {
         UpdateWrapper<SysUser> updateWrapper = new UpdateWrapper<>();
         updateWrapper.set("status", sysUser.getStatus()).eq("id", sysUser.getId());
         sysUserService.update(updateWrapper);
@@ -469,12 +469,12 @@ public class SysUserController {
      * @return
      */
     @GetMapping("/validate")
-    public Result validate(SysUser sysUser) {
+    public Result<String> validate(SysUser sysUser) {
         boolean exists = StringUtil.isEmpty(sysUser.getId())
                 ? sysUserService.ifExistsNoId(sysUser)
                 : sysUserService.ifExistsId(sysUser);
         return exists
-                ? Result.error()
-                : Result.success();
+                ? Result.conflict(TipConst.PARAM_EXISTS)
+                : Result.success(TipConst.PARAM_AVAILABLE);
     }
 }

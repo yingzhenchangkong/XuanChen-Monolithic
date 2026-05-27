@@ -1,5 +1,5 @@
 <template>
-  <a-modal v-model:open="visible" :title="operationTitle" :width="500" @ok="handleOk" ok-text="确认" cancel-text="取消">
+  <a-drawer v-model:open="open" :title="operationTitle" placement="right" :width="360">
     <a-form layout="inline" :model="model" :rules="rules" ref="rulesRef" autocomplete="off" class="modal-form-style">
       <a-form-item name="userName" label="用户名" :labelCol="labelCol" :wrapperCol="wrapperCol">
         <a-input v-model:value="model.userName" placeholder="请输入用户名" allowClear :disabled="userNameDisabled" />
@@ -48,7 +48,11 @@
         <XCUploadImage v-model:file-list="model.fileList" image-path="avatar" :max-count="maxCount" />
       </a-form-item>
     </a-form>
-  </a-modal>
+    <template #footer>
+      <a-button type="primary" @click="handleOk" style="float: right;">确定</a-button>
+      <a-button @click="handleCancel" style="float: right;margin-right: 10px;">取消</a-button>
+    </template>
+  </a-drawer>
 </template>
 
 <script setup lang="ts">
@@ -63,7 +67,7 @@ import { getDeptTreeApi } from '../../dept/dept.api';
 import { getPostSelect } from '../../post/post.api';
 import { getDictSelect } from '../../dict/dict.api';
 
-const labelCol = { span: 4 };
+const labelCol = { span: 6 };
 const wrapperCol = { span: 18 };
 
 defineProps({
@@ -108,7 +112,7 @@ const rules: Record<string, Rule[]> = {
   ],
 }
 
-const visible = ref(false);
+const open = ref(false);
 const userNameDisabled = ref(false);
 const passwordVisible = ref(true);
 
@@ -157,7 +161,7 @@ getSelectPost();
 
 //打开弹窗
 const add = () => {
-  visible.value = true;
+  open.value = true;
   userNameDisabled.value = false;
   passwordVisible.value = true;
   if (rulesRef.value) {
@@ -177,7 +181,7 @@ const add = () => {
   model.status = '1';
 }
 const edit = (records: any) => {
-  visible.value = true;
+  open.value = true;
   userNameDisabled.value = true;
   passwordVisible.value = false;
   if (rulesRef.value) {
@@ -216,8 +220,12 @@ const handleOk = async () => {
   const res: any = await saveOrUpdate(model);
   message.success(res.msg);
   emit('childOK');
-  visible.value = false;
+  open.value = false;
 };
+
+const handleCancel = () => {
+  open.value = false;
+}
 
 //子组件方法默认为私有
 defineExpose({

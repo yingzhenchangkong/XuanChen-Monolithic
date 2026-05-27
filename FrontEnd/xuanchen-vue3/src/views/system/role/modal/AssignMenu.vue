@@ -1,13 +1,13 @@
 <template>
-  <a-modal v-model:open="visible" title="分配菜单" :width="400">
-    <template #footer>
-      <a-button @click="handleCancel">关闭</a-button>
-      <a-button @click="handleSave">保存</a-button>
-    </template>
+  <a-drawer v-model:open="open" title="角色权限配置" placement="right" :width="360">
     <a-tree v-if="treeData.length" v-model:checkedKeys="checkedKeys" :tree-data="treeData" :field-names="fieldNames"
-      default-expand-all checkable :height="500">
+      default-expand-all checkable>
     </a-tree>
-  </a-modal>
+    <template #footer>
+      <a-button type="primary" @click="handleOk" style="float: right;">确定</a-button>
+      <a-button @click="handleCancel" style="float: right;margin-right: 10px;">取消</a-button>
+    </template>
+  </a-drawer>
 </template>
 
 <script setup lang="ts">
@@ -20,7 +20,7 @@ import { getListAllMenu, getListAuthMenu, saveAuthMenu } from '../role.api';
 const queryParams = reactive({
   roleId: '',
 })
-const visible = ref(false);
+const open = ref(false);
 
 const treeData: any = ref([]);
 const fieldNames: TreeProps['fieldNames'] = {
@@ -38,19 +38,19 @@ const listMenu = async () => {
 
 /** 打开弹窗 */
 const show = (roleId: string) => {
-  visible.value = true;
+  open.value = true;
   queryParams.roleId = roleId;
   listMenu();
 }
-/** 关闭弹窗 */
-const handleCancel = () => {
-  visible.value = false;
-}
-/** 保存 */
-const handleSave = async () => {
+
+const handleOk = async () => {
   const res: any = await saveAuthMenu(queryParams.roleId, checkedKeys.value);
   message.success(res.msg);
   handleCancel();
+}
+
+const handleCancel = () => {
+  open.value = false;
 }
 
 //子组件方法默认为私有

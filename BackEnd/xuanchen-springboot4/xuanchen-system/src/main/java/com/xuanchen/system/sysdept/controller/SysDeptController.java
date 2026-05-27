@@ -31,7 +31,7 @@ public class SysDeptController {
      * @return
      */
     @PostMapping(value = "/add")
-    public Result add(@RequestBody SysDept sysDept) {
+    public Result<String> add(@RequestBody SysDept sysDept) {
         sysDeptService.save(sysDept);
         return Result.success(TipConst.ADD_SUCC);
     }
@@ -43,7 +43,7 @@ public class SysDeptController {
      * @return
      */
     @RequestMapping(value = "/edit", method = {RequestMethod.PUT, RequestMethod.POST})
-    public Result edit(@RequestBody SysDept sysDept) {
+    public Result<String> edit(@RequestBody SysDept sysDept) {
         sysDeptService.updateById(sysDept);
         return Result.success(TipConst.EDIT_SUCC);
     }
@@ -55,7 +55,7 @@ public class SysDeptController {
      * @return
      */
     @DeleteMapping(value = "/delete")
-    public Result delete(@RequestParam(name = "deptCode", required = true) String deptCode) {
+    public Result<String> delete(@RequestParam(name = "deptCode", required = true) String deptCode) {
         QueryWrapper<SysDept> queryWrapper = new QueryWrapper<>();
         queryWrapper.likeRight("dept_code", deptCode);
         sysDeptService.remove(queryWrapper);

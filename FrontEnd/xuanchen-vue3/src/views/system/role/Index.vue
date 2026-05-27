@@ -53,16 +53,16 @@
       size="small" @change="handleTableChange">
       <template #bodyCell="{ column, text, record, index }">
         <template v-if="column.dataIndex === 'operation'">
-          <a @click="handleEdit(record)">
-            <EditOutlined />编辑
-          </a>
-          <a-divider type="vertical"></a-divider>
           <a @click="handleAssignUser(record.id)">
             <UserAddOutlined />用户
           </a>
           <a-divider type="vertical"></a-divider>
           <a @click="handleAssignMenu(record.id)">
-            <MenuOutlined />菜单
+            <MenuOutlined />授权
+          </a>
+          <a-divider type="vertical"></a-divider>
+          <a @click="handleEdit(record)">
+            <EditOutlined />编辑
           </a>
           <a-divider type="vertical"></a-divider>
           <a-popconfirm title="确定删除吗？" @confirm="() => handleDelete(record.id)" placement="left">

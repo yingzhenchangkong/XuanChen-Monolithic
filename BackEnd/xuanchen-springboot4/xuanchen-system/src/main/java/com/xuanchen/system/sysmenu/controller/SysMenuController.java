@@ -41,7 +41,7 @@ public class SysMenuController {
      * @return
      */
     @GetMapping("/list")
-    public Result list(SysMenu sysMenu) {
+    public Result<Map<String, Object>> list(SysMenu sysMenu) {
         QueryWrapper<SysMenu> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByAsc("order_no");
         List<SysMenu> list = sysMenuService.list(queryWrapper);
@@ -59,7 +59,7 @@ public class SysMenuController {
      * @return
      */
     @PostMapping(value = "/add")
-    public Result add(@RequestBody SysMenu sysMenu) {
+    public Result<String> add(@RequestBody SysMenu sysMenu) {
         if (sysMenu.getParentId() != null) {
             SysMenu sysMenuP = sysMenuService.getById(sysMenu.getParentId());
             if (sysMenuP.getIsLeaf() == true) {
@@ -79,7 +79,7 @@ public class SysMenuController {
      * @return
      */
     @RequestMapping(value = "/edit", method = {RequestMethod.PUT, RequestMethod.POST})
-    public Result edit(@RequestBody SysMenu sysMenu) {
+    public Result<String> edit(@RequestBody SysMenu sysMenu) {
         if (sysMenu.getParentId() != null) {
             SysMenu sysMenuP = sysMenuService.getById(sysMenu.getParentId());
             if (sysMenuP.getIsLeaf() == true) {
@@ -106,7 +106,7 @@ public class SysMenuController {
      * @return
      */
     @DeleteMapping(value = "/delete")
-    public Result delete(@RequestParam(name = "id", required = true) String id) {
+    public Result<String> delete(@RequestParam(name = "id", required = true) String id) {
         SysMenu sysMenu = sysMenuService.getById(id);
         String parentId = sysMenu.getParentId();
         sysMenuService.removeById(id);
@@ -129,7 +129,7 @@ public class SysMenuController {
      * @return
      */
     @RequestMapping("/authList")
-    public Result authList(HttpServletRequest request) {
+    public Result<List<SysMenuTree>> authList(HttpServletRequest request) {
         String token = request.getHeader(AuthConst.XC_ACCESS_TOKEN);
         String userName = authServiceCommon.getUserNameByToken(token);
         List<SysMenu> listMenu = sysMenuService.listMenuByUserName(userName);
@@ -146,7 +146,7 @@ public class SysMenuController {
      * @return
      */
     @RequestMapping(value = "/changeStatus", method = {RequestMethod.PUT, RequestMethod.POST})
-    public Result changeStatus(@RequestBody SysMenu sysMenu, HttpServletRequest request) {
+    public Result<String> changeStatus(@RequestBody SysMenu sysMenu, HttpServletRequest request) {
         UpdateWrapper<SysMenu> updateWrapper = new UpdateWrapper<>();
         updateWrapper.set("status", sysMenu.getStatus()).eq("id", sysMenu.getId());
         sysMenuService.update(updateWrapper);
@@ -160,12 +160,12 @@ public class SysMenuController {
      * @return
      */
     @GetMapping("/validate")
-    public Result validate(SysMenu sysMenu) {
+    public Result<String> validate(SysMenu sysMenu) {
         boolean exists = StringUtil.isEmpty(sysMenu.getId())
                 ? sysMenuService.ifExistsNoId(sysMenu)
                 : sysMenuService.ifExistsId(sysMenu);
         return exists
-                ? Result.error()
-                : Result.success();
+                ? Result.conflict(TipConst.PARAM_EXISTS)
+                : Result.success(TipConst.PARAM_AVAILABLE);
     }
 }

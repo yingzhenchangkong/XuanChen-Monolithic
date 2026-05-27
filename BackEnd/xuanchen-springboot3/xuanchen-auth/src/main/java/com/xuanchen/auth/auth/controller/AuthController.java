@@ -134,7 +134,7 @@ public class AuthController {
      */
     private boolean isLoginSucc(String username, String password, Auth sysUser) {
         //判断用户是否存在
-        if (sysUser == null) {
+        if (sysUser == null || sysUser.getSalt() == null) {
             return false;
         }
         //判断用户名密码是否正确

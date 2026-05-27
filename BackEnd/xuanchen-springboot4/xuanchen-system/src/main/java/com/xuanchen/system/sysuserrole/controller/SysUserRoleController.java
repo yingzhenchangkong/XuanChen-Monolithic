@@ -39,7 +39,7 @@ public class SysUserRoleController {
      * @return
      */
     @GetMapping("/listAuthUser")
-    public Result listAuthUser(SysUserRole sysUserRole,
+    public Result<IPage<SysUserRole>> listAuthUser(SysUserRole sysUserRole,
                                @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
                                @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
                                HttpServletRequest req) {
@@ -58,7 +58,7 @@ public class SysUserRoleController {
      * @return
      */
     @GetMapping("/listUnAuthUser")
-    public Result listUnAuthUser(SysUserRole sysUserRole,
+    public Result<IPage<SysUserRole>> listUnAuthUser(SysUserRole sysUserRole,
                                  @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
                                  @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
                                  HttpServletRequest req) {
@@ -74,7 +74,7 @@ public class SysUserRoleController {
      * @return
      */
     @PostMapping("/auth")
-    public Result auth(@RequestBody SysUserRole sysUserRole) {
+    public Result<String> auth(@RequestBody SysUserRole sysUserRole) {
         sysUserRoleService.save(sysUserRole);
         return Result.success("授权成功!");
     }
@@ -86,7 +86,7 @@ public class SysUserRoleController {
      * @return
      */
     @PostMapping("/authBatch")
-    public Result authBatch(@RequestBody JSONObject jsonObject) {
+    public Result<String> authBatch(@RequestBody JSONObject jsonObject) {
         JSONArray jsonArray = jsonObject.getJSONArray("userIds");
         String roleId = (String) jsonObject.get("roleId");
         List<SysUserRole> list = new ArrayList<>();
@@ -107,7 +107,7 @@ public class SysUserRoleController {
      * @return
      */
     @PostMapping("/cancelAuth")
-    public Result cancelAuth(@RequestBody SysUserRole sysUserRole) {
+    public Result<String> cancelAuth(@RequestBody SysUserRole sysUserRole) {
         QueryWrapper<SysUserRole> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", sysUserRole.getUserId())
                 .eq("role_id", sysUserRole.getRoleId());
@@ -122,7 +122,7 @@ public class SysUserRoleController {
      * @return
      */
     @PostMapping("/cancelAuthBatch")
-    public Result cancelAuthBatch(@RequestBody JSONObject jsonObject) {
+    public Result<String> cancelAuthBatch(@RequestBody JSONObject jsonObject) {
         JSONArray jsonArray = jsonObject.getJSONArray("userIds");
         String roleId = (String) jsonObject.get("roleId");
         Map<String, Object> columnMap = new HashMap<>();

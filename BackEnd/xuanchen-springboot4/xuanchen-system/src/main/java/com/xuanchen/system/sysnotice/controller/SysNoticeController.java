@@ -41,7 +41,7 @@ public class SysNoticeController {
     private IAuthServiceCommon authServiceCommon;
 
     @GetMapping("/listUser")
-    public Result listUser(SysNotice sysNotice,
+    public Result<IPage<SysNotice>> listUser(SysNotice sysNotice,
                            @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
                            @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
                            HttpServletRequest req) {
@@ -62,7 +62,7 @@ public class SysNoticeController {
      * @return
      */
     @GetMapping(value = "/listManage")
-    public Result listManage(SysNotice sysNotice,
+    public Result<IPage<SysNotice>> listManage(SysNotice sysNotice,
                              @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
                              @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
                              HttpServletRequest req) {
@@ -81,7 +81,7 @@ public class SysNoticeController {
      * @return
      */
     @GetMapping("/listManageStatus")
-    public Result listManageStatus(SysNoticeStatus sysNoticeStatus,
+    public Result<IPage<SysNoticeStatus>> listManageStatus(SysNoticeStatus sysNoticeStatus,
                                    @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
                                    @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
                                    HttpServletRequest req) {
@@ -97,7 +97,7 @@ public class SysNoticeController {
      * @return
      */
     @GetMapping(value = "/getNoticeCount")
-    public Result getNoticeCount(HttpServletRequest request) {
+    public Result<Map<String, Object>> getNoticeCount(HttpServletRequest request) {
         String userName = authServiceCommon.getUserNameByToken(request.getHeader("XC-ACCESS-TOKEN"));
         Map<String, Object> map = getNoticeCountByUserName(userName);
         return Result.success(map);
@@ -119,7 +119,7 @@ public class SysNoticeController {
      * @return
      */
     @PostMapping(value = "/issue")
-    public Result issue(@RequestBody SysNotice sysNotice, HttpServletRequest request) {
+    public Result<String> issue(@RequestBody SysNotice sysNotice, HttpServletRequest request) {
         sysNoticeService.save(sysNotice);
         List<String> listUser = sysNotice.getListUser();
         List<SysNoticeStatus> listStatus = new ArrayList<>();
@@ -146,7 +146,7 @@ public class SysNoticeController {
      * @return
      */
     @PostMapping(value = "/cancel")
-    public Result cancel(@RequestBody SysNotice sysNotice, HttpServletRequest request) {
+    public Result<String> cancel(@RequestBody SysNotice sysNotice, HttpServletRequest request) {
         String userName = authServiceCommon.getUserNameByToken(request.getHeader("XC-ACCESS-TOKEN"));
         cancelRecover(sysNotice.getId(), 2, userName);
         return Result.success("撤销成功！");
@@ -160,7 +160,7 @@ public class SysNoticeController {
      * @return
      */
     @PostMapping(value = "/recover")
-    public Result recover(@RequestBody SysNotice sysNotice, HttpServletRequest request) {
+    public Result<String> recover(@RequestBody SysNotice sysNotice, HttpServletRequest request) {
         String userName = authServiceCommon.getUserNameByToken(request.getHeader("XC-ACCESS-TOKEN"));
         cancelRecover(sysNotice.getId(), 1, userName);
         return Result.success("恢复成功！");
@@ -198,7 +198,7 @@ public class SysNoticeController {
      * @return
      */
     @PostMapping(value = "/setRead")
-    public Result setRead(@RequestBody SysNotice sysNotice, HttpServletRequest request) {
+    public Result<String> setRead(@RequestBody SysNotice sysNotice, HttpServletRequest request) {
         SysNoticeStatus sysNoticeStatus = new SysNoticeStatus();
         sysNoticeStatus.setId(sysNotice.getNoticeStatusId());
         sysNoticeStatus.setReadStatus(true);
@@ -220,7 +220,7 @@ public class SysNoticeController {
      * @return
      */
     @PostMapping(value = "/setReadBatch")
-    public Result setReadBatch(@RequestBody JSONObject jsonObject, HttpServletRequest request) {
+    public Result<String> setReadBatch(@RequestBody JSONObject jsonObject, HttpServletRequest request) {
         List<String> listIds = jsonObject.getList("ids", String.class);
         UpdateWrapper<SysNoticeStatus> updateWrapper = new UpdateWrapper<>();
         updateWrapper.set("read_status", true)
@@ -243,7 +243,7 @@ public class SysNoticeController {
      * @return
      */
     @PostMapping(value = "/setReadAll")
-    public Result setReadAll(HttpServletRequest request) {
+    public Result<String> setReadAll(HttpServletRequest request) {
         String userName = authServiceCommon.getUserNameByToken(request.getHeader("XC-ACCESS-TOKEN"));
         UpdateWrapper<SysNoticeStatus> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq("user_id", userName).eq("read_status", false);

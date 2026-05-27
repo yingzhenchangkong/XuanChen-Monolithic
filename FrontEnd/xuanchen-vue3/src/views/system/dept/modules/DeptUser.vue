@@ -3,13 +3,14 @@
     <a-form layout="inline" :model="model">
       <a-form-item name="listUser" label="员工">
         <a-select v-model:value="model.listUser" style="width: 200px" :options="optionsUser" mode="multiple"
-          :fieldNames="{ label: 'nickName', value: 'userName' }" placeholder="请选择员工" allowClear>
+          :fieldNames="{ label: 'nickName', value: 'userName' }" placeholder="请选择员工" allowClear show-search
+          :filter-option="filterOption">
         </a-select>
       </a-form-item>
       <a-button type="primary" @click="handleLink">
         <template #icon>
           <PlusOutlined />
-        </template>关联用户
+        </template>关联员工
       </a-button>
     </a-form>
   </div>
@@ -53,6 +54,12 @@ const getSelectUser = async () => {
   optionsUser.value = await getUserSelect();
 };
 getSelectUser();
+
+const filterOption = (input: string, option: any) => {
+  if (!option) return false;
+  const label = option.nickName || '';
+  return label.toLowerCase().indexOf(input.toLowerCase()) >= 0;
+}
 
 const handleLink = async () => {
   if (props.deptCode === '') {

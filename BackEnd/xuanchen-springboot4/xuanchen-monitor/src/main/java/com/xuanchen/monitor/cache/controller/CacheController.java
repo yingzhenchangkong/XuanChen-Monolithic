@@ -30,7 +30,7 @@ public class CacheController {
     private StringRedisTemplate stringRedisTemplate;
 
     @GetMapping("/redis")
-    public Result getRedisInfo() {
+    public Result<RedisInfoVO> getRedisInfo() {
         RedisInfoVO redisInfo = getRedisDetailedInfo();
         return Result.success(redisInfo);
     }

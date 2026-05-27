@@ -1,7 +1,10 @@
 <template>
   <a-row :gutter="20">
     <a-col :span="6">
-      <a-card title="销售额" :bordered="false" style="background-color: #b8f1ef;">
+      <a-card :bordered="false" style="background-color: #b8f1ef;">
+        <template #title>
+          <MoneyCollectOutlined style="color: #1677ff;" /> 销售额
+        </template>
         <a-statistic :value="yesterdayValue">
           <template #prefix>
             <span style="font-size:xx-small;">昨日</span>
@@ -19,7 +22,10 @@
       </a-card>
     </a-col>
     <a-col :span="6">
-      <a-card title="用户数" :bordered="false" style="background-color: #a8dffe;">
+      <a-card :bordered="false" style="background-color: #a8dffe;">
+        <template #title>
+          <TeamOutlined style="color: #1677ff;" /> 用户数
+        </template>
         <a-statistic :value="yesterdayValue">
           <template #prefix>
             <span style="font-size:xx-small;">昨日</span>
@@ -37,7 +43,10 @@
       </a-card>
     </a-col>
     <a-col :span="6">
-      <a-card title="订单量" :bordered="false" style="background-color: #fec8cf;">
+      <a-card :bordered="false" style="background-color: #fec8cf;">
+        <template #title>
+          <AuditOutlined style="color: #1677ff;" /> 订单量
+        </template>
         <a-statistic :value="yesterdayValue">
           <template #prefix>
             <span style="font-size:xx-small;">昨日</span>
@@ -55,7 +64,10 @@
       </a-card>
     </a-col>
     <a-col :span="6">
-      <a-card title="访问量" :bordered="false" style="background-color: #a8e9dc;">
+      <a-card :bordered="false" style="background-color: #a8e9dc;">
+        <template #title>
+          <GlobalOutlined style="color: #1677ff;" /> 访问量
+        </template>
         <a-statistic :value="yesterdayValue">
           <template #prefix>
             <span style="font-size:xx-small;">昨日</span>

@@ -12,7 +12,7 @@ import com.xuanchen.system.syspost.entity.SysPost;
 import com.xuanchen.system.syspost.service.ISysPostService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.fesod.sheet.FastExcel;
+import org.apache.fesod.sheet.FesodSheet;
 import org.apache.fesod.sheet.support.ExcelTypeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -49,10 +49,10 @@ public class SysPostController {
      * @return
      */
     @GetMapping("/list")
-    public Result list(SysPost sysPost,
-                       @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
-                       @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
-                       HttpServletRequest req) {
+    public Result<IPage<SysPost>> list(SysPost sysPost,
+                                       @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+                                       @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
+                                       HttpServletRequest req) {
         QueryWrapper<SysPost> queryWrapper = new QueryWrapper<>();
         if (StringUtil.isNotEmpty(sysPost.getPostName())) {
             queryWrapper.like("post_name", sysPost.getPostName());
@@ -73,7 +73,7 @@ public class SysPostController {
      * @return
      */
     @PostMapping(value = "/add")
-    public Result add(@RequestBody SysPost sysPost) {
+    public Result<String> add(@RequestBody SysPost sysPost) {
         sysPostService.save(sysPost);
         return Result.success(TipConst.ADD_SUCC);
     }
@@ -85,7 +85,7 @@ public class SysPostController {
      * @return
      */
     @RequestMapping(value = "/edit", method = {RequestMethod.PUT, RequestMethod.POST})
-    public Result edit(@RequestBody SysPost sysPost) {
+    public Result<String> edit(@RequestBody SysPost sysPost) {
         sysPostService.updateById(sysPost);
         return Result.success(TipConst.EDIT_SUCC);
     }
@@ -97,7 +97,7 @@ public class SysPostController {
      * @return
      */
     @DeleteMapping(value = "/delete")
-    public Result delete(@RequestParam(name = "id", required = true) String id) {
+    public Result<String> delete(@RequestParam(name = "id", required = true) String id) {
         sysPostService.removeById(id);
         return Result.success(TipConst.DEL_SUCC);
     }
@@ -109,7 +109,7 @@ public class SysPostController {
      * @return
      */
     @DeleteMapping(value = "/deleteBatch")
-    public Result deleteBatch(@RequestParam(name = "ids", required = true) String ids) {
+    public Result<String> deleteBatch(@RequestParam(name = "ids", required = true) String ids) {
         sysPostService.removeByIds(Arrays.asList(ids.split(",")));
         return Result.success(TipConst.DEL_BATCH_SUCC);
     }
@@ -128,7 +128,7 @@ public class SysPostController {
         String title = "岗位管理";
         String fileName = URLEncoder.encode(title, "UTF-8").replaceAll("\\+", "%20");
         response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
-        FastExcel.write(response.getOutputStream())
+        FesodSheet.write(response.getOutputStream())
                 .head(SysPost.class)
                 .excelType(ExcelTypeEnum.XLSX)
                 .sheet(title)
@@ -143,32 +143,32 @@ public class SysPostController {
      * @return
      */
     @RequestMapping(value = "/importExcel", method = RequestMethod.POST)
-    public Result importExcel(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public Result<String> importExcel(HttpServletRequest request, HttpServletResponse response) throws IOException {
         MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
         Map<String, MultipartFile> fileMap = multipartRequest.getFileMap();
         String message = "";
         for (Map.Entry<String, MultipartFile> entity : fileMap.entrySet()) {
             MultipartFile multipartFile = entity.getValue();
             InputStream inputStream = multipartFile.getInputStream();
-            FesodSheetListener<SysPost> listenter = new FesodSheetListener<>();
-            FastExcel.read(inputStream, SysPost.class, listenter)
+            FesodSheetListener<SysPost> listener = new FesodSheetListener<>();
+            FesodSheet.read(inputStream, SysPost.class, listener)
                     .sheet()
                     .headRowNumber(1)
                     .doRead();
-            List<SysPost> dataList = listenter.getDataList();
+            List<SysPost> dataList = listener.getDataList();
             List<SysPost> listSysPost = new ArrayList<>();
             for (SysPost sysPost : dataList) {
                 SysPost sysPostTemp = sysPostService.getOne(new QueryWrapper<SysPost>().eq("post_code", sysPost.getPostCode()));
                 if (sysPostTemp != null) {
                     continue;
                 }
-                listSysPost.add(sysPostTemp);
+                listSysPost.add(sysPost);
             }
             sysPostService.saveBatch(listSysPost);
-            Integer totcal = dataList.size();
+            Integer total = dataList.size();
             Integer success = listSysPost.size();
-            Integer fail = totcal - success;
-            message = "共" + totcal + "条数据,成功：" + success + "条数据，失败：" + fail + "条数据";
+            Integer fail = total - success;
+            message = "共" + total + "条数据,成功：" + success + "条数据，失败：" + fail + "条数据";
         }
         return Result.success(message);
     }
@@ -183,10 +183,10 @@ public class SysPostController {
      * @return
      */
     @GetMapping("/listRecycleBin")
-    public Result listRecycleBin(SysPost sysPost,
-                                 @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
-                                 @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
-                                 HttpServletRequest req) {
+    public Result<IPage<SysPost>> listRecycleBin(SysPost sysPost,
+                                                 @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+                                                 @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
+                                                 HttpServletRequest req) {
         Page<SysPost> page = new Page<>(pageNo, pageSize);
         IPage<SysPost> pageList = sysPostService.listRecycleBin(page, sysPost);
         return Result.success(pageList);
@@ -199,7 +199,7 @@ public class SysPostController {
      * @return
      */
     @DeleteMapping("/deleteRecycleBin")
-    public Result deleteRecycleBin(@RequestParam("id") String id) {
+    public Result<String> deleteRecycleBin(@RequestParam("id") String id) {
         sysPostService.deleteRecycleBin(id);
         return Result.success(TipConst.DEL_SUCC);
     }
@@ -211,7 +211,7 @@ public class SysPostController {
      * @return
      */
     @DeleteMapping("/deleteRecycleBinBatch")
-    public Result deleteRecycleBinBatch(@RequestParam("ids") String ids) {
+    public Result<String> deleteRecycleBinBatch(@RequestParam("ids") String ids) {
         sysPostService.deleteRecycleBin(ids);
         return Result.success(TipConst.DEL_SUCC);
     }
@@ -223,7 +223,7 @@ public class SysPostController {
      * @return
      */
     @PutMapping("/revertRecycleBin")
-    public Result revertRecycleBin(@RequestBody Map<String, String> map) {
+    public Result<String> revertRecycleBin(@RequestBody Map<String, String> map) {
         String id = map.get("id");
         sysPostService.revertRecycleBin(id);
         return Result.success(TipConst.REVERT_SUCC);
@@ -236,7 +236,7 @@ public class SysPostController {
      * @return
      */
     @PutMapping("/revertRecycleBinBatch")
-    public Result revertRecycleBinBatch(@RequestBody Map<String, String> map) {
+    public Result<String> revertRecycleBinBatch(@RequestBody Map<String, String> map) {
         String ids = map.get("ids");
         sysPostService.revertRecycleBin(ids);
         return Result.success(TipConst.REVERT_SUCC);
@@ -248,7 +248,7 @@ public class SysPostController {
      * @return
      */
     @GetMapping("/select")
-    public Result select() {
+    public Result<List<SysPost>> select() {
         QueryWrapper<SysPost> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("del_flag", false).eq("status", true).orderByAsc("order_no");
         List<SysPost> list = sysPostService.list(queryWrapper);
@@ -263,7 +263,7 @@ public class SysPostController {
      * @return
      */
     @RequestMapping(value = "/changeStatus", method = {RequestMethod.PUT, RequestMethod.POST})
-    public Result changeStatus(@RequestBody SysPost sysPost, HttpServletRequest request) {
+    public Result<String> changeStatus(@RequestBody SysPost sysPost, HttpServletRequest request) {
         UpdateWrapper<SysPost> updateWrapper = new UpdateWrapper<>();
         updateWrapper.set("status", sysPost.getStatus()).eq("id", sysPost.getId());
         sysPostService.update(updateWrapper);
@@ -277,12 +277,12 @@ public class SysPostController {
      * @return
      */
     @GetMapping("/validate")
-    public Result validate(SysPost sysPost) {
+    public Result<String> validate(SysPost sysPost) {
         boolean exists = StringUtil.isEmpty(sysPost.getId())
                 ? sysPostService.ifExistsNoId(sysPost)
                 : sysPostService.ifExistsId(sysPost);
         return exists
-                ? Result.error()
-                : Result.success();
+                ? Result.conflict(TipConst.PARAM_EXISTS)
+                : Result.success(TipConst.PARAM_AVAILABLE);
     }
 }

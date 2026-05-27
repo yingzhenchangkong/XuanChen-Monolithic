@@ -153,21 +153,21 @@ public class GenDatabaseController {
         for (Map.Entry<String, MultipartFile> entity : fileMap.entrySet()) {
             MultipartFile multipartFile = entity.getValue();
             InputStream inputStream = multipartFile.getInputStream();
-            FastExcelListener<GenDatabase> listenter = new FastExcelListener<>();
-            FastExcel.read(inputStream, GenDatabase.class, listenter)
+            FastExcelListener<GenDatabase> listener = new FastExcelListener<>();
+            FastExcel.read(inputStream, GenDatabase.class, listener)
                     .sheet()
                     .headRowNumber(1)
                     .doRead();
-            List<GenDatabase> dataList = listenter.getDataList();
+            List<GenDatabase> dataList = listener.getDataList();
             List<GenDatabase> listGenDatabase = new ArrayList<>();
             for (GenDatabase genDatabase : dataList) {
                 listGenDatabase.add(genDatabase);
             }
             genDatabaseService.saveBatch(listGenDatabase);
-            Integer totcal = dataList.size();
+            Integer total = dataList.size();
             Integer success = listGenDatabase.size();
-            Integer fail = totcal - success;
-            message = "共" + totcal + "条数据,成功：" + success + "条数据，失败：" + fail + "条数据";
+            Integer fail = total - success;
+            message = "共" + total + "条数据,成功：" + success + "条数据，失败：" + fail + "条数据";
         }
         return Result.success(message);
     }

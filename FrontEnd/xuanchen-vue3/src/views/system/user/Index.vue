@@ -54,6 +54,10 @@
       size="small" @change="handleTableChange">
       <template #bodyCell="{ column, text, record, index }">
         <template v-if="column.dataIndex === 'operation'">
+          <a @click="handleResetPassword(record.id)">
+            <RetweetOutlined /> 重置密码
+          </a>
+          <a-divider type="vertical"></a-divider>
           <a @click="handleEdit(record)">
             <EditOutlined /> 编辑
           </a>
@@ -63,10 +67,6 @@
               <DeleteOutlined /> 删除
             </a>
           </a-popconfirm>
-          <a-divider type="vertical"></a-divider>
-          <a @click="handleResetPassword(record.id)">
-            <RetweetOutlined /> 重置密码
-          </a>
         </template>
         <template v-else-if="column.dataIndex === 'avatar'">
           <a-image :width="32" :height="32" :src="getImageView(record.avatar)"

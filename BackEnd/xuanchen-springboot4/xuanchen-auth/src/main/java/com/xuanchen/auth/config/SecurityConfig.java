@@ -55,10 +55,19 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // 启用 CORS
+                //禁用 Spring Security 默认的 logout
+                .logout((logout -> logout.disable()))
                 // 配置权限规则
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/login", "/logout", "/system/config/getConfigKeyValue").permitAll()// 放行静态资源和公开接口
-                        //.requestMatchers("/admin/**").hasRole("ADMIN")// 管理员角色才能访问
+                        //公开接口
+                        .requestMatchers("/login").permitAll()
+                        //验证码接口
+                        .requestMatchers("/captcha/**").permitAll()
+                        //系统配置
+                        .requestMatchers("/system/config/getConfigKeyValue").permitAll()
+                        //WebSocket
+                        .requestMatchers("/ws").permitAll()
+                        //其他请求需要认证
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception

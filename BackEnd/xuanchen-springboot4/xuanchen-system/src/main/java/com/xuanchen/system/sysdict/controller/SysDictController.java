@@ -42,7 +42,7 @@ public class SysDictController {
      * @return
      */
     @GetMapping("/list")
-    public Result list(SysDict sysDict,
+    public Result<IPage<SysDict>> list(SysDict sysDict,
                        @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
                        @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
                        HttpServletRequest req) {
@@ -63,7 +63,7 @@ public class SysDictController {
      * @return
      */
     @PostMapping("/add")
-    public Result add(@RequestBody SysDict sysDict) {
+    public Result<String> add(@RequestBody SysDict sysDict) {
         sysDictService.save(sysDict);
         return Result.success(TipConst.ADD_SUCC);
     }
@@ -75,7 +75,7 @@ public class SysDictController {
      * @return
      */
     @RequestMapping(value = "/edit", method = {RequestMethod.PUT, RequestMethod.POST})
-    public Result edit(@RequestBody SysDict sysDict) {
+    public Result<String> edit(@RequestBody SysDict sysDict) {
         sysDictService.updateById(sysDict);
         return Result.success(TipConst.EDIT_SUCC);
     }
@@ -87,7 +87,7 @@ public class SysDictController {
      * @return
      */
     @DeleteMapping(value = "/delete")
-    public Result delete(@RequestParam(name = "id", required = true) String id) {
+    public Result<String> delete(@RequestParam(name = "id", required = true) String id) {
         SysDict sysDict = sysDictService.getById(id);
         QueryWrapper<SysDictItem> queryWrapperItem = new QueryWrapper<>();
         queryWrapperItem.eq("dict_code", sysDict.getDictCode());
@@ -106,7 +106,7 @@ public class SysDictController {
      * @return
      */
     @GetMapping("/listItem")
-    public Result listItem(SysDictItem sysDictItem,
+    public Result<IPage<SysDictItem>> listItem(SysDictItem sysDictItem,
                            @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
                            @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
                            HttpServletRequest req) {
@@ -124,7 +124,7 @@ public class SysDictController {
      * @return
      */
     @PostMapping("/addItem")
-    public Result addItem(@RequestBody SysDictItem sysDictItem) {
+    public Result<String> addItem(@RequestBody SysDictItem sysDictItem) {
         sysDictItemService.save(sysDictItem);
         return Result.success(TipConst.ADD_SUCC);
     }
@@ -136,7 +136,7 @@ public class SysDictController {
      * @return
      */
     @RequestMapping(value = "/editItem", method = {RequestMethod.PUT, RequestMethod.POST})
-    public Result editItem(@RequestBody SysDictItem sysDictItem) {
+    public Result<String> editItem(@RequestBody SysDictItem sysDictItem) {
         sysDictItemService.updateById(sysDictItem);
         return Result.success(TipConst.EDIT_SUCC);
     }
@@ -148,7 +148,7 @@ public class SysDictController {
      * @return
      */
     @DeleteMapping(value = "/deleteItem")
-    public Result deleteItem(@RequestParam(name = "id", required = true) String id) {
+    public Result<String> deleteItem(@RequestParam(name = "id", required = true) String id) {
         sysDictItemService.removeById(id);
         return Result.success(TipConst.DEL_SUCC);
     }
@@ -159,7 +159,7 @@ public class SysDictController {
      * @return
      */
     @GetMapping("/select")
-    public Result select(@RequestParam(name = "dictCode") String dictCode) {
+    public Result<List<SysDictItem>> select(@RequestParam(name = "dictCode") String dictCode) {
         List<SysDictItem> list = new ArrayList<>();
         if (StringUtil.isNotEmpty(dictCode)) {
             QueryWrapper<SysDictItem> queryWrapper = new QueryWrapper<>();
@@ -178,7 +178,7 @@ public class SysDictController {
      * @return
      */
     @RequestMapping(value = "/changeStatus", method = {RequestMethod.PUT, RequestMethod.POST})
-    public Result changeStatus(@RequestBody SysDict sysDict, HttpServletRequest request) {
+    public Result<String> changeStatus(@RequestBody SysDict sysDict, HttpServletRequest request) {
         UpdateWrapper<SysDict> updateWrapper = new UpdateWrapper<>();
         updateWrapper.set("status", sysDict.getStatus()).eq("id", sysDict.getId());
         sysDictService.update(updateWrapper);
@@ -193,7 +193,7 @@ public class SysDictController {
      * @return
      */
     @RequestMapping(value = "/changeStatusItem", method = {RequestMethod.PUT, RequestMethod.POST})
-    public Result changeStatusItem(@RequestBody SysDictItem sysDictItem, HttpServletRequest request) {
+    public Result<String> changeStatusItem(@RequestBody SysDictItem sysDictItem, HttpServletRequest request) {
         UpdateWrapper<SysDictItem> updateWrapper = new UpdateWrapper<>();
         updateWrapper.set("status", sysDictItem.getStatus()).eq("id", sysDictItem.getId());
         sysDictItemService.update(updateWrapper);
@@ -207,13 +207,13 @@ public class SysDictController {
      * @return
      */
     @GetMapping("/validate")
-    public Result validate(SysDict sysDict) {
+    public Result<String> validate(SysDict sysDict) {
         boolean exists = StringUtil.isEmpty(sysDict.getId())
                 ? sysDictService.ifExistsNoId(sysDict)
                 : sysDictService.ifExistsId(sysDict);
         return exists
-                ? Result.error()
-                : Result.success();
+                ? Result.conflict(TipConst.PARAM_EXISTS)
+                : Result.success(TipConst.PARAM_AVAILABLE);
     }
 
     /**
@@ -223,12 +223,12 @@ public class SysDictController {
      * @return
      */
     @GetMapping("/validateItem")
-    public Result validateItem(SysDictItem sysDictItem) {
+    public Result<String> validateItem(SysDictItem sysDictItem) {
         boolean exists = StringUtil.isEmpty(sysDictItem.getId())
                 ? sysDictItemService.ifExistsNoId(sysDictItem)
                 : sysDictItemService.ifExistsId(sysDictItem);
         return exists
-                ? Result.error()
-                : Result.success();
+                ? Result.conflict(TipConst.PARAM_EXISTS)
+                : Result.success(TipConst.PARAM_AVAILABLE);
     }
 }

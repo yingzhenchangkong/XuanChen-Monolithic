@@ -43,7 +43,7 @@ public class SysUserDeptController {
      * @return
      */
     @GetMapping("/listDeptUser")
-    public Result listDeptUser(SysUserDept sysUserDept,
+    public Result<IPage<SysUserDept>> listDeptUser(SysUserDept sysUserDept,
                                @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
                                @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
                                HttpServletRequest req) {
@@ -59,7 +59,7 @@ public class SysUserDeptController {
      * @return
      */
     @PostMapping("/link")
-    public Result link(@RequestBody SysUserDept sysUserDept) {
+    public Result<String> link(@RequestBody SysUserDept sysUserDept) {
         StringBuilder linkedUser = new StringBuilder();
         StringBuilder linkSuccUser = new StringBuilder();
         List<SysUserDept> list = new ArrayList<>();
@@ -108,7 +108,7 @@ public class SysUserDeptController {
      * @return
      */
     @DeleteMapping(value = "/unlink")
-    public Result delete(@RequestParam(name = "id", required = true) String id) {
+    public Result<String> delete(@RequestParam(name = "id", required = true) String id) {
         sysUserDeptService.removeById(id);
         return Result.success("取消关联成功!");
     }

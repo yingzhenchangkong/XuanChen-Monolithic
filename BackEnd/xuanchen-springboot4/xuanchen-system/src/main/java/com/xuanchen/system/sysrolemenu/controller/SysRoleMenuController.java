@@ -37,7 +37,7 @@ public class SysRoleMenuController {
      * @return
      */
     @GetMapping("/listAuthMenu")
-    public Result listAuthMenu(@RequestParam(name = "roleId") String roleId) {
+    public Result<List<String>> listAuthMenu(@RequestParam(name = "roleId") String roleId) {
         LambdaQueryWrapper<SysRoleMenu> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(SysRoleMenu::getRoleId, roleId);
         List<SysRoleMenu> list = sysRoleMenuService.list(queryWrapper);
@@ -59,7 +59,7 @@ public class SysRoleMenuController {
      * @return
      */
     @PostMapping("/saveAuthMenu")
-    public Result saveAuthMenu(@RequestBody JSONObject jsonObject) {
+    public Result<String> saveAuthMenu(@RequestBody JSONObject jsonObject) {
         JSONArray jsonArray = jsonObject.getJSONArray("menuIds");
         String roleId = (String) jsonObject.get("roleId");
 

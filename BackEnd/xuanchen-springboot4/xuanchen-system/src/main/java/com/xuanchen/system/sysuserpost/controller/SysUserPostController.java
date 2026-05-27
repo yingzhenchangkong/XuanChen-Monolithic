@@ -39,7 +39,7 @@ public class SysUserPostController {
      * @return
      */
     @GetMapping("/listAssignUser")
-    public Result listAuthUser(SysUserPost sysUserPost,
+    public Result<IPage<SysUserPost>> listAuthUser(SysUserPost sysUserPost,
                                @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
                                @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
                                HttpServletRequest req) {
@@ -58,7 +58,7 @@ public class SysUserPostController {
      * @return
      */
     @GetMapping("/listUnAssignUser")
-    public Result listUnAuthUser(SysUserPost sysUserPost,
+    public Result<IPage<SysUserPost>> listUnAuthUser(SysUserPost sysUserPost,
                                  @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
                                  @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
                                  HttpServletRequest req) {
@@ -74,7 +74,7 @@ public class SysUserPostController {
      * @return
      */
     @PostMapping("/assign")
-    public Result auth(@RequestBody SysUserPost sysUserPost) {
+    public Result<String> auth(@RequestBody SysUserPost sysUserPost) {
         sysUserPostService.save(sysUserPost);
         return Result.success("分配成功!");
     }
@@ -86,7 +86,7 @@ public class SysUserPostController {
      * @return
      */
     @PostMapping("/assignBatch")
-    public Result authBatch(@RequestBody JSONObject jsonObject) {
+    public Result<String> authBatch(@RequestBody JSONObject jsonObject) {
         JSONArray jsonArray = jsonObject.getJSONArray("userIds");
         String postId = (String) jsonObject.get("postId");
         List<SysUserPost> list = new ArrayList<>();
@@ -107,7 +107,7 @@ public class SysUserPostController {
      * @return
      */
     @PostMapping("/cancelAssign")
-    public Result cancelAuth(@RequestBody SysUserPost sysUserPost) {
+    public Result<String> cancelAuth(@RequestBody SysUserPost sysUserPost) {
         QueryWrapper<SysUserPost> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", sysUserPost.getUserId())
                 .eq("post_id", sysUserPost.getPostId());
@@ -122,7 +122,7 @@ public class SysUserPostController {
      * @return
      */
     @PostMapping("/cancelAssignBatch")
-    public Result cancelAuthBatch(@RequestBody JSONObject jsonObject) {
+    public Result<String> cancelAuthBatch(@RequestBody JSONObject jsonObject) {
         JSONArray jsonArray = jsonObject.getJSONArray("userIds");
         String roleId = (String) jsonObject.get("postId");
         Map<String, Object> columnMap = new HashMap<>();

@@ -26,7 +26,7 @@ import java.util.Properties;
 @RequestMapping("/monitor/server")
 public class ServerController {
     @GetMapping("/info")
-    public Result getServerInfo() {
+    public Result<ServerInfoVO> getServerInfo() {
         ServerInfoVO serverInfo = getServerDetailInfo();
         return Result.success(serverInfo);
     }

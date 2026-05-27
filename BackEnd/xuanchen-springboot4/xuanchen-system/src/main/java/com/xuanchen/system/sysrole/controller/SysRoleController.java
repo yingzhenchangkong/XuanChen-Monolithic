@@ -12,7 +12,7 @@ import com.xuanchen.system.sysrole.entity.SysRole;
 import com.xuanchen.system.sysrole.service.ISysRoleService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.fesod.sheet.FastExcel;
+import org.apache.fesod.sheet.FesodSheet;
 import org.apache.fesod.sheet.support.ExcelTypeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -49,10 +49,10 @@ public class SysRoleController {
      * @return
      */
     @GetMapping("/list")
-    public Result list(SysRole sysRole,
-                       @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
-                       @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
-                       HttpServletRequest req) {
+    public Result<IPage<SysRole>> list(SysRole sysRole,
+                                       @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+                                       @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
+                                       HttpServletRequest req) {
         QueryWrapper<SysRole> queryWrapper = new QueryWrapper<>();
         if (StringUtil.isNotEmpty(sysRole.getRoleName())) {
             queryWrapper.like("role_name", sysRole.getRoleName());
@@ -73,7 +73,7 @@ public class SysRoleController {
      * @return
      */
     @PostMapping(value = "/add")
-    public Result add(@RequestBody SysRole sysRole) {
+    public Result<String> add(@RequestBody SysRole sysRole) {
         sysRoleService.save(sysRole);
         return Result.success(TipConst.ADD_SUCC);
     }
@@ -85,7 +85,7 @@ public class SysRoleController {
      * @return
      */
     @RequestMapping(value = "/edit", method = {RequestMethod.PUT, RequestMethod.POST})
-    public Result edit(@RequestBody SysRole sysRole) {
+    public Result<String> edit(@RequestBody SysRole sysRole) {
         sysRoleService.updateById(sysRole);
         return Result.success(TipConst.EDIT_SUCC);
     }
@@ -97,7 +97,7 @@ public class SysRoleController {
      * @return
      */
     @DeleteMapping(value = "/delete")
-    public Result delete(@RequestParam(name = "id", required = true) String id) {
+    public Result<String> delete(@RequestParam(name = "id", required = true) String id) {
         sysRoleService.removeById(id);
         return Result.success(TipConst.DEL_SUCC);
     }
@@ -109,7 +109,7 @@ public class SysRoleController {
      * @return
      */
     @DeleteMapping(value = "/deleteBatch")
-    public Result deleteBatch(@RequestParam(name = "ids", required = true) String ids) {
+    public Result<String> deleteBatch(@RequestParam(name = "ids", required = true) String ids) {
         sysRoleService.removeByIds(Arrays.asList(ids.split(",")));
         return Result.success(TipConst.DEL_BATCH_SUCC);
     }
@@ -128,7 +128,7 @@ public class SysRoleController {
         String title = "角色管理";
         String fileName = URLEncoder.encode(title, "UTF-8").replaceAll("\\+", "%20");
         response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
-        FastExcel.write(response.getOutputStream())
+        FesodSheet.write(response.getOutputStream())
                 .head(SysRole.class)
                 .excelType(ExcelTypeEnum.XLSX)
                 .sheet(title)
@@ -143,32 +143,32 @@ public class SysRoleController {
      * @return
      */
     @RequestMapping(value = "/importExcel", method = RequestMethod.POST)
-    public Result importExcel(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public Result<String> importExcel(HttpServletRequest request, HttpServletResponse response) throws IOException {
         MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
         Map<String, MultipartFile> fileMap = multipartRequest.getFileMap();
         String message = "";
         for (Map.Entry<String, MultipartFile> entity : fileMap.entrySet()) {
             MultipartFile multipartFile = entity.getValue();
             InputStream inputStream = multipartFile.getInputStream();
-            FesodSheetListener<SysRole> listenter = new FesodSheetListener<>();
-            FastExcel.read(inputStream, SysRole.class, listenter)
+            FesodSheetListener<SysRole> listener = new FesodSheetListener<>();
+            FesodSheet.read(inputStream, SysRole.class, listener)
                     .sheet()
                     .headRowNumber(1)
                     .doRead();
-            List<SysRole> dataList = listenter.getDataList();
+            List<SysRole> dataList = listener.getDataList();
             List<SysRole> listSysRole = new ArrayList<>();
             for (SysRole sysRole : dataList) {
                 SysRole sysRoleTemp = sysRoleService.getOne(new QueryWrapper<SysRole>().eq("role_code", sysRole.getRoleCode()));
                 if (sysRoleTemp != null) {
                     continue;
                 }
-                listSysRole.add(sysRoleTemp);
+                listSysRole.add(sysRole);
             }
             sysRoleService.saveBatch(listSysRole);
-            Integer totcal = dataList.size();
+            Integer total = dataList.size();
             Integer success = listSysRole.size();
-            Integer fail = totcal - success;
-            message = "共" + totcal + "条数据,成功：" + success + "条数据，失败：" + fail + "条数据";
+            Integer fail = total - success;
+            message = "共" + total + "条数据,成功：" + success + "条数据，失败：" + fail + "条数据";
         }
         return Result.success(message);
     }
@@ -183,10 +183,10 @@ public class SysRoleController {
      * @return
      */
     @GetMapping("/listRecycleBin")
-    public Result listRecycleBin(SysRole sysRole,
-                                 @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
-                                 @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
-                                 HttpServletRequest req) {
+    public Result<IPage<SysRole>> listRecycleBin(SysRole sysRole,
+                                                 @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+                                                 @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
+                                                 HttpServletRequest req) {
         Page<SysRole> page = new Page<>(pageNo, pageSize);
         IPage<SysRole> pageList = sysRoleService.listRecycleBin(page, sysRole);
         return Result.success(pageList);
@@ -199,7 +199,7 @@ public class SysRoleController {
      * @return
      */
     @DeleteMapping("/deleteRecycleBin")
-    public Result deleteRecycleBin(@RequestParam("id") String id) {
+    public Result<String> deleteRecycleBin(@RequestParam("id") String id) {
         sysRoleService.deleteRecycleBin(id);
         return Result.success(TipConst.DEL_SUCC);
     }
@@ -211,7 +211,7 @@ public class SysRoleController {
      * @return
      */
     @DeleteMapping("/deleteRecycleBinBatch")
-    public Result deleteRecycleBinBatch(@RequestParam("ids") String ids) {
+    public Result<String> deleteRecycleBinBatch(@RequestParam("ids") String ids) {
         sysRoleService.deleteRecycleBin(ids);
         return Result.success(TipConst.DEL_SUCC);
     }
@@ -223,7 +223,7 @@ public class SysRoleController {
      * @return
      */
     @PutMapping("/revertRecycleBin")
-    public Result revertRecycleBin(@RequestBody Map<String, String> map) {
+    public Result<String> revertRecycleBin(@RequestBody Map<String, String> map) {
         String id = map.get("id");
         sysRoleService.revertRecycleBin(id);
         return Result.success(TipConst.REVERT_SUCC);
@@ -236,7 +236,7 @@ public class SysRoleController {
      * @return
      */
     @PutMapping("/revertRecycleBinBatch")
-    public Result revertRecycleBinBatch(@RequestBody Map<String, String> map) {
+    public Result<String> revertRecycleBinBatch(@RequestBody Map<String, String> map) {
         String ids = map.get("ids");
         sysRoleService.revertRecycleBin(ids);
         return Result.success(TipConst.REVERT_SUCC);
@@ -248,7 +248,7 @@ public class SysRoleController {
      * @return
      */
     @GetMapping("/select")
-    public Result select() {
+    public Result<List<SysRole>> select() {
         QueryWrapper<SysRole> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("del_flag", false).eq("status", true).orderByAsc("order_no");
         List<SysRole> list = sysRoleService.list(queryWrapper);
@@ -263,7 +263,7 @@ public class SysRoleController {
      * @return
      */
     @RequestMapping(value = "/changeStatus", method = {RequestMethod.PUT, RequestMethod.POST})
-    public Result changeStatus(@RequestBody SysRole sysRole, HttpServletRequest request) {
+    public Result<String> changeStatus(@RequestBody SysRole sysRole, HttpServletRequest request) {
         UpdateWrapper<SysRole> updateWrapper = new UpdateWrapper<>();
         updateWrapper.set("status", sysRole.getStatus()).eq("id", sysRole.getId());
         sysRoleService.update(updateWrapper);
@@ -277,12 +277,12 @@ public class SysRoleController {
      * @return
      */
     @GetMapping("/validate")
-    public Result validate(SysRole sysRole) {
+    public Result<String> validate(SysRole sysRole) {
         boolean exists = StringUtil.isEmpty(sysRole.getId())
                 ? sysRoleService.ifExistsNoId(sysRole)
                 : sysRoleService.ifExistsId(sysRole);
         return exists
-                ? Result.error()
-                : Result.success();
+                ? Result.conflict(TipConst.PARAM_EXISTS)
+                : Result.success(TipConst.PARAM_AVAILABLE);
     }
 }

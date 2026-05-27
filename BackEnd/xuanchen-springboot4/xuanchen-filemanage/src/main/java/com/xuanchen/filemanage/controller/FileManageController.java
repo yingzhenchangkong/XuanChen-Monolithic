@@ -40,7 +40,7 @@ public class FileManageController {
      * @throws Exception
      */
     @PostMapping(value = "/upload")
-    public Result upload(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    public Result<String> upload(HttpServletRequest request, HttpServletResponse response) throws Exception {
 
         String customPath = request.getParameter("customPath");
         if (StringUtil.isNotEmpty(customPath)) {

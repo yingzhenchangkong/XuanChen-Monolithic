@@ -30,7 +30,7 @@
       </a-form>
     </div>
   </div>
-  <SlideVerify ref="refOperation" @childOK="loginSubmit" />
+  <SlideVerify ref="refOperation" @childOK="handleCaptchaVerify" />
 </template>
 
 <script setup lang="ts">
@@ -45,9 +45,10 @@ import { getConfigKeyValueApi } from '../system/config/config.api';
 const authStore = useAuthStore();
 // 表单数据
 const loginForm = reactive({
-  userName: 'admin',
+  userName: 'admin4',
   password: '888888',
-  captcha: '',
+  captchaId: '',
+  captchaToken: '',
   rememberMe: false,
 })
 // 表单验证
@@ -64,6 +65,7 @@ const loginRules = reactive({
 })
 const refOperation = ref()
 const showVerify = async () => {
+  await loginRef.value.validate();
   const res: any = await getConfigKeyValueApi("captchaEnabled");
   if (res.data.configValue == "true") {
     refOperation.value.show();
@@ -71,18 +73,34 @@ const showVerify = async () => {
     loginSubmit();
   }
 }
+const handleCaptchaVerify = async (captchaId: string, captchaToken: string) => {
+  loginForm.captchaId = captchaId;
+  loginForm.captchaToken = captchaToken;
+  loginSubmit();
+}
 // 登录
 const loginSubmit = async () => {
-  await loginRef.value.validate();
-  const res: any = await login(loginForm.userName, loginForm.password, loginForm.captcha, loginForm.rememberMe);
-  if (res?.code === 200) {
-    const { token, ...userInfo } = res.data;
-    authStore.setToken(token);
-    authStore.setUserInfo(userInfo);
-    router.push({ path: "/" });
-    message.success(res.msg);
-  } else {
-    message.error(res.msg);
+  try {
+    const res: any = await login(
+      loginForm.userName,
+      loginForm.password,
+      loginForm.captchaId,
+      loginForm.captchaToken,
+      loginForm.rememberMe
+    );
+    if (res?.code === 200) {
+      const { token, ...userInfo } = res.data;
+      authStore.setToken(token);
+      authStore.setUserInfo(userInfo);
+      router.push({ path: "/" });
+      message.success(res.msg);
+    } else {
+      message.error(res.msg);
+    }
+  } catch (error) {
+    message.error('登录失败,请重试');
+  } finally {
+    refOperation.value?.reset();
   }
 }
 // 忘记密码

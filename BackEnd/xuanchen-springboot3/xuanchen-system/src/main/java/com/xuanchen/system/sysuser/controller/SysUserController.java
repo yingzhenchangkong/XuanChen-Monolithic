@@ -336,12 +336,12 @@ public class SysUserController {
         for (Map.Entry<String, MultipartFile> entity : fileMap.entrySet()) {
             MultipartFile multipartFile = entity.getValue();
             InputStream inputStream = multipartFile.getInputStream();
-            FastExcelListener<SysUser> listenter = new FastExcelListener<>();
-            FastExcel.read(inputStream, SysUser.class, listenter)
+            FastExcelListener<SysUser> listener = new FastExcelListener<>();
+            FastExcel.read(inputStream, SysUser.class, listener)
                     .sheet()
                     .headRowNumber(1)
                     .doRead();
-            List<SysUser> dataList = listenter.getDataList();
+            List<SysUser> dataList = listener.getDataList();
             List<SysUser> listSysUser = new ArrayList<>();
             for (SysUser sysUser : dataList) {
                 SysUser sysUser1 = sysUserService.getOne(new QueryWrapper<SysUser>().eq("user_name", sysUser.getUserName()));
@@ -362,10 +362,10 @@ public class SysUserController {
                 listSysUser.add(sysUser);
             }
             sysUserService.saveBatch(listSysUser);
-            Integer totcal = dataList.size();
+            Integer total = dataList.size();
             Integer success = listSysUser.size();
-            Integer fail = totcal - success;
-            message = "共" + totcal + "条数据,成功：" + success + "条数据，失败：" + fail + "条数据";
+            Integer fail = total - success;
+            message = "共" + total + "条数据,成功：" + success + "条数据，失败：" + fail + "条数据";
         }
         return Result.success(message);
     }

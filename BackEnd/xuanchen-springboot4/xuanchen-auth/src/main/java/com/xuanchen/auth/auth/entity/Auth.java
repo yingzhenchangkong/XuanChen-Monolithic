@@ -45,16 +45,17 @@ public class Auth implements Serializable {
      */
     private String avatar;
     /**
-     * 盐值
-     */
-    private String salt;
-    /**
      * 删除状态（0正常，1已删除）
      */
     private Integer delFlag;
     /**
-     * 验证码
+     * 验证码id
      */
     @TableField(exist = false)
-    private String captcha;
+    private String captchaId;
+    /**
+     * 验证码token
+     */
+    @TableField(exist = false)
+    private String captchaToken;
 }

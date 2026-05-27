@@ -73,7 +73,6 @@ public class RedisUtil {
      *
      * @param key 可以传一个值或多个
      */
-    @SuppressWarnings("unchecked")
     public void del(String... key) {
         if (key != null && key.length > 0) {
             if (key.length == 1) {
@@ -90,7 +89,6 @@ public class RedisUtil {
      * @param pattern 匹配模式
      * @return 匹配的键集合
      */
-    @SuppressWarnings("unchecked")
     public Set<String> keys(String pattern) {
         try {
             return stringRedisTemplate.keys(pattern);

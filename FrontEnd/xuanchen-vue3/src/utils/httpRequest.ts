@@ -15,8 +15,7 @@ const service = axios.create({
 //请求拦截器
 service.interceptors.request.use(
   (config) => { //在发送请求之前做些什么
-    const authStore = useAuthStore();
-    const token = authStore.getToken();
+    const token = useAuthStore().getToken();
     if (token) {
       config.headers['XC-ACCESS-TOKEN'] = token;
     }

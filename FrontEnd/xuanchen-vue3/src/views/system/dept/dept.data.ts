@@ -7,6 +7,7 @@ export const columnsDeptUser = [
     dataIndex: '',
     key: 'rowIndex',
     align: 'center',
+    width: 60,
     customRender:
       function (text: any, record: any, index: any, column: any) {
         return parseInt(text.index) + 1;
@@ -15,19 +16,17 @@ export const columnsDeptUser = [
   {
     title: '用户名',
     dataIndex: 'userName',
-    align: 'center',
-    width: 140
+    align: 'left',
   },
   {
     title: '昵称',
     dataIndex: 'nickName',
-    align: 'center',
-    width: 140
+    align: 'left',
   },
   {
     title: '操作',
     dataIndex: 'operation',
     align: 'center',
-    width: 240
+    width: 125
   },
 ];

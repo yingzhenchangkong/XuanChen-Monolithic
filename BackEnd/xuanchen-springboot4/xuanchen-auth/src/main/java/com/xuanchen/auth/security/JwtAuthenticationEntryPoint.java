@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import com.xuanchen.common.entity.Result;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.NonNull;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -22,12 +23,12 @@ import java.nio.charset.StandardCharsets;
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     @Override
-    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException {
+    public void commence(@NonNull HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
-        Result result = new Result(401, "未授权，请先登录");
+        Result<String> result = Result.unauthorized("未授权，请先登录");
         response.getWriter().write(JSON.toJSONString(result));
     }
 }

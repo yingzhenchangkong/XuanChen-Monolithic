@@ -9,7 +9,7 @@ import com.xuanchen.monitor.monlogoperation.entity.MonLogOperation;
 import com.xuanchen.monitor.monlogoperation.service.IMonLogOperationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.fesod.sheet.FastExcel;
+import org.apache.fesod.sheet.FesodSheet;
 import org.apache.fesod.sheet.support.ExcelTypeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -43,10 +43,10 @@ public class MonLogOperationController {
      * @return 分页结果
      */
     @GetMapping("/list")
-    public Result list(MonLogOperation monLogOperation,
-                       @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
-                       @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
-                       HttpServletRequest req) {
+    public Result<IPage<MonLogOperation>> list(MonLogOperation monLogOperation,
+                                               @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+                                               @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
+                                               HttpServletRequest req) {
         QueryWrapper<MonLogOperation> queryWrapper = new QueryWrapper<>();
         // 用户名精确查询
         if (StringUtil.isNotEmpty(monLogOperation.getUserName())) {
@@ -83,7 +83,7 @@ public class MonLogOperationController {
         String title = "操作日志";
         String fileName = URLEncoder.encode(title, "UTF-8").replaceAll("\\+", "%20");
         response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
-        FastExcel.write(response.getOutputStream())
+        FesodSheet.write(response.getOutputStream())
                 .head(MonLogOperation.class)
                 .excelType(ExcelTypeEnum.XLSX)
                 .sheet(title)
