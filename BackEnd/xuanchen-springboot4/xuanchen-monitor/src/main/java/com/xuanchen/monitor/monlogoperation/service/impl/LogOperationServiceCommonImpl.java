@@ -1,9 +1,10 @@
 package com.xuanchen.monitor.monlogoperation.service.impl;
 
+import com.xuanchen.common.constant.CommonConst;
 import com.xuanchen.common.service.ILogOperationServiceCommon;
 import com.xuanchen.monitor.monlogoperation.entity.MonLogOperation;
 import com.xuanchen.monitor.monlogoperation.service.IMonLogOperationService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -15,9 +16,9 @@ import java.time.LocalDateTime;
  * @date 2026-02-07
  */
 @Service
+@RequiredArgsConstructor
 public class LogOperationServiceCommonImpl implements ILogOperationServiceCommon {
-    @Autowired
-    private IMonLogOperationService monLogOperationService;
+    private final IMonLogOperationService monLogOperationService;
 
     @Override
     public void recordOperationLog(String userName, String module, String ipAddress, String operationType, String requestUrl,
@@ -29,7 +30,7 @@ public class LogOperationServiceCommonImpl implements ILogOperationServiceCommon
         monLogOperation.setOperationType(operationType);
         monLogOperation.setRequestUrl(requestUrl);
         monLogOperation.setRequestParams(requestParams);
-        monLogOperation.setStatus(status);
+        monLogOperation.setStatus(Boolean.TRUE.equals(status) ? CommonConst.STATUS_ENABLED : CommonConst.STATUS_DISABLED);
         monLogOperation.setDescription(description);
         monLogOperation.setOperationTime(LocalDateTime.now());
         monLogOperationService.save(monLogOperation);

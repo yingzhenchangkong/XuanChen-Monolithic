@@ -59,6 +59,7 @@
 
 <script setup lang="ts">
 import { useList } from '@/hooks/useList'
+import type { UseListUrlConfig } from '@/hooks/useList'
 import { reactive, ref } from 'vue';
 
 import XCQueryForm from '@/components/xuanchen/XCQueryForm.vue';
@@ -67,7 +68,7 @@ import { UserApiUrl } from '../user.api';
 
 const emit = defineEmits(['childOK']);
 /** url */
-const url = {
+const url: UseListUrlConfig = {
   list: UserApiUrl.REC_BIN_LIST,
   delete: UserApiUrl.REC_BIN_DELETE,
   deleteBatch: UserApiUrl.REC_BIN_DELETE_BATCH,

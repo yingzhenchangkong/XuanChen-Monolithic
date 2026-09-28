@@ -3,6 +3,7 @@ package com.xuanchen.system.sysuser.entity;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.apache.fesod.sheet.annotation.ExcelIgnore;
 import org.apache.fesod.sheet.annotation.ExcelProperty;
@@ -35,10 +36,19 @@ public class SysUser implements Serializable {
     @ExcelProperty("昵称")
     private String nickName;
     /**
-     * 密码
+     * 密码（BCrypt 哈希）：只允许入站反序列化（新增/重置密码提交），任何接口响应均不返回
      */
     @ExcelIgnore
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
+    /**
+     * 是否要求下次登录修改密码（1是 0否）：
+     * 新增/导入用户使用随机临时密码、管理员重置密码后置 1；用户本人修改密码后置 0。
+     * 服务端字段，仅由服务端写入，不接受客户端赋值。
+     */
+    @ExcelIgnore
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private Integer pwdResetRequired;
     /**
      * 手机号
      */
@@ -60,16 +70,17 @@ public class SysUser implements Serializable {
     @ExcelProperty("账号状态")
     private Integer status;
     /**
-     * 盐值
+     * 盐值：服务端内部字段，禁止出现在任何接口响应中
      */
     @ExcelIgnore
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String salt;
     /**
      * 删除状态（0正常，1已删除）
      */
     @ExcelProperty(value = "删除状态")
     @TableLogic
-    private Boolean delFlag;
+    private Integer delFlag;
     /**
      * 创建者
      */

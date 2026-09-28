@@ -11,9 +11,9 @@
       <template v-if="item.children === null">
         <a-menu-item :key="item.name">
           <template #icon>
-            <component :is="item.meta.icon" v-if="item.meta.icon" />
+            <component :is="resolveMenuIcon(item.meta?.icon ?? '')" v-if="item.meta?.icon" />
           </template>
-          <router-link :to="{ name: item.name }">{{ item.meta.title }}</router-link>
+          <router-link :to="{ name: item.name }">{{ item.meta?.title }}</router-link>
         </a-menu-item>
       </template>
       <template v-else>
@@ -24,10 +24,13 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useMenuStore } from '@/stores';
+import { resolveMenuIcon } from '@/utils/menuIcons';
 import SubMenu from './SubMenu.vue';
 const menuStore = useMenuStore();
-const menuList = menuStore.getMenuList();
+// 必须是响应式取值：setup 中的一次性快照会在"菜单数据晚于侧边栏挂载"时永久为空
+const menuList = computed(() => menuStore.getMenuList() ?? []);
 const state = menuStore.state;
 
 const onOpenChange = (openKeys: string[]) => {

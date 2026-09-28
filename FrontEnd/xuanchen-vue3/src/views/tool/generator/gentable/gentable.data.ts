@@ -30,9 +30,7 @@ export const columnsIndex = [
     align: 'center',
     width: 60,
     customRender:
-      function (text: any, record: any, index: any, column: any) {
-        return parseInt(text.index) + 1;
-      }
+      ({ index }: { index: number }) => index + 1,
   },
   {
     title: '表名',
@@ -61,9 +59,7 @@ export const columnsTable = [
     align: 'center',
     width: 60,
     customRender:
-      function (text: any, record: any, index: any, column: any) {
-        return parseInt(text.index) + 1;
-      }
+      ({ index }: { index: number }) => index + 1,
   },
   {
     title: '字段名',
@@ -115,9 +111,7 @@ export const columnsUI = [
     align: 'center',
     width: 60,
     customRender:
-      function (text: any, record: any, index: any, column: any) {
-        return parseInt(text.index) + 1;
-      }
+      ({ index }: { index: number }) => index + 1,
   },
   {
     title: '字段名',

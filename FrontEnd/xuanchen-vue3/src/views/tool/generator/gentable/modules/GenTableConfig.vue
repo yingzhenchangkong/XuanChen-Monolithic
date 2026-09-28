@@ -15,7 +15,7 @@
       </a-col>
       <a-col :span="6">
         <a-form-item name="tableName" label="表名" :labelCol="labelCol" :wrapperCol="wrapperCol">
-          <a-input v-if="ifCreateTable" v-model:value="model.tableName" placeholder="请输入表名" allowClear />
+          <a-input v-if="ifCreateTable" v-model:value="model.tableName" placeholder="字母/下划线开头" allowClear />
           <a-select v-else v-model:value="model.tableName" :options="optionsTable" placeholder="请选择表名"
             :fieldNames="{ label: 'tableName', value: 'tableName' }" @change="handleChangeTable" allowClear></a-select>
         </a-form-item>
@@ -37,17 +37,17 @@
       </a-col>
       <a-col :span="6">
         <a-form-item name="outputDir" label="输出目录" :labelCol="labelCol" :wrapperCol="wrapperCol">
-          <a-input v-model:value="model.outputDir" placeholder="请输入输出目录" allowClear />
+          <a-input v-model:value="model.outputDir" placeholder="须位于服务器白名单根目录内，禁止 ../" allowClear />
         </a-form-item>
       </a-col>
       <a-col :span="5">
         <a-form-item name="packageName" label="包名" :labelCol="labelCol" :wrapperCol="wrapperCol">
-          <a-input v-model:value="model.packageName" placeholder="请输入包名" allowClear />
+          <a-input v-model:value="model.packageName" placeholder="如 user，可多段 a.b" allowClear />
         </a-form-item>
       </a-col>
       <a-col :span="6">
         <a-form-item name="moduleName" label="模块名" :labelCol="labelCol" :wrapperCol="wrapperCol">
-          <a-input v-model:value="model.moduleName" placeholder="请输入模块名" allowClear />
+          <a-input v-model:value="model.moduleName" placeholder="如 system，仅字母数字下划线" allowClear />
         </a-form-item>
       </a-col>
     </a-row>
@@ -58,9 +58,10 @@
 import { ref, reactive } from 'vue';
 import type { Rule } from 'ant-design-vue/es/form';
 import { message } from 'ant-design-vue';
-import { getGenDatabaseSelect, getOneById } from '@/views/tool/generator/gendatabase/gendatabase.api';
+import { getGenDatabaseSelect } from '@/views/tool/generator/gendatabase/gendatabase.api';
 import { saveOrUpdate, getListDBTable } from '../gentable.api';
-import type { GenDatabase, GenTable } from '../gentable.types';
+import type { GenTable, GenTableColumn, DBTable } from '../gentable.types';
+import type { SelectOption } from '@/types/api';
 
 defineProps({
   operationTitle: {
@@ -86,6 +87,10 @@ const model = reactive<GenTable>({
   moduleName: '',
 });
 
+// 与后端 GeneratorSafetyValidator 一致的标识符白名单（最终以后端校验为准）
+const IDENTIFIER_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)*$/;
+const TABLE_NAME_PATTERN = /^[A-Za-z_][A-Za-z0-9_]{0,63}$/;
+
 const rulesRef = ref();
 const rules: Record<string, Rule[]> = {
   databaseId: [
@@ -93,22 +98,34 @@ const rules: Record<string, Rule[]> = {
   ],
   tableName: [
     { required: true, message: '请输入表名', trigger: 'blur' },
+    { pattern: TABLE_NAME_PATTERN, message: '表名仅允许字母、数字、下划线，须以字母或下划线开头', trigger: 'blur' },
   ],
   tableComment: [
     { required: true, message: '请输入表注释', trigger: 'blur' },
   ],
   outputDir: [
     { required: true, message: '请输入输出目录', trigger: 'blur' },
+    {
+      validator: (_rule: unknown, value: string) => {
+        if (value && (value.includes('..') || /[\x00-\x1f<>:"|?*]/.test(value))) {
+          return Promise.reject(new Error('输出目录禁止包含 ../ 或控制字符，且必须位于服务器白名单根目录内'));
+        }
+        return Promise.resolve();
+      },
+      trigger: 'blur',
+    },
   ],
   packageName: [
     { required: true, message: '请输入包名', trigger: 'blur' },
+    { pattern: IDENTIFIER_PATTERN, message: '包名仅允许字母、数字、下划线，多段以英文句点分隔', trigger: 'blur' },
   ],
   moduleName: [
     { required: true, message: '请输入模块名', trigger: 'blur' },
+    { pattern: IDENTIFIER_PATTERN, message: '模块名仅允许字母、数字、下划线，多段以英文句点分隔', trigger: 'blur' },
   ],
 }
 
-const init = (data: any) => { };
+const init = (data: GenTableColumn[]) => { };
 
 //打开弹窗
 const add = () => {
@@ -125,7 +142,7 @@ const add = () => {
   model.packageName = '';
   model.moduleName = '';
 }
-const edit = (records: any) => {
+const edit = (records: GenTable) => {
   if (rulesRef.value) {
     rulesRef.value.resetFields();
   }
@@ -142,73 +159,65 @@ const edit = (records: any) => {
 
 const submit = async () => {
   await rulesRef.value.validate();
-  const res: any = await saveOrUpdate(model);
-  message.success(res.msg);
-  emit('childData', {});
+  try {
+    const res = await saveOrUpdate(model);
+    if (res.code !== 200) {
+      message.error(res.msg);
+      return;
+    }
+    message.success(res.msg);
+    emit('childData', {});
+  } catch {
+    // 网络/HTTP 错误已由响应拦截器统一提示
+  }
 }
 
 const ifCreateTable = ref(false);
 
-const optionsDatabase = ref([]);
+const optionsDatabase = ref<SelectOption[]>([]);
 const getDatabaseSelect = async () => {
-  const res: any = await getGenDatabaseSelect();
-  optionsDatabase.value = res.data;
+  const res = await getGenDatabaseSelect();
+  optionsDatabase.value = res.data ?? [];
   if (res.data && res.data.length === 1) {
-    model.databaseId = res.data[0].id;
+    const dbId = res.data[0].id;
+    if (typeof dbId === 'string') {
+      model.databaseId = dbId;
+    }
     getTable();
   }
 }
 getDatabaseSelect();
 
-const modelDatabase = ref<GenDatabase>({
-  id: '',
-  connType: '',
-  host: '',
-  port: '',
-  dbName: '',
-  userName: '',
-  password: '',
-});
-
-const handleChangeDatabase = async (id: string) => {
-  const res: any = await getOneById(id);
-  if (res.data) {
-    model.databaseId = res.data.id;
-    getTable();
-  }
+const handleChangeDatabase = (id: string) => {
+  // 只需把已保存数据源 id 传给后端，连接信息一律不再经过前端
+  model.databaseId = id;
+  getTable();
 }
 
-const optionsTable = ref<GenTable[]>([]);
+const optionsTable = ref<DBTable[]>([]);
 const handleChangeIfCreateTable = () => {
   getTable();
 }
 
 const getTable = async () => {
-  if (!model.databaseId) {
+  const databaseId = model.databaseId;
+  if (!databaseId) {
     message.error('请选择数据库');
     return;
   }
   try {
-    const res: any = await getOneById(model.databaseId);
-    modelDatabase.value.id = model.databaseId;
-    modelDatabase.value.connType = res.data.connType;
-    modelDatabase.value.host = res.data.host;
-    modelDatabase.value.port = res.data.port;
-    modelDatabase.value.dbName = res.data.dbName;
-    modelDatabase.value.userName = res.data.userName;
-    modelDatabase.value.password = res.data.password;
-    const resTable: any = await getListDBTable(modelDatabase.value);
+    const resTable = await getListDBTable(databaseId);
     if (resTable && resTable.length > 0) {
       optionsTable.value = resTable || [];
       if (resTable && resTable.length === 1 && !ifCreateTable.value) {
         model.tableName = resTable[0].tableName;
         model.tableComment = resTable[0].tableComment;
-        emit('childData', { modelDatabase, tableName: resTable[0].tableName });
+        emit('childData', { id: databaseId, tableName: resTable[0].tableName });
       }
     } else {
       ifCreateTable.value = true;
     }
-  } catch (e) {
+  } catch {
     message.error('获取表失败');
     optionsTable.value = [];
   }
@@ -216,7 +225,7 @@ const getTable = async () => {
 
 const handleChangeTable = (tableName: string | undefined) => {
   if (tableName) {
-    model.tableComment = optionsTable.value.find((item: GenTable) => item.tableName === tableName)?.tableComment || '';
+    model.tableComment = optionsTable.value.find((item) => item.tableName === tableName)?.tableComment || '';
   }
 }
 

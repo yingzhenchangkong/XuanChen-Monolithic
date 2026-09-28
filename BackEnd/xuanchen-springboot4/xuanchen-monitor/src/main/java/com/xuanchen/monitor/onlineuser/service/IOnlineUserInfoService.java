@@ -2,7 +2,7 @@ package com.xuanchen.monitor.onlineuser.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.baomidou.mybatisplus.extension.service.IService;
+import com.baomidou.mybatisplus.spring.service.IService;
 import com.xuanchen.monitor.onlineuser.entity.OnlineUserInfo;
 
 /**

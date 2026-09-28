@@ -6,8 +6,8 @@ export interface ConfigModel {
   configValue: string;//参数键值
   configType: number | undefined;//参数类型(1系统2业务)
   orderNo: number | undefined;//排序码
-  status: boolean;//状态(0停用1启用)
-  delFlag?: boolean;//删除状态(0正常1已删除)
+  status: number;//状态(1启用0停用)
+  delFlag?: number;//删除状态(0正常1已删除)
   createBy?: string;//创建人
   createTime?: Date;//创建时间
   updateBy?: string;//更新人

@@ -87,7 +87,7 @@ public class SysNotice implements Serializable {
     @TableField(exist = false)
     private String noticeStatusId;
     @TableField(exist = false)
-    private Boolean readStatus;
+    private Integer readStatus;
     @TableField(exist = false)
     private String readStatusName;
 

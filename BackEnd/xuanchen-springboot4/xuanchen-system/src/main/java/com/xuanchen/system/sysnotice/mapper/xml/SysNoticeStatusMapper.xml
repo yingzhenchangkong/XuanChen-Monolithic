@@ -21,6 +21,6 @@
             sys_notice_status SNS
             INNER JOIN sys_notice SN ON SNS.notice_id = SN.id AND SN.`status` = 1
         WHERE
-            read_status = FALSE AND user_id = #{userId}
+            read_status = 0 AND user_id = #{userId}
     </select>
 </mapper>

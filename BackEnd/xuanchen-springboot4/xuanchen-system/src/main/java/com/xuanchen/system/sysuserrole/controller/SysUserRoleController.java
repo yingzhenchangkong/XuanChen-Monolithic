@@ -8,8 +8,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xuanchen.common.entity.Result;
 import com.xuanchen.system.sysuserrole.entity.SysUserRole;
 import com.xuanchen.system.sysuserrole.service.ISysUserRoleService;
-import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -25,9 +25,10 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/system/userrole")
+@RequiredArgsConstructor
+@PreAuthorize("hasRole('admin')")
 public class SysUserRoleController {
-    @Autowired
-    private ISysUserRoleService sysUserRoleService;
+    private final ISysUserRoleService sysUserRoleService;
 
     /**
      * 某角色已授权用户
@@ -35,14 +36,12 @@ public class SysUserRoleController {
      * @param sysUserRole
      * @param pageNo
      * @param pageSize
-     * @param req
      * @return
      */
     @GetMapping("/listAuthUser")
     public Result<IPage<SysUserRole>> listAuthUser(SysUserRole sysUserRole,
-                               @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
-                               @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
-                               HttpServletRequest req) {
+                                                   @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+                                                   @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize) {
         Page<SysUserRole> page = new Page<>(pageNo, pageSize);
         IPage<SysUserRole> pageList = sysUserRoleService.listAuthUser(page, sysUserRole.getRoleId());
         return Result.success(pageList);
@@ -54,14 +53,12 @@ public class SysUserRoleController {
      * @param sysUserRole
      * @param pageNo
      * @param pageSize
-     * @param req
      * @return
      */
     @GetMapping("/listUnAuthUser")
     public Result<IPage<SysUserRole>> listUnAuthUser(SysUserRole sysUserRole,
-                                 @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
-                                 @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
-                                 HttpServletRequest req) {
+                                                     @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+                                                     @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize) {
         Page<SysUserRole> page = new Page<>(pageNo, pageSize);
         IPage<SysUserRole> pageList = sysUserRoleService.listUnAuthUser(page, sysUserRole.getRoleId());
         return Result.success(pageList);

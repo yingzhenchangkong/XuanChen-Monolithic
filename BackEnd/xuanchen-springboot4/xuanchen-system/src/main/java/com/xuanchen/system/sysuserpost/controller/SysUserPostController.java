@@ -8,8 +8,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xuanchen.common.entity.Result;
 import com.xuanchen.system.sysuserpost.entity.SysUserPost;
 import com.xuanchen.system.sysuserpost.service.ISysUserPostService;
-import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -25,9 +25,10 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/system/userpost")
+@RequiredArgsConstructor
+@PreAuthorize("hasRole('admin')")
 public class SysUserPostController {
-    @Autowired
-    private ISysUserPostService sysUserPostService;
+    private final ISysUserPostService sysUserPostService;
 
     /**
      * 某岗位已分配用户
@@ -35,14 +36,12 @@ public class SysUserPostController {
      * @param sysUserPost
      * @param pageNo
      * @param pageSize
-     * @param req
      * @return
      */
     @GetMapping("/listAssignUser")
     public Result<IPage<SysUserPost>> listAuthUser(SysUserPost sysUserPost,
-                               @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
-                               @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
-                               HttpServletRequest req) {
+                                                   @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+                                                   @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize) {
         Page<SysUserPost> page = new Page<>(pageNo, pageSize);
         IPage<SysUserPost> pageList = sysUserPostService.listAssignUser(page, sysUserPost.getPostId());
         return Result.success(pageList);
@@ -54,14 +53,12 @@ public class SysUserPostController {
      * @param sysUserPost
      * @param pageNo
      * @param pageSize
-     * @param req
      * @return
      */
     @GetMapping("/listUnAssignUser")
     public Result<IPage<SysUserPost>> listUnAuthUser(SysUserPost sysUserPost,
-                                 @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
-                                 @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
-                                 HttpServletRequest req) {
+                                                     @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+                                                     @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize) {
         Page<SysUserPost> page = new Page<>(pageNo, pageSize);
         IPage<SysUserPost> pageList = sysUserPostService.listUnAssignUser(page, sysUserPost.getPostId());
         return Result.success(pageList);

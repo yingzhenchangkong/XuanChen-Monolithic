@@ -70,11 +70,11 @@ public class MonLogLogin implements Serializable {
     private String ipAddress;
 
     /**
-     * 登录状态（true: 成功, false: 失败）
+     * 登录状态（1: 成功, 0: 失败）
      */
     @ExcelProperty("登录状态")
     @ColumnWidth(20)
-    private Boolean status;
+    private Integer status;
 
     /**
      * 描述信息

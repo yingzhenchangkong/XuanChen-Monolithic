@@ -1,6 +1,6 @@
 package com.xuanchen.monitor.monlogoperation.service.impl;
 
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import com.xuanchen.monitor.monlogoperation.entity.MonLogOperation;
 import com.xuanchen.monitor.monlogoperation.mapper.MonLogOperationMapper;
 import com.xuanchen.monitor.monlogoperation.service.IMonLogOperationService;

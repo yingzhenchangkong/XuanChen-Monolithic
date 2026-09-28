@@ -1,4 +1,6 @@
 import { getAction, postAction, httpAction } from '@/utils/httpAction';
+import type { Result, SelectOption, LoginResult } from '@/types/api';
+import type { UserSaveParams } from './user.types';
 
 enum UserApiUrl {
   INDEX_LIST = '/system/user/list',
@@ -10,7 +12,6 @@ enum UserApiUrl {
 
   OPERATION_ADD = '/system/user/add',
   OPERATION_EDIT = '/system/user/edit',
-  OPERATION_UPLOAD = import.meta.env.APP_FILE_UPLOAD_PATH,
   OPERATION_VALIDATE = '/system/user/validate',
 
   REC_BIN_LIST = '/system/user/listRecycleBin',
@@ -29,11 +30,11 @@ enum UserApiUrl {
 
 export { UserApiUrl };
 
-export const getUserSelect = async () => {
+export const getUserSelect = async (): Promise<SelectOption[]> => {
   try {
-    const res: any = await getAction(UserApiUrl.SELECT, {});
+    const res = await getAction<SelectOption[]>(UserApiUrl.SELECT);
     if (res.code === 200) {
-      return res.data;
+      return res.data ?? [];
     }
     return [];
   } catch (error) {
@@ -42,53 +43,53 @@ export const getUserSelect = async () => {
   }
 }
 
-export const validateUserNameApi = async (id: string, userName: string) => {
-  const res: any = await getAction(UserApiUrl.OPERATION_VALIDATE, { id, userName });
-  if (res.code === 500) {
+export const validateUserNameApi = async (id: string, userName: string): Promise<void> => {
+  const res = await getAction(UserApiUrl.OPERATION_VALIDATE, { id, userName });
+  if (res.code !== 200) {
     return Promise.reject("用户名已存在!");
   } else {
     return Promise.resolve();
   }
 }
-export const validateMobileApi = async (id: string, mobile: string) => {
-  const res: any = await getAction(UserApiUrl.OPERATION_VALIDATE, { id, mobile });
-  if (res.code === 500) {
+export const validateMobileApi = async (id: string, mobile: string): Promise<void> => {
+  const res = await getAction(UserApiUrl.OPERATION_VALIDATE, { id, mobile });
+  if (res.code !== 200) {
     return Promise.reject("手机号已存在!");
   } else {
     return Promise.resolve();
   }
 }
-export const validateEmailApi = async (id: string, email: string) => {
-  const res: any = await getAction(UserApiUrl.OPERATION_VALIDATE, { id, email });
-  if (res.code === 500) {
+export const validateEmailApi = async (id: string, email: string): Promise<void> => {
+  const res = await getAction(UserApiUrl.OPERATION_VALIDATE, { id, email });
+  if (res.code !== 200) {
     return Promise.reject("邮箱已存在!");
   } else {
     return Promise.resolve();
   }
 }
 
-export const changeStatusApi = async (id: string, status: number) => {
-  return await postAction(UserApiUrl.INDEX_CHANGE_STATUS, { id, status });
+export const changeStatusApi = (id: string, status: number): Promise<Result<null>> => {
+  return postAction<null>(UserApiUrl.INDEX_CHANGE_STATUS, { id, status });
 }
 
-export const saveOrUpdate = async (data: any) => {
+export const saveOrUpdate = (data: UserSaveParams) => {
   const httpUrl = data.id ? UserApiUrl.OPERATION_EDIT : UserApiUrl.OPERATION_ADD;
   const method = data.id ? 'put' : 'post';
-  return await httpAction(httpUrl, data, method);
+  return httpAction(httpUrl, data, method);
 };
 
-export const resetPassword = async (id: string, password: string) => {
-  return await postAction(UserApiUrl.RESET_PASSWORD, { id, password });
+export const resetPassword = (id: string, password: string): Promise<Result<null>> => {
+  return postAction<null>(UserApiUrl.RESET_PASSWORD, { id, password });
 };
 
-export const userCenterUpdateAvatar = async (userName: string, avatar: string) => {
-  return await httpAction(UserApiUrl.USER_CENTER_UPDATE_AVATAR, { userName, avatar }, 'put');
+export const userCenterUpdateAvatar = (userName: string, avatar: string) => {
+  return httpAction(UserApiUrl.USER_CENTER_UPDATE_AVATAR, { userName, avatar }, 'put');
 };
 
-export const userCenterEdit = async (data: any) => {
-  return await postAction(UserApiUrl.USER_CENTER_EDIT, data);
+export const userCenterEdit = (data: UserSaveParams) => {
+  return postAction(UserApiUrl.USER_CENTER_EDIT, data);
 };
 
-export const changePassword = async (token: string | null, password: string) => {
-  return await postAction(UserApiUrl.CHANGE_PASSWORD, { token, password });
+export const changePassword = (oldPassword: string, password: string): Promise<Result<LoginResult | null>> => {
+  return postAction<LoginResult | null>(UserApiUrl.CHANGE_PASSWORD, { oldPassword, password });
 };

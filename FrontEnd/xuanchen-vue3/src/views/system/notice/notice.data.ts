@@ -1,4 +1,5 @@
 import { reactive } from 'vue';
+import type { SelectOption } from '@/types/api';
 
 /** 查询参数(通知列表) */
 export const queryParamsIndex = reactive({
@@ -19,7 +20,7 @@ export const queryFormItemsIndex = reactive([
     type: 'select' as const,
     placeholder: '请选择是否已读',
     width: '180px',
-    options: [],
+    options: [] as SelectOption[],
     fieldNames: {
       label: 'dictItemText',
       value: 'dictItemValue'
@@ -36,9 +37,7 @@ export const columnsIndex = [
     align: 'center',
     width: 60,
     customRender:
-      function (text: any, record: any, index: any, column: any) {
-        return parseInt(text.index) + 1;
-      }
+      ({ index }: { index: number }) => index + 1,
   },
   {
     title: '通知标题',
@@ -99,9 +98,7 @@ export const columnsManage = [
     align: 'center',
     width: 60,
     customRender:
-      function (text: any, record: any, index: any, column: any) {
-        return parseInt(text.index) + 1;
-      }
+      ({ index }: { index: number }) => index + 1,
   },
   {
     title: '通知标题',
@@ -147,9 +144,7 @@ export const columnsStatus = [
     align: 'center',
     width: 60,
     customRender:
-      function (text: any, record: any, index: any, column: any) {
-        return parseInt(text.index) + 1;
-      }
+      ({ index }: { index: number }) => index + 1,
   },
   {
     title: '接收人',

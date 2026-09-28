@@ -29,6 +29,7 @@ import { getUserSelect } from '../user/user.api';
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
 import { issueApi } from './notice.api';
+import type { SelectOption } from '@/types/api';
 
 // Quill 编辑器配置项
 const editorOptions = {
@@ -74,7 +75,7 @@ const rules: Record<string, Rule[]> = {
   ],
 }
 
-const optionsUser = ref([]);
+const optionsUser = ref<SelectOption[]>([]);
 const getSelectUser = async () => {
   optionsUser.value = await getUserSelect();
 };
@@ -82,8 +83,16 @@ getSelectUser();
 
 const issueSubmit = async () => {
   await rulesRef.value.validate();
-  const res: any = await issueApi(model);
-  message.success(res.msg);
+  try {
+    const res = await issueApi(model);
+    if (res.code !== 200) {
+      message.error(res.msg);
+      return;
+    }
+    message.success(res.msg);
+  } catch {
+    // 网络/HTTP 错误已由响应拦截器统一提示
+  }
 };
 </script>
 

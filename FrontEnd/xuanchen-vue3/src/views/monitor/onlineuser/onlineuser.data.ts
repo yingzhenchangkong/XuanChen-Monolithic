@@ -6,9 +6,7 @@ export const columns = [
     align: 'center',
     width: 60,
     customRender:
-      function (text: any, record: any, index: any, column: any) {
-        return parseInt(text.index) + 1;
-      }
+      ({ index }: { index: number }) => index + 1,
   },
   {
     title: '用户名',
@@ -16,7 +14,6 @@ export const columns = [
     align: 'left',
     width: 150
   },
-
   {
     title: '昵称',
     dataIndex: 'nickName',
@@ -30,9 +27,21 @@ export const columns = [
     width: 150
   },
   {
+    title: '登录 IP',
+    dataIndex: 'ip',
+    align: 'left',
+    width: 150
+  },
+  {
+    title: '终端类型',
+    dataIndex: 'deviceType',
+    align: 'left',
+    width: 100
+  },
+  {
     title: '邮箱',
     dataIndex: 'email',
-    align: 'left',
+    align: 'left'
   },
   {
     title: '操作',

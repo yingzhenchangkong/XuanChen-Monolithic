@@ -1,5 +1,6 @@
 import { getAction, postAction, httpAction } from '@/utils/httpAction';
-import type { PostModel } from './post.types';
+import type { Result, SelectOption, PageResult } from '@/types/api';
+import type { PostModel, UnAssignUserOption } from './post.types';
 
 enum PostApiUrl {
   INDEX_LIST = '/system/post/list',
@@ -31,55 +32,55 @@ enum PostApiUrl {
 
 export { PostApiUrl };
 
-export const getPostSelect = async () => {
-  const res: any = await getAction(PostApiUrl.SELECT, {});
+export const getPostSelect = async (): Promise<SelectOption[]> => {
+  const res = await getAction<SelectOption[]>(PostApiUrl.SELECT, {});
   return res.data;
 }
 
-export const validatePostCodeApi = async (id: string, postCode: string) => {
-  const res: any = await getAction(PostApiUrl.OPERATION_VALIDATE, { id, postCode });
-  if (res.code === 500) {
+export const validatePostCodeApi = async (id: string, postCode: string): Promise<void> => {
+  const res = await getAction(PostApiUrl.OPERATION_VALIDATE, { id, postCode });
+  if (res.code !== 200) {
     return Promise.reject("岗位编码已存在!");
   } else {
     return Promise.resolve();
   }
 }
 
-export const validatePostNameApi = async (id: string, postName: string) => {
-  const res: any = await getAction(PostApiUrl.OPERATION_VALIDATE, { id, postName });
-  if (res.code === 500) {
+export const validatePostNameApi = async (id: string, postName: string): Promise<void> => {
+  const res = await getAction(PostApiUrl.OPERATION_VALIDATE, { id, postName });
+  if (res.code !== 200) {
     return Promise.reject("岗位名称已存在!");
   } else {
     return Promise.resolve();
   }
 }
 
-export const changeStatusApi = async (id: string, status: number) => {
-  return await postAction(PostApiUrl.INDEX_CHANGE_STATUS, { id, status });
+export const changeStatusApi = (id: string, status: number): Promise<Result<null>> => {
+  return postAction<null>(PostApiUrl.INDEX_CHANGE_STATUS, { id, status });
 }
 
-export const saveOrUpdate = async (data: PostModel) => {
+export const saveOrUpdate = (data: PostModel) => {
   const httpUrl = data.id ? PostApiUrl.OPERATION_EDIT : PostApiUrl.OPERATION_ADD;
   const method = data.id ? 'put' : 'post';
-  return await httpAction(httpUrl, data, method);
+  return httpAction(httpUrl, data, method);
 };
 
-export const cancelAssignUser = async (userId: string, postId: string) => {
-  return await postAction(PostApiUrl.ASSIGN_USER_CANCEL_ASSIGN, { userId, postId });
+export const cancelAssignUser = (userId: string, postId: string): Promise<Result<null>> => {
+  return postAction<null>(PostApiUrl.ASSIGN_USER_CANCEL_ASSIGN, { userId, postId });
 };
 
-export const cancleAssignUserBatch = async (userIds: string[], postId: string) => {
-  return await postAction(PostApiUrl.ASSIGN_USER_CANCEL_ASSIGN_BATCH, { userIds, postId });
+export const cancleAssignUserBatch = (userIds: string[], postId: string): Promise<Result<null>> => {
+  return postAction<null>(PostApiUrl.ASSIGN_USER_CANCEL_ASSIGN_BATCH, { userIds, postId });
 }
 
-export const assignUser = async (userId: string, postId: string) => {
-  return await postAction(PostApiUrl.ASSIGN_USER_ASSIGN, { userId, postId });
+export const assignUser = (userId: string, postId: string): Promise<Result<null>> => {
+  return postAction<null>(PostApiUrl.ASSIGN_USER_ASSIGN, { userId, postId });
 };
 
-export const assignUserBatch = async (userIds: string[], postId: string) => {
-  return await postAction(PostApiUrl.ASSIGN_USER_ASSIGN_BATCH, { userIds, postId });
+export const assignUserBatch = (userIds: string[], postId: string): Promise<Result<null>> => {
+  return postAction<null>(PostApiUrl.ASSIGN_USER_ASSIGN_BATCH, { userIds, postId });
 }
 
-export const getListUnAssignUser = async (postId: string) => {
-  return await getAction(PostApiUrl.ASSIGN_USER_LIST_UN_ASSIGN_USER, { postId });
+export const getListUnAssignUser = (postId: string) => {
+  return getAction<PageResult<UnAssignUserOption>>(PostApiUrl.ASSIGN_USER_LIST_UN_ASSIGN_USER, { postId });
 }

@@ -15,31 +15,35 @@
 <script setup lang="ts">
 import { reactive, ref, onMounted } from 'vue';
 import { message } from 'ant-design-vue';
-import type { UploadChangeParam } from 'ant-design-vue';
+import type { UploadChangeParam, UploadFile } from 'ant-design-vue';
 import { useAuthStore } from '@/stores';
 import { userCenterUpdateAvatar } from '../../user/user.api';
+import { getImageView } from '@/utils/ImageUtil';
 
 const userStore = useAuthStore();
-const userInfo = userStore.getUserInfo();
-const headers = reactive({
-  "XC-ACCESS-TOKEN": userStore.getToken()
+// 仅在 setup 取一次用户名（上传接口入参，页面生命周期内不变）；头像等其他字段通过 store 实时读
+const userName = userStore.getUserInfo()?.userName ?? '';
+const headers = reactive<Record<string, string>>({
+  "XC-ACCESS-TOKEN": userStore.getToken() ?? ''
 })
 
-const action = import.meta.env.APP_FILE_UPLOAD_PATH;
+// a-upload 的 action 是组件内部直发 XHR，不经过 axios 实例，需显式补 APP_BASE_URL 前缀（/api）
+const action = import.meta.env.APP_BASE_URL + import.meta.env.APP_FILE_UPLOAD_PATH;
 const customPath = "avatar";
 
 onMounted(() => {
-  imageUrl.value = import.meta.env.APP_FILE_VIEW_PATH + userInfo.avatar;
+  // 统一走 getImageView：补 /api 前缀并对中文/空格文件名做编码
+  imageUrl.value = getImageView(userStore.getUserInfo()?.avatar) ?? '';
 })
 
 /** 上传开始 */
-function getBase64(img: any, callback: (base64Url: string) => void) {
+function getBase64(img: File, callback: (base64Url: string) => void) {
   const reader = new FileReader();
   reader.addEventListener('load', () => callback(reader.result as string));
   reader.readAsDataURL(img);
 }
 
-const fileList = ref([] as any[]);
+const fileList = ref<UploadFile[]>([]);
 const loading = ref<boolean>(false);
 const imageUrl = ref<string>('');
 
@@ -49,15 +53,35 @@ const handleChange = async (info: UploadChangeParam) => {
     return;
   }
   if (info.file.status === 'done') {
-    const res: any = await userCenterUpdateAvatar(userInfo.userName, fileList.value[0].response.msg);
-    message.success(res.msg);
-    userInfo.avatar = fileList.value[0].response.msg;
-    userStore.setUserInfo(userInfo);
-
-    getBase64(info.file.originFileObj, (base64Url: string) => {
-      imageUrl.value = base64Url;
+    // 上传响应体为统一 Result，文件相对路径当前落在 msg 字段（见 XCUploadImage 同款处理）
+    const avatarPath = fileList.value[0]?.response?.msg as string | undefined;
+    if (!avatarPath) {
       loading.value = false;
-    });
+      message.error('上传失败：未获取到文件路径');
+      return;
+    }
+    try {
+      const res = await userCenterUpdateAvatar(userName, avatarPath);
+      if (res.code !== 200) {
+        loading.value = false;
+        message.error(res.msg);
+        return;
+      }
+      message.success(res.msg);
+      // 整体替换 store 中的用户对象，依赖头像的响应式消费者（如顶栏头像）才能收到更新
+      const current = userStore.getUserInfo();
+      if (current) {
+        userStore.setUserInfo({ ...current, avatar: avatarPath });
+      }
+
+      getBase64(info.file.originFileObj as File, (base64Url: string) => {
+        imageUrl.value = base64Url;
+        loading.value = false;
+      });
+    } catch {
+      // 网络/HTTP 错误已由响应拦截器统一提示
+      loading.value = false;
+    }
   }
   if (info.file.status === 'error') {
     loading.value = false;
@@ -65,7 +89,7 @@ const handleChange = async (info: UploadChangeParam) => {
   }
 };
 
-const beforeUpload = (file: any) => {
+const beforeUpload = (file: File) => {
   const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
   if (!isJpgOrPng) {
     message.error('请上传jpg/png图片');

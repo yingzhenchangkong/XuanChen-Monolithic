@@ -1,6 +1,6 @@
 <template>
   <a-tabs v-model:activeKey="activeKey" hide-add type="editable-card" @tabClick="tabClick" @edit="onEdit" class="atabs">
-    <a-tab-pane v-for="tabPane in listTabPane" :key="tabPane.name" :closable="tabPane.title !== '首页'">
+    <a-tab-pane v-for="tabPane in tabsList" :key="tabPane.name" :closable="tabPane.title !== '首页'">
       <template #tab>
         <a-dropdown :trigger="['contextmenu']">
           <span>{{ tabPane.title }}</span>
@@ -29,14 +29,17 @@
 
 <script lang="ts" setup>
 import { useTabsStore, useMenuStore } from '@/stores';
-import { ref, watch, onMounted } from 'vue';
+import { storeToRefs } from 'pinia';
+import { watch, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import type { TabItem } from '@/types/api';
 
 const emit = defineEmits(['updateValue']);
 const tabStore = useTabsStore();
 const route = useRoute();
 const router = useRouter();
-const activeKey = ref('');
+// 页签列表与激活项直接引用 store 中的响应式状态，组件内不再保存镜像副本
+const { tabsList, activeKey } = storeToRefs(tabStore);
 const state = useMenuStore().state;
 
 const setActiveTab = () => {
@@ -44,40 +47,35 @@ const setActiveTab = () => {
   state.selectedKeys = [route.name as string];
   state.openKeys = route.matched && route.matched[1] ? [route.matched[1].name as string] : [];
 };
-const listTabPane = ref();
 const pushTabList = () => {
   const { name, meta } = route;
-  const tab: any = {
-    name: name,
+  tabStore.pushTabsList({
+    name: name as string,
     title: meta.title as string,
-  }
-  tabStore.pushTabsList(tab);
-  listTabPane.value = tabStore.getTabsList();
+  });
 };
 const tabClick = (key: string) => {
   router.push({ name: key });
-  tabStore.setActiveKey(key);
+  activeKey.value = key;
 };
 const onEdit = (targetKey: string) => {
   remove(targetKey);
 };
 const remove = (targetKey: string) => {
   let lastIndex = 0;
-  listTabPane.value.forEach((pane: any, i: number) => {
+  tabsList.value.forEach((pane, i) => {
     if (pane.name === targetKey) {
       lastIndex = i - 1;
     }
   });
-  listTabPane.value = listTabPane.value.filter((pane: any) => pane.name !== targetKey);
-  tabStore.setTabsList(listTabPane.value);
-  if (listTabPane.value.length && activeKey.value === targetKey) {
+  tabStore.setTabsList(tabsList.value.filter(pane => pane.name !== targetKey));
+  if (tabsList.value.length && activeKey.value === targetKey) {
     if (lastIndex >= 0) {
-      activeKey.value = listTabPane.value[lastIndex].name;
+      activeKey.value = tabsList.value[lastIndex].name;
     } else {
-      activeKey.value = listTabPane.value[0].name;
+      activeKey.value = tabsList.value[0].name;
     }
   }
-  tabStore.setActiveKey(activeKey.value);
   router.push({ name: activeKey.value });
 };
 const refresh = () => {
@@ -85,56 +83,55 @@ const refresh = () => {
 };
 const closeAll = () => {
   tabStore.clearTabsList();
-  listTabPane.value = tabStore.getTabsList();
-  tabStore.setActiveKey('home');
+  activeKey.value = 'home';
   router.push({ name: 'home' });
 };
 
-const handleContextMenu = (key: string, tabPane: any) => {
-  const currentIndex = listTabPane.value.findIndex((pane: any) => pane.name === tabPane.name);
-  const homeIndex = listTabPane.value.findIndex((pane: any) => pane.name === 'home');
+const handleContextMenu = (key: string, tabPane: TabItem) => {
+  const currentIndex = tabsList.value.findIndex(pane => pane.name === tabPane.name);
+  const homeIndex = tabsList.value.findIndex(pane => pane.name === 'home');
   switch (key) {
     case 'closeLeft':
       if (currentIndex > 0) {
-        // 获取首页和当前标签页及其之后的所有标签
-        const homeTab = listTabPane.value[homeIndex];
-        const rightTabs = listTabPane.value.slice(currentIndex);
-        // 将首页放在第一位，后面跟上当前标签页及其之后的所有标签
-        listTabPane.value = [homeTab, ...rightTabs];
-        tabStore.setTabsList(listTabPane.value);
+        // 保留首页 + 当前标签页及其右侧所有标签。
+        // 用名称集合过滤原数组而不是拼接切片：首页若本就在右侧切片内，
+        // 简单 prepend 会产生重复标签
+        const keepNames = new Set<string>(['home']);
+        tabsList.value.slice(currentIndex).forEach(pane => keepNames.add(pane.name));
+        tabStore.setTabsList(tabsList.value.filter(pane => keepNames.has(pane.name)));
       }
       break;
     case 'closeRight':
-      if (currentIndex < listTabPane.value.length - 1) {
-        // 保留从开始到当前标签页的所有标签
-        listTabPane.value = listTabPane.value.slice(0, currentIndex + 1);
-        // 如果首页在右侧，需要保留首页
-        if (homeIndex > currentIndex) {
-          listTabPane.value.push(listTabPane.value[homeIndex]);
-        }
-        tabStore.setTabsList(listTabPane.value);
+      if (currentIndex < tabsList.value.length - 1) {
+        // 保留从首页到当前标签页；首页若位于右侧被关闭区间，则一并保留并固定在最前。
+        // 注意：切片后数组变短，不能再用旧下标 homeIndex 去新数组取值，
+        // 否则 push 进去的是 undefined（标签栏出现空白/死项）
+        const homeTab = tabsList.value[homeIndex];
+        const kept = tabsList.value.slice(0, currentIndex + 1);
+        tabStore.setTabsList(homeIndex > currentIndex
+          ? [homeTab, ...kept.filter(pane => pane.name !== 'home')]
+          : kept);
       }
       break;
     case 'closeOther':
       // 保留首页和当前标签页
-      listTabPane.value = tabPane.name === 'home'
-        ? [listTabPane.value[homeIndex]]
-        : [listTabPane.value[homeIndex], listTabPane.value[currentIndex]];
-      tabStore.setTabsList(listTabPane.value);
+      tabStore.setTabsList(tabPane.name === 'home'
+        ? [tabsList.value[homeIndex]]
+        : [tabsList.value[homeIndex], tabsList.value[currentIndex]]);
       break;
     case 'closeAll':
       closeAll();
-      break;
+      return;
   }
-  // 确保当前标签页保持激活状态
+  // 确保当前标签页保持激活状态（closeAll 已自行跳转首页，不再覆盖）
   activeKey.value = tabPane.name;
-  tabStore.setActiveKey(activeKey.value);
 };
 
 onMounted(() => {
+  // 只做标签状态初始化：当前路由已由路由守卫（含动态路由注入后的重导航）正确解析，
+  // 绝不能再按缓存的 activeKey 主动 push——否则 F5 刷新任何内页都会被劫持到首页/上次标签
   setActiveTab();
   pushTabList();
-  router.push({ name: tabStore.getActiveKey() || 'home' });
 });
 watch(() => route.name, () => {
   setActiveTab();

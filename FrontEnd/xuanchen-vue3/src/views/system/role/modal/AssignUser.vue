@@ -52,6 +52,7 @@ import { reactive, ref } from 'vue';
 import { message } from 'ant-design-vue';
 import { columnsAssignUser } from '../role.data';
 import { RoleApiUrl, cancelAuthUser, cancleAuthUserBatch, authUser, authUserBatch, getListUnAuthUser } from '../role.api';
+import type { UnAuthUserOption } from '../role.types';
 
 const url = {
   list: RoleApiUrl.ASSIGN_USER_LIST_AUTH_USER,
@@ -79,16 +80,32 @@ const handleCancel = () => {
 }
 /** 取消授权 */
 const handleCancleAuth = async (record: any) => {
-  const res: any = await cancelAuthUser(record.userId, queryParams.roleId);
-  message.success(res.msg);
-  refresh();
+  try {
+    const res = await cancelAuthUser(record.userId, queryParams.roleId);
+    if (res.code !== 200) {
+      message.error(res.msg);
+      return;
+    }
+    message.success(res.msg);
+    refresh();
+  } catch {
+    // 网络/HTTP 错误已由响应拦截器统一提示
+  }
 }
 /** 批量取消授权 */
 const handleCancleAuthBatch = async () => {
   const userIds = state.selectedRowKeys.map(key => String(key));
-  const res: any = await cancleAuthUserBatch(userIds, queryParams.roleId);
-  message.success(res.msg);
-  refresh();
+  try {
+    const res = await cancleAuthUserBatch(userIds, queryParams.roleId);
+    if (res.code !== 200) {
+      message.error(res.msg);
+      return;
+    }
+    message.success(res.msg);
+    refresh();
+  } catch {
+    // 网络/HTTP 错误已由响应拦截器统一提示
+  }
 }
 const {
   loadData,
@@ -96,11 +113,11 @@ const {
 } = useList({ url, queryParams })
 
 const modelUnAuthUser = reactive({
-  listUnAuthUser: [],
+  listUnAuthUser: [] as string[],
 });
-const optionsUnAuthUser = ref([]);
+const optionsUnAuthUser = ref<UnAuthUserOption[]>([]);
 const loadDataUnAuthUser = async () => {
-  const res: any = await getListUnAuthUser(queryParams.roleId);
+  const res = await getListUnAuthUser(queryParams.roleId);
   optionsUnAuthUser.value = res.data.records;
 }
 const filterOption = (input: string, option: any) => {
@@ -115,17 +132,21 @@ const handleAuth = async () => {
     message.warning('请选择用户');
     return;
   }
-  let res: any;
   const roleId = queryParams.roleId;
-  if (selectedUserIds.length === 1) {
-    res = await authUser(selectedUserIds[0]!, roleId);
-  } else if (selectedUserIds.length > 1) {
-    const userIds = selectedUserIds.map(key => String(key));
-    res = await authUserBatch(userIds, roleId);
+  try {
+    const res = selectedUserIds.length === 1
+      ? await authUser(selectedUserIds[0], roleId)
+      : await authUserBatch(selectedUserIds.map(key => String(key)), roleId);
+    if (res.code !== 200) {
+      message.error(res.msg);
+      return;
+    }
+    message.success(res.msg || '操作成功');
+    modelUnAuthUser.listUnAuthUser = [];
+    refresh();
+  } catch {
+    // 网络/HTTP 错误已由响应拦截器统一提示
   }
-  message.success(res.msg || '操作成功');
-  modelUnAuthUser.listUnAuthUser = [];
-  refresh();
 }
 
 //子组件方法默认为私有

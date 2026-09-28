@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.xuanchen.common.constant.CommonConst;
 import com.xuanchen.common.constant.TipConst;
 import com.xuanchen.common.entity.Result;
 import com.xuanchen.common.excel.FesodSheetListener;
@@ -12,9 +13,10 @@ import com.xuanchen.system.sysrole.entity.SysRole;
 import com.xuanchen.system.sysrole.service.ISysRoleService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.apache.fesod.sheet.FesodSheet;
 import org.apache.fesod.sheet.support.ExcelTypeEnum;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -35,9 +37,10 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/system/role")
+@RequiredArgsConstructor
+@PreAuthorize("hasRole('admin')")
 public class SysRoleController {
-    @Autowired
-    private ISysRoleService sysRoleService;
+    private final ISysRoleService sysRoleService;
 
     /**
      * 分页列表查询
@@ -45,14 +48,12 @@ public class SysRoleController {
      * @param sysRole
      * @param pageNo
      * @param pageSize
-     * @param req
      * @return
      */
     @GetMapping("/list")
     public Result<IPage<SysRole>> list(SysRole sysRole,
                                        @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
-                                       @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
-                                       HttpServletRequest req) {
+                                       @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize) {
         QueryWrapper<SysRole> queryWrapper = new QueryWrapper<>();
         if (StringUtil.isNotEmpty(sysRole.getRoleName())) {
             queryWrapper.like("role_name", sysRole.getRoleName());
@@ -179,14 +180,12 @@ public class SysRoleController {
      * @param sysRole
      * @param pageNo
      * @param pageSize
-     * @param req
      * @return
      */
     @GetMapping("/listRecycleBin")
     public Result<IPage<SysRole>> listRecycleBin(SysRole sysRole,
                                                  @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
-                                                 @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
-                                                 HttpServletRequest req) {
+                                                 @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize) {
         Page<SysRole> page = new Page<>(pageNo, pageSize);
         IPage<SysRole> pageList = sysRoleService.listRecycleBin(page, sysRole);
         return Result.success(pageList);
@@ -250,7 +249,7 @@ public class SysRoleController {
     @GetMapping("/select")
     public Result<List<SysRole>> select() {
         QueryWrapper<SysRole> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("del_flag", false).eq("status", true).orderByAsc("order_no");
+        queryWrapper.eq("del_flag", CommonConst.DEL_FLAG_NORMAL).eq("status", CommonConst.STATUS_ENABLED).orderByAsc("order_no");
         List<SysRole> list = sysRoleService.list(queryWrapper);
         return Result.success(list);
     }
@@ -259,11 +258,10 @@ public class SysRoleController {
      * 状态修改
      *
      * @param sysRole
-     * @param request
      * @return
      */
     @RequestMapping(value = "/changeStatus", method = {RequestMethod.PUT, RequestMethod.POST})
-    public Result<String> changeStatus(@RequestBody SysRole sysRole, HttpServletRequest request) {
+    public Result<String> changeStatus(@RequestBody SysRole sysRole) {
         UpdateWrapper<SysRole> updateWrapper = new UpdateWrapper<>();
         updateWrapper.set("status", sysRole.getStatus()).eq("id", sysRole.getId());
         sysRoleService.update(updateWrapper);

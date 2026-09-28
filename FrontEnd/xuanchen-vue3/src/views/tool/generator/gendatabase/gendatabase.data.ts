@@ -1,4 +1,5 @@
 import { reactive } from 'vue';
+import type { SelectOption } from '@/types/api';
 /** 查询参数 */
 export const queryParams = reactive({
   connType: undefined,
@@ -12,7 +13,7 @@ export const queryFormItems = reactive([
     label: '连接类型',
     type: 'select' as const,
     placeholder: '请选择连接类型',
-    options: [],
+    options: [] as SelectOption[],
     fieldNames: {
       label: 'dictItemText',
       value: 'dictItemValue'
@@ -41,9 +42,7 @@ export const columnsIndex = [
     align: 'center',
     width: 60,
     customRender:
-      function (text: any, record: any, index: any, column: any) {
-        return parseInt(text.index) + 1;
-      }
+      ({ index }: { index: number }) => index + 1,
   },
   {
     title: '连接类型',
@@ -109,9 +108,7 @@ export const columnsRecBin = [
     align: 'center',
     width: 60,
     customRender:
-      function (text: any, record: any, index: any, column: any) {
-        return parseInt(text.index) + 1;
-      }
+      ({ index }: { index: number }) => index + 1,
   },
   {
     title: '连接类型',

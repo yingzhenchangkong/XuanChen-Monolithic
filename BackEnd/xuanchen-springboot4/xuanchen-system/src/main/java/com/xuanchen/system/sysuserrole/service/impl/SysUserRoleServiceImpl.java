@@ -2,11 +2,11 @@ package com.xuanchen.system.sysuserrole.service.impl;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import com.xuanchen.system.sysuserrole.entity.SysUserRole;
 import com.xuanchen.system.sysuserrole.mapper.SysUserRoleMapper;
 import com.xuanchen.system.sysuserrole.service.ISysUserRoleService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -19,9 +19,9 @@ import java.util.List;
  * @date 2025-04-14
  */
 @Service
+@RequiredArgsConstructor
 public class SysUserRoleServiceImpl extends ServiceImpl<SysUserRoleMapper, SysUserRole> implements ISysUserRoleService {
-    @Autowired
-    private SysUserRoleMapper sysUserRoleMapper;
+    private final SysUserRoleMapper sysUserRoleMapper;
 
     @Override
     public IPage<SysUserRole> listAuthUser(Page<SysUserRole> page, String roleId) {

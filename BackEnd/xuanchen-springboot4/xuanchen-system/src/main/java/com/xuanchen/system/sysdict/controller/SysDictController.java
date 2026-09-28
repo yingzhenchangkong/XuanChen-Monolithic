@@ -11,8 +11,9 @@ import com.xuanchen.system.sysdict.entity.SysDict;
 import com.xuanchen.system.sysdict.entity.SysDictItem;
 import com.xuanchen.system.sysdict.service.ISysDictItemService;
 import com.xuanchen.system.sysdict.service.ISysDictService;
-import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -26,11 +27,11 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/system/dict")
+@RequiredArgsConstructor
+@PreAuthorize("hasRole('admin')")
 public class SysDictController {
-    @Autowired
-    private ISysDictService sysDictService;
-    @Autowired
-    private ISysDictItemService sysDictItemService;
+    private final ISysDictService sysDictService;
+    private final ISysDictItemService sysDictItemService;
 
     /**
      * 分页列表查询
@@ -38,14 +39,12 @@ public class SysDictController {
      * @param sysDict
      * @param pageNo
      * @param pageSize
-     * @param req
      * @return
      */
     @GetMapping("/list")
     public Result<IPage<SysDict>> list(SysDict sysDict,
-                       @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
-                       @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
-                       HttpServletRequest req) {
+                                       @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+                                       @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize) {
         QueryWrapper<SysDict> queryWrapper = new QueryWrapper<>();
         if (StringUtil.isNotEmpty(sysDict.getDictName())) {
             queryWrapper.like("dict_name", sysDict.getDictName());
@@ -82,13 +81,19 @@ public class SysDictController {
 
     /**
      * 通过id删除
+     * 事务约束：字典项与字典主表必须同一事务删除，字典项已删而主表删除失败会留下
+     * "查不到字典但字典项残留"的不一致数据。
      *
      * @param id
      * @return
      */
     @DeleteMapping(value = "/delete")
+    @Transactional(rollbackFor = Exception.class)
     public Result<String> delete(@RequestParam(name = "id", required = true) String id) {
         SysDict sysDict = sysDictService.getById(id);
+        if (sysDict == null) {
+            return Result.badRequest("字典不存在或已被删除！");
+        }
         QueryWrapper<SysDictItem> queryWrapperItem = new QueryWrapper<>();
         queryWrapperItem.eq("dict_code", sysDict.getDictCode());
         sysDictItemService.remove(queryWrapperItem);
@@ -102,14 +107,12 @@ public class SysDictController {
      * @param sysDictItem
      * @param pageNo
      * @param pageSize
-     * @param req
      * @return
      */
     @GetMapping("/listItem")
     public Result<IPage<SysDictItem>> listItem(SysDictItem sysDictItem,
-                           @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
-                           @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
-                           HttpServletRequest req) {
+                                               @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+                                               @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize) {
         QueryWrapper<SysDictItem> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("dict_code", sysDictItem.getDictCode());
         Page<SysDictItem> page = new Page<>(pageNo, pageSize);
@@ -159,6 +162,7 @@ public class SysDictController {
      * @return
      */
     @GetMapping("/select")
+    @PreAuthorize("isAuthenticated()")
     public Result<List<SysDictItem>> select(@RequestParam(name = "dictCode") String dictCode) {
         List<SysDictItem> list = new ArrayList<>();
         if (StringUtil.isNotEmpty(dictCode)) {
@@ -174,11 +178,10 @@ public class SysDictController {
      * 状态修改
      *
      * @param sysDict
-     * @param request
      * @return
      */
     @RequestMapping(value = "/changeStatus", method = {RequestMethod.PUT, RequestMethod.POST})
-    public Result<String> changeStatus(@RequestBody SysDict sysDict, HttpServletRequest request) {
+    public Result<String> changeStatus(@RequestBody SysDict sysDict) {
         UpdateWrapper<SysDict> updateWrapper = new UpdateWrapper<>();
         updateWrapper.set("status", sysDict.getStatus()).eq("id", sysDict.getId());
         sysDictService.update(updateWrapper);
@@ -189,11 +192,10 @@ public class SysDictController {
      * 状态修改
      *
      * @param sysDictItem
-     * @param request
      * @return
      */
     @RequestMapping(value = "/changeStatusItem", method = {RequestMethod.PUT, RequestMethod.POST})
-    public Result<String> changeStatusItem(@RequestBody SysDictItem sysDictItem, HttpServletRequest request) {
+    public Result<String> changeStatusItem(@RequestBody SysDictItem sysDictItem) {
         UpdateWrapper<SysDictItem> updateWrapper = new UpdateWrapper<>();
         updateWrapper.set("status", sysDictItem.getStatus()).eq("id", sysDictItem.getId());
         sysDictItemService.update(updateWrapper);

@@ -15,6 +15,11 @@
     <packaging>jar</packaging>
 
     <dependencies>
+        <!-- 可启动的 Web 应用（内嵌 Tomcat），显式声明 web 能力 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.xuanchen</groupId>
             <artifactId>xuanchen-auth</artifactId>
@@ -33,6 +38,11 @@
         <dependency>
             <groupId>com.xuanchen</groupId>
             <artifactId>xuanchen-filemanage</artifactId>
+            <version>${xuanchen.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.xuanchen</groupId>
+            <artifactId>xuanchen-generator</artifactId>
             <version>${xuanchen.version}</version>
         </dependency>
     </dependencies>

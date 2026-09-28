@@ -2,11 +2,11 @@ package com.xuanchen.system.sysconfig.service.impl;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import com.xuanchen.system.sysconfig.entity.SysConfig;
 import com.xuanchen.system.sysconfig.mapper.SysConfigMapper;
 import com.xuanchen.system.sysconfig.service.ISysConfigService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 /**
@@ -16,9 +16,9 @@ import org.springframework.stereotype.Service;
  * @date 2026-01-10
  */
 @Service
+@RequiredArgsConstructor
 public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig> implements ISysConfigService {
-    @Autowired
-    private SysConfigMapper sysConfigMapper;
+    private final SysConfigMapper sysConfigMapper;
 
     @Override
     public IPage<SysConfig> listRecycleBin(Page<SysConfig> page, SysConfig sysConfig) {

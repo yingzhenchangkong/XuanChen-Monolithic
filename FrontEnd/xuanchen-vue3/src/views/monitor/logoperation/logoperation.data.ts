@@ -1,4 +1,5 @@
 import { reactive } from 'vue';
+import type { SelectOption } from '@/types/api';
 /** 查询参数 */
 export const queryParams = reactive({
   userName: undefined,
@@ -15,7 +16,7 @@ export const queryFormItems = reactive([
     type: 'select' as const,
     placeholder: '请选择用户名',
     width: '180px',
-    options: [],
+    options: [] as SelectOption[],
     fieldNames: {
       label: 'nickName',
       value: 'userName'
@@ -35,7 +36,7 @@ export const queryFormItems = reactive([
     label: '登录状态',
     type: 'select' as const,
     placeholder: '请选择登录状态',
-    options: [],
+    options: [] as SelectOption[],
     fieldNames: {
       label: 'dictItemText',
       value: 'dictItemValue'
@@ -52,9 +53,7 @@ export const columns = [
     align: 'center',
     width: 60,
     customRender:
-      function (text: any, record: any, index: any, column: any) {
-        return parseInt(text.index) + 1;
-      }
+      ({ index }: { index: number }) => index + 1,
   },
   {
     title: '操作用户',

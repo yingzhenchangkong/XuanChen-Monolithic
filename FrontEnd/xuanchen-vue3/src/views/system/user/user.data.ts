@@ -38,9 +38,7 @@ export const columns = [
     align: 'center',
     width: 60,
     customRender:
-      function (text: any, record: any, index: any, column: any) {
-        return parseInt(text.index) + 1;
-      }
+      ({ index }: { index: number }) => index + 1,
   },
   {
     title: '头像',
@@ -109,9 +107,7 @@ export const columnsRcvBin = [
     key: 'rowIndex',
     align: 'center',
     customRender:
-      function (text: any, record: any, index: any, column: any) {
-        return parseInt(text.index) + 1;
-      }
+      ({ index }: { index: number }) => index + 1,
   },
   {
     title: '用户名',

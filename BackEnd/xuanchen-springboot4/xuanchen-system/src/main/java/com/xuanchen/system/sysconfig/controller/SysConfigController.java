@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.xuanchen.common.constant.CommonConst;
 import com.xuanchen.common.constant.TipConst;
 import com.xuanchen.common.entity.Result;
 import com.xuanchen.common.excel.FesodSheetListener;
@@ -12,9 +13,10 @@ import com.xuanchen.system.sysconfig.entity.SysConfig;
 import com.xuanchen.system.sysconfig.service.ISysConfigService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.apache.fesod.sheet.FesodSheet;
 import org.apache.fesod.sheet.support.ExcelTypeEnum;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -26,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 控制器-->参数配置
@@ -35,9 +38,16 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/system/config")
+@RequiredArgsConstructor
+@PreAuthorize("hasRole('admin')")
 public class SysConfigController {
-    @Autowired
-    private ISysConfigService sysConfigService;
+    private final ISysConfigService sysConfigService;
+
+    /**
+     * 允许匿名访问（登录页等公开场景）的系统参数 key 白名单；
+     * 其余 key 一律不允许通过 getConfigKeyValue 枚举，必须走管理员鉴权接口
+     */
+    private static final Set<String> PUBLIC_CONFIG_KEYS = Set.of("captchaEnabled");
 
     /**
      * 分页列表查询
@@ -45,14 +55,12 @@ public class SysConfigController {
      * @param sysConfig
      * @param pageNo
      * @param pageSize
-     * @param req
      * @return
      */
     @GetMapping("/list")
     public Result<IPage<SysConfig>> list(SysConfig sysConfig,
                                          @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
-                                         @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
-                                         HttpServletRequest req) {
+                                         @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize) {
         QueryWrapper<SysConfig> queryWrapper = new QueryWrapper<>();
         if (StringUtil.isNotEmpty(sysConfig.getConfigName())) {
             queryWrapper.like("config_name", sysConfig.getConfigName());
@@ -179,14 +187,12 @@ public class SysConfigController {
      * @param sysConfig
      * @param pageNo
      * @param pageSize
-     * @param req
      * @return
      */
     @GetMapping("/listRecycleBin")
     public Result<IPage<SysConfig>> listRecycleBin(SysConfig sysConfig,
                                                    @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
-                                                   @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
-                                                   HttpServletRequest req) {
+                                                   @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize) {
         Page<SysConfig> page = new Page<>(pageNo, pageSize);
         IPage<SysConfig> pageList = sysConfigService.listRecycleBin(page, sysConfig);
         return Result.success(pageList);
@@ -250,7 +256,7 @@ public class SysConfigController {
     @GetMapping("/select")
     public Result<List<SysConfig>> select() {
         QueryWrapper<SysConfig> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("del_flag", false).eq("status", true).orderByAsc("order_no");
+        queryWrapper.eq("del_flag", CommonConst.DEL_FLAG_NORMAL).eq("status", CommonConst.STATUS_ENABLED).orderByAsc("order_no");
         List<SysConfig> list = sysConfigService.list(queryWrapper);
         return Result.success(list);
     }
@@ -259,11 +265,10 @@ public class SysConfigController {
      * 状态修改
      *
      * @param sysConfig
-     * @param request
      * @return
      */
     @RequestMapping(value = "/changeStatus", method = {RequestMethod.PUT, RequestMethod.POST})
-    public Result<String> changeStatus(@RequestBody SysConfig sysConfig, HttpServletRequest request) {
+    public Result<String> changeStatus(@RequestBody SysConfig sysConfig) {
         UpdateWrapper<SysConfig> updateWrapper = new UpdateWrapper<>();
         updateWrapper.set("status", sysConfig.getStatus()).eq("id", sysConfig.getId());
         sysConfigService.update(updateWrapper);
@@ -293,9 +298,14 @@ public class SysConfigController {
      * @return
      */
     @GetMapping("/getConfigKeyValue")
+    @PreAuthorize("permitAll()")
     public Result<SysConfig> getConfigKeyValue(SysConfig sysConfig) {
+        String configKey = sysConfig == null ? null : sysConfig.getConfigKey();
+        if (StringUtil.isEmpty(configKey) || !PUBLIC_CONFIG_KEYS.contains(configKey.trim())) {
+            return Result.forbidden("该配置项不允许匿名访问！");
+        }
         QueryWrapper<SysConfig> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("config_key", sysConfig.getConfigKey());
+        queryWrapper.eq("config_key", configKey.trim());
         SysConfig sysConfigResult = sysConfigService.getOne(queryWrapper);
         return Result.success(sysConfigResult);
     }

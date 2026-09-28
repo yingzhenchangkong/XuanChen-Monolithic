@@ -60,10 +60,18 @@ const show = (id: string) => {
 
 const handleOk = async () => {
   await rulesRef.value.validate();
-  const res: any = await resetPassword(model.id, model.password);
-  message.success(res.msg);
-  visible.value = false;
-}
+  try {
+    const res = await resetPassword(model.id, model.password);
+    if (res.code !== 200) {
+      message.error(res.msg);
+      return;
+    }
+    message.success(res.msg);
+    visible.value = false;
+  } catch {
+    // 网络/HTTP 错误已由响应拦截器统一提示，此处仅保持弹窗打开
+  }
+};
 
 defineExpose({
   show,

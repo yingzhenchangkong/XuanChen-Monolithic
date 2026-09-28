@@ -42,6 +42,7 @@ import { ref, reactive } from 'vue';
 import { Checkbox } from 'ant-design-vue';
 import { columnsTable } from '../gentable.data';
 import type { GenTableColumn } from '../gentable.types';
+import type { SelectOption } from '@/types/api';
 import { getDictSelect } from '@/views/system/dict/dict.api';
 
 const emit = defineEmits(['childData']);
@@ -50,10 +51,10 @@ const init = (data: GenTableColumn[]) => {
   dataSource.splice(0, dataSource.length, ...data);
 };
 
-const optionsColumnType = ref([]);
+const optionsColumnType = ref<SelectOption[]>([]);
 const getColumnType = async () => {
-  const res: any = await getDictSelect('db_table_column_type');
-  optionsColumnType.value = res;
+  const res = await getDictSelect('db_table_column_type');
+  optionsColumnType.value = res ?? [];
 }
 getColumnType();
 

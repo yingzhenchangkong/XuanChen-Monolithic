@@ -10,8 +10,8 @@ import com.xuanchen.system.sysuser.entity.SysUser;
 import com.xuanchen.system.sysuser.service.ISysUserService;
 import com.xuanchen.system.sysuserdept.entity.SysUserDept;
 import com.xuanchen.system.sysuserdept.service.ISysUserDeptService;
-import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -25,13 +25,12 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/system/userdept")
+@RequiredArgsConstructor
+@PreAuthorize("hasRole('admin')")
 public class SysUserDeptController {
-    @Autowired
-    private ISysUserDeptService sysUserDeptService;
-    @Autowired
-    private ISysUserService sysUserService;
-    @Autowired
-    private ISysDeptService sysDeptService;
+    private final ISysUserDeptService sysUserDeptService;
+    private final ISysUserService sysUserService;
+    private final ISysDeptService sysDeptService;
 
     /**
      * 部门已授权用户
@@ -39,14 +38,12 @@ public class SysUserDeptController {
      * @param sysUserDept
      * @param pageNo
      * @param pageSize
-     * @param req
      * @return
      */
     @GetMapping("/listDeptUser")
     public Result<IPage<SysUserDept>> listDeptUser(SysUserDept sysUserDept,
-                               @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
-                               @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
-                               HttpServletRequest req) {
+                                                   @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+                                                   @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize) {
         Page<SysUserDept> page = new Page<>(pageNo, pageSize);
         IPage<SysUserDept> pageList = sysUserDeptService.listDeptUser(page, sysUserDept.getDeptCode());
         return Result.success(pageList);

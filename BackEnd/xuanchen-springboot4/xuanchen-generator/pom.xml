@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>xuanchen-parent</artifactId>
+        <groupId>com.xuanchen</groupId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>xuanchen-generator</artifactId>
+    <description>代码生成器</description>
+    <packaging>jar</packaging>
+
+    <dependencies>
+        <!-- MyBatis-Plus 代码生成器（FastAutoGenerator），版本与主依赖 mybatis-plus 3.5.17 对齐 -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-generator</artifactId>
+            <version>${mybatisplus.version}</version>
+        </dependency>
+        <!-- Freemarker 模板引擎（代码生成模板 + 自定义 Vue 模板） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-freemarker</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.xuanchen</groupId>
+            <artifactId>xuanchen-common</artifactId>
+            <version>${xuanchen.version}</version>
+        </dependency>
+        <!-- 数据源密码响应掩码自定义 ValueSerializer 需要 Jackson 3（Boot 4 Web 层即 Jackson 3）；
+             版本由 Spring Boot BOM 管理。注意 Fesod 传递引入的是 Jackson 2（com.fasterxml），
+             其注解不会被 Boot 4 的 HTTP 消息转换器识别 -->
+        <dependency>
+            <groupId>tools.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+    </dependencies>
+
+</project>

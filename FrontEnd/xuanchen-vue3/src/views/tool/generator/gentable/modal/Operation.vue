@@ -24,6 +24,12 @@ import { getListTableColumn, getListDBTableColumn } from '../gentable.api';
 import { tableColumn } from '../gentable.data';
 import type { GenTableColumn } from '../gentable.types';
 
+/** GenTableConfig 通过 childData 回传的数据源 id 与表名（连接信息不再经过前端） */
+interface GenTableConfigData {
+  id: string;
+  tableName?: string;
+}
+
 defineProps({
   operationTitle: {
     type: String,
@@ -44,7 +50,7 @@ const add = () => {
   visible.value = true;
   isFullScreen.value = true;
 }
-const edit = (records: any) => {
+const edit = (_records: unknown) => {
   visible.value = true;
   isFullScreen.value = true;
 };
@@ -57,31 +63,31 @@ const refGenTableConfig = ref();
 const refGenTableColumnConfig = ref();
 const refGenTableColumnUI = ref();
 
-const recGenTableConfig = async (data: any) => {
+const recGenTableConfig = async (data: GenTableConfigData) => {
   await getDataSource(data);
   refGenTableColumnConfig.value?.init(dataSource);
   refGenTableColumnUI.value?.init(dataSource);
 }
-const recGenTableColumnConfig = async (data: any) => {
+const recGenTableColumnConfig = async (data: GenTableColumn[]) => {
   dataSource.splice(0, dataSource.length, ...data);
   refGenTableColumnUI.value?.init(dataSource);
 }
 
-const recGenTableColumnUI = async (data: any) => {
+const recGenTableColumnUI = async (data: GenTableColumn[]) => {
   dataSource.splice(0, dataSource.length, ...data);
   refGenTableConfig.value?.init(dataSource);
 }
 
-const getDataSource = async (data: any) => {
-  const res: any = await getListTableColumn(data.modelDatabase.value.id, data.tableName);
+const getDataSource = async (data: GenTableConfigData) => {
+  const res = await getListTableColumn(data.id, data.tableName!);
   if (res && res.length != 0) {
     dataSource.splice(0, dataSource.length, ...res);
   } else {
-    const res2: any = await getListDBTableColumn(data.modelDatabase.value, data.tableName);
+    const res2 = await getListDBTableColumn(data.id, data.tableName!);
     if (res2 && res2.length != 0) {
       dataSource.splice(0, dataSource.length, ...res2);
     } else {
-      const res3: any = tableColumn;
+      const res3 = tableColumn;
       dataSource.splice(0, dataSource.length, ...res3);
     }
   }

@@ -13,8 +13,13 @@ import { getAction } from '@/utils/httpAction';
 import { useAuthStore, useWebSocketStore } from '@/stores';
 import router from '@/router';
 
+/** WebSocket 推送的未读通知条目（后端推送载荷） */
+interface WsNoticeItem {
+  userName?: string;
+  count?: number;
+}
+
 const userStore = useAuthStore();
-const userInfo = userStore.getUserInfo();
 const webSocketStore = useWebSocketStore();
 const count = ref(0);
 
@@ -23,16 +28,18 @@ const url = {
 }
 
 const getNoticeCount = async () => {
-  const res = await getAction(url.getNoticeCount, {});
+  const res = await getAction<{ count: number }>(url.getNoticeCount);
   count.value = res.data.count;
 }
 getNoticeCount();
 
-const handleMessage = (data: any) => {
-  const userInfo = JSON.parse(sessionStorage.getItem('userInfo') || '{}');
-  data.forEach((element: any) => {
-    if (element.userName === userInfo.userName) {
-      count.value = element.count;
+const handleMessage = (data: unknown) => {
+  // 直接读响应式 store 的当前用户名，不再手动解析 sessionStorage
+  const currentUserName = userStore.getUserInfo()?.userName;
+  if (!Array.isArray(data)) return;
+  (data as WsNoticeItem[]).forEach((element) => {
+    if (element.userName === currentUserName) {
+      count.value = element.count ?? 0;
     }
   });
 };

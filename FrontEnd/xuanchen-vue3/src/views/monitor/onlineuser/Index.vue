@@ -2,7 +2,7 @@
   <a-card>
     <!--表格区域-->
     <a-table :dataSource="dataSource" :columns="columns" :pagination="ipagination" :loading="loading" bordered
-      rowKey="id" size="small">
+      rowKey="token" size="small">
       <template #bodyCell="{ column, text, record, index }">
         <template v-if="column.dataIndex === 'operation'">
           <a-popconfirm title="确定强制退出吗？" @confirm="() => handleForceLogout(record.token)" placement="left">
@@ -30,7 +30,7 @@ const url = reactive({
 });
 
 const handleForceLogout = async (token: string) => {
-  const res: any = await forceLogout(token);
+  const res = await forceLogout(token);
   if (res.code === 200) {
     message.success(res.msg);
     loadData();

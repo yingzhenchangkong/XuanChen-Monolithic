@@ -18,13 +18,20 @@
 import { ref } from 'vue';
 
 import { getServerInfoApi } from './server.api';
+import type { ServerInfo } from './server.api';
 import { columns } from './server.data';
 
-const info = ref<any>([]);
-const dataSourceCPU = ref<any>([]);
-const dataSourceMemory = ref<any>([]);
-const dataSourceDisk = ref<any>([]);
-const dataSourceJVM = ref<any>([]);
+/** 监控信息表格行 */
+interface ServerInfoRow {
+  description: string;
+  value: unknown;
+}
+
+const info = ref<ServerInfo>();
+const dataSourceCPU = ref<ServerInfoRow[]>([]);
+const dataSourceMemory = ref<ServerInfoRow[]>([]);
+const dataSourceDisk = ref<ServerInfoRow[]>([]);
+const dataSourceJVM = ref<ServerInfoRow[]>([]);
 const getRedisInfo = async () => {
   const res = await getServerInfoApi();
   info.value = res.data;
@@ -39,7 +46,7 @@ const getRedisInfo = async () => {
   dataSourceMemory.value = dataSourceMemory.value.concat({ description: "剩余内存(G)", value: res.data.freeMem });
   dataSourceMemory.value = dataSourceMemory.value.concat({ description: "内存使用率", value: res.data.memUsage });
   // 磁盘信息
-  res.data.diskInfos.forEach((item: any) => {
+  res.data.diskInfos?.forEach((item) => {
     dataSourceDisk.value = dataSourceDisk.value.concat({ description: "磁盘名称", value: item.name });
     dataSourceDisk.value = dataSourceDisk.value.concat({ description: "磁盘总容量(G)", value: item.total });
     dataSourceDisk.value = dataSourceDisk.value.concat({ description: "磁盘剩余容量(G)", value: item.free });

@@ -40,7 +40,7 @@ public class SysDept implements Serializable {
     /**
      * 是否叶子节点（1是，0不是）
      */
-    private Boolean isLeaf;
+    private Integer isLeaf;
 
     /**
      * 排序码
@@ -50,13 +50,13 @@ public class SysDept implements Serializable {
     /**
      * 状态（1启用，0停用）
      */
-    private Boolean status;
+    private Integer status;
 
     /**
      * 删除状态（0正常，1已删除）
      */
     @TableLogic
-    private Boolean delFlag;
+    private Integer delFlag;
 
     /**
      * 创建人

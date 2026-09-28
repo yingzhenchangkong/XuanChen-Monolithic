@@ -56,6 +56,12 @@ import { queryParamsIndex, queryFormItemsIndex, columnsIndex } from './notice.da
 import { getDictSelect } from '@/views/system/dict/dict.api';
 import { NoticeApiUrl, setReadBatchApi, setReadAllApi } from './notice.api';
 
+/** 通知列表行：批量已读时取通知状态主键 */
+interface NoticeUserRow {
+  noticeStatusId: string;
+  [key: string]: unknown;
+}
+
 /** url */
 const url = reactive({
   list: NoticeApiUrl.LIST_USER,
@@ -72,11 +78,11 @@ const handleReadBatch = async () => {
     message.warning('请选择一条记录！')
     return
   }
-  let ids: string[] = [];
+  const ids: string[] = [];
   state.selectedRows.forEach(item => {
     ids.push(item.noticeStatusId);
   })
-  const res: any = await setReadBatchApi(ids);
+  const res = await setReadBatchApi(ids);
   if (res.code == 200) {
     message.success(res.msg);
     loadData();
@@ -86,7 +92,7 @@ const handleReadBatch = async () => {
 }
 /** 全部标记为已读 */
 const handleReadAll = async () => {
-  const res: any = await setReadAllApi();
+  const res = await setReadAllApi();
   if (res.code === 200) {
     message.success(res.msg);
     loadData();
@@ -104,7 +110,7 @@ const queryParams = queryParamsIndex;
 const {
   loadData,
   dataSource, loading, ipagination, handleTableChange, state, onSelectChange, handleCancelSelect
-} = useList({ url, queryParams })
+} = useList<NoticeUserRow>({ url, queryParams })
 loadData();
 
 /** 获取阅读状态数据(通知列表) */

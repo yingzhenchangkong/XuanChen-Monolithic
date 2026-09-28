@@ -28,7 +28,7 @@
         <a-input v-model:value="model.component" placeholder="请输入组件路径" allowClear />
       </a-form-item>
       <a-form-item label="状态" :labelCol="labelCol" :wrapperCol="wrapperCol">
-        <a-switch v-model:checked="model.status" checked-children="启用" un-checked-children="停用" />
+        <a-switch v-model:checked="model.status" :checked-value="1" :un-checked-value="0" checked-children="启用" un-checked-children="停用" />
       </a-form-item>
       <a-form-item label="排序码" :labelCol="labelCol" :wrapperCol="wrapperCol">
         <a-input-number v-model:value="model.orderNo" placeholder="请输入排序码" allowClear style="width: 100%" />
@@ -40,9 +40,9 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
 import { message } from 'ant-design-vue';
-import type { TreeSelectProps } from 'ant-design-vue';
 import iconPicker from '@/components/iconpicker/IconPicker.vue';
 import type { Rule } from 'ant-design-vue/es/form';
+import type { MenuRecord } from '@/types/api';
 import type { MenuModel } from '../menu.types';
 import { getMenuListApi, validateNameApi, validatePathApi, saveOrUpdate } from '../menu.api';
 
@@ -69,7 +69,7 @@ const model = reactive<MenuModel>({
   perms: '',
   icon: '',
   menuType: undefined,
-  status: true,
+  status: 1,
   orderNo: ''
 })
 
@@ -105,12 +105,12 @@ const add = () => {
   model.perms = '';
   model.icon = '';
   model.menuType = undefined;
-  model.status = true;
+  model.status = 1;
   model.orderNo = '';
 
   visible.value = true;
 }
-const addSub = (parentId: any) => {
+const addSub = (parentId: string) => {
   model.id = '';
   model.parentId = parentId;
   model.name = '';
@@ -120,7 +120,7 @@ const addSub = (parentId: any) => {
   model.perms = '';
   model.icon = '';
   model.menuType = undefined;
-  model.status = true;
+  model.status = 1;
   model.orderNo = '';
 
   visible.value = true;
@@ -141,7 +141,7 @@ const edit = (records: any) => {
   visible.value = true;
 }
 
-const treeData = ref<TreeSelectProps['treeData']>([]);
+const treeData = ref<MenuRecord[]>([]);
 
 const getTreeData = async () => {
   const res = await getMenuListApi();
@@ -151,10 +151,18 @@ getTreeData()
 
 const handleOk = async () => {
   await rulesRef.value.validate();
-  const res: any = await saveOrUpdate(model);
-  message.success(res.msg);
-  emit('childOK');
-  visible.value = false;
+  try {
+    const res = await saveOrUpdate(model);
+    if (res.code !== 200) {
+      message.error(res.msg);
+      return;
+    }
+    message.success(res.msg);
+    emit('childOK');
+    visible.value = false;
+  } catch {
+    // 网络/HTTP 错误已由响应拦截器统一提示，此处仅保持弹窗打开
+  }
 };
 
 //子组件方法默认为私有

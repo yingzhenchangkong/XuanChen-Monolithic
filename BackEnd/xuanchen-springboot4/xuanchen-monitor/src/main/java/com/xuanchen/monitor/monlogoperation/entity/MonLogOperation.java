@@ -103,9 +103,9 @@ public class MonLogOperation implements Serializable {
     private String ipAddress;
 
     /**
-     * 状态（成功/失败）
+     * 状态（1成功，0失败）
      */
     @ExcelProperty("状态")
     @ColumnWidth(15)
-    private Boolean status;
+    private Integer status;
 }

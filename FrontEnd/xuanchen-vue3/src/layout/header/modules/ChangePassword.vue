@@ -2,6 +2,9 @@
   <a-modal v-model:open="visible" title="修改密码" :width="500" @ok="handleOk" ok-text="确认" cancel-text="取消">
     <a-form layout="inline" :model="model" :rules="rules" ref="rulesRef" @keyup.enter="handleOk"
       class="modal-form-style">
+      <a-form-item label="原密码" name="oldPassword" :labelCol="labelCol" :wrapperCol="wrapperCol">
+        <a-input-password v-model:value="model.oldPassword" placeholder="请输入原密码" allowClear autocomplete="off" />
+      </a-form-item>
       <a-form-item label="新密码" name="password" :labelCol="labelCol" :wrapperCol="wrapperCol">
         <a-input-password v-model:value="model.password" placeholder="请输入新密码" allowClear autocomplete="off" />
       </a-form-item>
@@ -15,13 +18,10 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
 import { message } from 'ant-design-vue';
-import { useAuthStore } from '@/stores';
-import { useRouter } from 'vue-router';
 import type { Rule } from 'ant-design-vue/es/form';
 import { changePassword } from '@/views/system/user/user.api';
-import { logout } from '@/views/auth/auth.api';
+import { useAuthStore } from '@/stores';
 
-const router = useRouter();
 const authStore = useAuthStore();
 
 const visible = ref(false);
@@ -30,6 +30,7 @@ const labelCol = { span: 4 };
 const wrapperCol = { span: 18 };
 
 const model = reactive({
+  oldPassword: '',
   password: '',
   confirmPassword: '',
 })
@@ -44,6 +45,9 @@ const validateConfirmPassword = (_rule: Rule, value: string) => {
 
 const rulesRef = ref();
 const rules = {
+  oldPassword: [
+    { required: true, message: '请输入原密码！', trigger: 'blur' }
+  ],
   password: [
     { pattern: /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[~!@#$%^&*()_+`\-={}:";'<>?,./]).{6,20}$/, message: '密码由6-20位数字、大小写字母和特殊符号组成!', trigger: 'blur' },
     { required: true, trigger: 'blur' }
@@ -56,6 +60,7 @@ const rules = {
 
 const show = () => {
   visible.value = true;
+  model.oldPassword = '';
   model.password = '';
   model.confirmPassword = '';
   if (rulesRef.value) {
@@ -65,12 +70,18 @@ const show = () => {
 
 const handleOk = async () => {
   await rulesRef.value.validate();
-  const res: any = await changePassword(authStore.getToken(), model.password);
+  const res = await changePassword(model.oldPassword, model.password);
   if (res.code === 200) {
-    message.success(res.msg);
-    await logout();
-    window.sessionStorage.clear();
-    router.push("/login");
+    // 后端已踢掉全部旧会话并返回新会话：原地替换 token/用户信息，无需重新登录
+    if (res.data?.token) {
+      const { token, ...userInfo } = res.data;
+      authStore.setToken(token);
+      authStore.setUserInfo(userInfo);
+      message.success('密码修改成功！');
+    } else {
+      message.success(res.msg || '密码修改成功！');
+    }
+    visible.value = false;
   } else {
     message.error(res.msg);
   }

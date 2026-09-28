@@ -38,9 +38,9 @@ import { ref, watch } from 'vue';
 import { message } from 'ant-design-vue';
 
 import { getDeptTreeApi, deleteDeptApi } from '../dept.api';
-import type { DeptTranData } from '../dept.types';
+import type { DeptTranData, DeptRecord } from '../dept.types';
 
-const treeData = ref();
+const treeData = ref<DeptRecord[]>([]);
 
 const expandedKeys = ref<string[]>([]);
 const selectedKeys = ref<string[]>([]);
@@ -49,7 +49,7 @@ const emit = defineEmits(['childData']);
 const getDeptTree = async () => {
   treeData.value = await getDeptTreeApi();
   // 获取所有节点的key并设置给expandedKeys
-  const getAllKeys = (nodes: any[]): string[] => {
+  const getAllKeys = (nodes: DeptRecord[]): string[] => {
     return nodes.reduce((keys: string[], node) => {
       keys.push(node.key);
       if (node.children) {
@@ -74,12 +74,12 @@ function handleAddChild() {
   }
 }
 
-function handleAddChildDepend(dataRef: any) {
+function handleAddChildDepend(dataRef: DeptRecord) {
   emit('childData', { selectedKey: dataRef.key, ifAddChild: true });
 }
 
 async function handleDelete(treeKey: string) {
-  const res: any = await deleteDeptApi(treeKey);
+  const res = await deleteDeptApi(treeKey);
   if (res.code === 200) {
     message.success(res.msg)
     await getDeptTree();

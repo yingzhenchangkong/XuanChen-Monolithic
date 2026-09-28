@@ -3,7 +3,7 @@ package com.xuanchen.system.sysuserdept.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xuanchen.system.sysuserdept.entity.SysUserDept;
-import io.lettuce.core.dynamic.annotation.Param;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

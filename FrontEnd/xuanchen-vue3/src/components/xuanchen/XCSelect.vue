@@ -6,8 +6,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed, onMounted } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { getAction } from '@/utils/httpAction';
+import type { SelectOption } from '@/types/api';
 
 const props = defineProps({
   modelValue: { type: [String, Number, Array], default: undefined },
@@ -52,7 +53,7 @@ const computedFieldNames = computed(() => {
   return props.fieldNames;
 });
 
-const options = ref<Array<any>>([]);
+const options = ref<SelectOption[]>([]);
 
 // 默认过滤函数
 const defaultFilterOption = (input: string, option: any) => {
@@ -80,7 +81,7 @@ const fetchData = async () => {
   }
 
   try {
-    const res: any = await getAction(props.apiUrl, {
+    const res = await getAction<SelectOption[]>(props.apiUrl, {
       ...props.params,
       ...(props.watchValue !== undefined ? { [Object.keys(props.params).find(key => props.params[key] === '${watchValue}') || '']: props.watchValue } : {})
     });
@@ -94,20 +95,16 @@ const fetchData = async () => {
   }
 };
 
-// 监听依赖值变化
+// 监听依赖值变化（immediate 已覆盖组件初始化：无论 watchValue 是否传入，挂载时都会执行一次）
 watch(() => props.watchValue, () => {
   fetchData();
 }, { immediate: true });
 
-// 监听参数变化
+// 监听参数变化（非 immediate，避免与上面的 immediate watch 在挂载时重复请求）
 watch(() => props.params, () => {
   fetchData();
 }, { deep: true });
 
-// 组件挂载时获取数据
-onMounted(() => {
-  if (props.watchValue === undefined) {
-    fetchData();
-  }
-});
+// 注意：不要再在 onMounted 里调 fetchData——immediate watch 挂载时已触发一次，
+// 两个入口并存会导致每个 XCSelect 挂载即发两次完全相同的请求
 </script>

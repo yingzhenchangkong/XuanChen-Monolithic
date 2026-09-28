@@ -1,4 +1,5 @@
 import { postAction } from "@/utils/httpAction";
+import type { Result } from '@/types/api';
 
 enum OnlineUserApiUrl {
   LIST = '/monitor/onlineUser/list',
@@ -7,6 +8,6 @@ enum OnlineUserApiUrl {
 
 export { OnlineUserApiUrl };
 
-export const forceLogout = async (token: string) => {
-  return await postAction(OnlineUserApiUrl.FORCELOGOUT, { token });
-}
+export const forceLogout = (token: string): Promise<Result<null>> => {
+  return postAction<null>(OnlineUserApiUrl.FORCELOGOUT, { token });
+};

@@ -41,8 +41,27 @@
             #{id}
         </foreach>
     </delete>
-    <!-- 回收站 还原 -->
-    <delete id="revertRecycleBin">
+    <!-- 回收站 彻底删除 用户 部门 关系（与主表删除同事务执行，避免孤儿关系行） -->
+    <delete id="deleteUserDept">
+        DELETE FROM sys_user_dept
+        WHERE
+        user_id in
+        <foreach collection="sysUserIds" index="index" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <!-- 回收站 彻底删除 用户 岗位 关系（与主表删除同事务执行，避免孤儿关系行） -->
+    <delete id="deleteUserPost">
+        DELETE FROM sys_user_post
+        WHERE
+        user_id in
+        <foreach collection="sysUserIds" index="index" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <!-- 回收站 还原：语句类型是 UPDATE，必须使用 <update> 标签，
+         误用 <delete> 包裹 UPDATE 虽能运行但属维护陷阱（语句类型与标签语义不符） -->
+    <update id="revertRecycleBin">
         UPDATE sys_user set del_flag = 0
         WHERE
         del_flag = 1
@@ -50,7 +69,7 @@
         <foreach collection="sysUserIds" index="index" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
-    </delete>
+    </update>
 
     <select id="ifExistsId" parameterType="com.xuanchen.system.sysuser.entity.SysUser" resultType="com.xuanchen.system.sysuser.entity.SysUser">
         SELECT

@@ -21,10 +21,11 @@
         <a-input v-model:value="model.userName" placeholder="请输入用户名" allowClear />
       </a-form-item>
       <a-form-item name="password" label="密码" :labelCol="labelCol" :wrapperCol="wrapperCol">
-        <a-input v-model:value="model.password" placeholder="请输入密码" allowClear />
+        <a-input v-model:value="model.password" allowClear
+          :placeholder="model.id ? '密码已设置，留空表示不修改' : '请输入密码'" autocomplete="new-password" />
       </a-form-item>
       <a-form-item label="状态" :labelCol="labelCol" :wrapperCol="wrapperCol">
-        <a-switch v-model:checked="model.status" checked-children="启用" un-checked-children="停用" />
+        <a-switch v-model:checked="model.status" :checked-value="1" :un-checked-value="0" checked-children="启用" un-checked-children="停用" />
       </a-form-item>
       <a-form-item label="排序码" :labelCol="labelCol" :wrapperCol="wrapperCol">
         <a-input-number v-model:value="model.orderNo" placeholder="请输入排序码" allowClear style="width: 100%" />
@@ -38,6 +39,7 @@ import { reactive, ref } from 'vue';
 import type { Rule } from 'ant-design-vue/es/form';
 import { message } from 'ant-design-vue';
 import type { GenDatabase } from '../gendatabase.types';
+import type { SelectOption } from '@/types/api';
 import { saveOrUpdate } from '../gendatabase.api';
 import { getDictSelect } from '@/views/system/dict/dict.api';
 
@@ -65,17 +67,59 @@ const model = reactive<GenDatabase>({
   dbName: '',
   userName: '',
   password: '',
-  status: true,
+  status: 1,
   orderNo: undefined,
 })
 
+// 与后端 DBUtil 白名单保持一致（最终以后端校验为准）
+const HOST_PATTERN = /^[A-Za-z0-9_.:[\]-]{1,255}$/;
+const DB_NAME_PATTERN = /^[A-Za-z0-9_$-]{1,64}$/;
+const USERNAME_PATTERN = /^[A-Za-z0-9_.@$-]{1,64}$/;
+
 const rulesRef = ref();
 const rules: Record<string, Rule[]> = {
-  roleCode: [
-    { required: true, message: '请输入角色编码', trigger: 'blur' },
+  connType: [
+    { required: true, message: '请选择连接类型', trigger: 'change' },
   ],
-  roleName: [
-    { required: true, message: '请输入角色名称', trigger: 'blur' },
+  connName: [
+    { required: true, message: '请输入连接名称', trigger: 'blur' },
+  ],
+  host: [
+    { required: true, message: '请输入主机', trigger: 'blur' },
+    { pattern: HOST_PATTERN, message: '主机仅允许域名、IPv4 或 [IPv6]，禁止空格及 / ? & # @ 等字符', trigger: 'blur' },
+  ],
+  port: [
+    { required: true, message: '请输入端口', trigger: 'blur' },
+    {
+      validator: (_rule: unknown, value: string) => {
+        const p = Number(value);
+        if (!/^\d{1,5}$/.test(value ?? '') || p < 1 || p > 65535) {
+          return Promise.reject(new Error('端口必须为 1-65535 的数字'));
+        }
+        return Promise.resolve();
+      },
+      trigger: 'blur',
+    },
+  ],
+  dbName: [
+    { required: true, message: '请输入数据库名称', trigger: 'blur' },
+    { pattern: DB_NAME_PATTERN, message: '库名仅允许字母、数字、下划线、连字符与 $，禁止 ?、&、反引号等字符', trigger: 'blur' },
+  ],
+  userName: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { pattern: USERNAME_PATTERN, message: '用户名仅允许字母、数字及 . _ - @ $ 字符', trigger: 'blur' },
+  ],
+  password: [
+    {
+      // 编辑态留空表示不修改原密码；新增时必填
+      validator: (_rule: unknown, value: string) => {
+        if (!model.id && !value) {
+          return Promise.reject(new Error('请输入密码'));
+        }
+        return Promise.resolve();
+      },
+      trigger: 'blur',
+    },
   ],
 }
 
@@ -94,10 +138,10 @@ const add = () => {
   model.dbName = '';
   model.userName = '';
   model.password = '';
-  model.status = true;
+  model.status = 1;
   model.orderNo = undefined;
 }
-const edit = (records: any) => {
+const edit = (records: GenDatabase) => {
   visible.value = true;
   roleCodeDisabled.value = true;
   if (rulesRef.value) {
@@ -110,23 +154,32 @@ const edit = (records: any) => {
   model.port = records.port;
   model.dbName = records.dbName;
   model.userName = records.userName;
-  model.password = records.password;
+  //接口仅回传掩码 ******，不回填真实密码；留空保存表示不修改
+  model.password = '';
   model.status = records.status;
   model.orderNo = records.orderNo;
 }
 
 const handleOk = async () => {
   await rulesRef.value.validate();
-  const res: any = await saveOrUpdate(model);
-  message.success(res.msg);
-  emit('childOK');
-  visible.value = false;
+  try {
+    const res = await saveOrUpdate(model);
+    if (res.code !== 200) {
+      message.error(res.msg);
+      return;
+    }
+    message.success(res.msg);
+    emit('childOK');
+    visible.value = false;
+  } catch {
+    // 网络/HTTP 错误已由响应拦截器统一提示，此处仅保持弹窗打开
+  }
 };
 
-const optionsConnType = ref([]);
+const optionsConnType = ref<SelectOption[]>([]);
 const getConnType = async () => {
-  const res: any = await getDictSelect('db_conn_type');
-  optionsConnType.value = res;
+  const res = await getDictSelect('db_conn_type');
+  optionsConnType.value = res ?? [];
 }
 getConnType();
 

@@ -29,9 +29,7 @@ export const columnsIndex = [
     align: 'center',
     width: 60,
     customRender:
-      function (text: any, record: any, index: any, column: any) {
-        return parseInt(text.index) + 1;
-      }
+      ({ index }: { index: number }) => index + 1,
   },
   {
     title: '参数名称',
@@ -85,9 +83,7 @@ export const columnsRecBin = [
     key: 'rowIndex',
     align: 'center',
     customRender:
-      function (text: any, record: any, index: any, column: any) {
-        return parseInt(text.index) + 1;
-      }
+      ({ index }: { index: number }) => index + 1,
   },
   {
     title: '参数名称',

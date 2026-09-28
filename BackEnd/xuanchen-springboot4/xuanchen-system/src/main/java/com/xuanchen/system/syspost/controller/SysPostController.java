@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.xuanchen.common.constant.CommonConst;
 import com.xuanchen.common.constant.TipConst;
 import com.xuanchen.common.entity.Result;
 import com.xuanchen.common.excel.FesodSheetListener;
@@ -12,9 +13,10 @@ import com.xuanchen.system.syspost.entity.SysPost;
 import com.xuanchen.system.syspost.service.ISysPostService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.apache.fesod.sheet.FesodSheet;
 import org.apache.fesod.sheet.support.ExcelTypeEnum;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -35,9 +37,10 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/system/post")
+@RequiredArgsConstructor
+@PreAuthorize("hasRole('admin')")
 public class SysPostController {
-    @Autowired
-    private ISysPostService sysPostService;
+    private final ISysPostService sysPostService;
 
     /**
      * 分页列表查询
@@ -45,14 +48,12 @@ public class SysPostController {
      * @param sysPost
      * @param pageNo
      * @param pageSize
-     * @param req
      * @return
      */
     @GetMapping("/list")
     public Result<IPage<SysPost>> list(SysPost sysPost,
                                        @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
-                                       @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
-                                       HttpServletRequest req) {
+                                       @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize) {
         QueryWrapper<SysPost> queryWrapper = new QueryWrapper<>();
         if (StringUtil.isNotEmpty(sysPost.getPostName())) {
             queryWrapper.like("post_name", sysPost.getPostName());
@@ -179,14 +180,12 @@ public class SysPostController {
      * @param sysPost
      * @param pageNo
      * @param pageSize
-     * @param req
      * @return
      */
     @GetMapping("/listRecycleBin")
     public Result<IPage<SysPost>> listRecycleBin(SysPost sysPost,
                                                  @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
-                                                 @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
-                                                 HttpServletRequest req) {
+                                                 @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize) {
         Page<SysPost> page = new Page<>(pageNo, pageSize);
         IPage<SysPost> pageList = sysPostService.listRecycleBin(page, sysPost);
         return Result.success(pageList);
@@ -250,7 +249,7 @@ public class SysPostController {
     @GetMapping("/select")
     public Result<List<SysPost>> select() {
         QueryWrapper<SysPost> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("del_flag", false).eq("status", true).orderByAsc("order_no");
+        queryWrapper.eq("del_flag", CommonConst.DEL_FLAG_NORMAL).eq("status", CommonConst.STATUS_ENABLED).orderByAsc("order_no");
         List<SysPost> list = sysPostService.list(queryWrapper);
         return Result.success(list);
     }
@@ -259,11 +258,10 @@ public class SysPostController {
      * 状态修改
      *
      * @param sysPost
-     * @param request
      * @return
      */
     @RequestMapping(value = "/changeStatus", method = {RequestMethod.PUT, RequestMethod.POST})
-    public Result<String> changeStatus(@RequestBody SysPost sysPost, HttpServletRequest request) {
+    public Result<String> changeStatus(@RequestBody SysPost sysPost) {
         UpdateWrapper<SysPost> updateWrapper = new UpdateWrapper<>();
         updateWrapper.set("status", sysPost.getStatus()).eq("id", sysPost.getId());
         sysPostService.update(updateWrapper);

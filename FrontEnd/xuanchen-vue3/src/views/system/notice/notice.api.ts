@@ -1,4 +1,6 @@
-import { getAction, postAction } from '@/utils/httpAction';
+import { postAction } from '@/utils/httpAction';
+import type { Result } from '@/types/api';
+import type { NoticeSaveParams } from './notice.types';
 
 enum NoticeApiUrl {
   SET_READ = '/system/notice/setRead',
@@ -14,26 +16,26 @@ enum NoticeApiUrl {
 
 export { NoticeApiUrl };
 
-export const setReadApi = async (noticeStatusId: string) => {
-  return await postAction(NoticeApiUrl.SET_READ, { noticeStatusId });
+export const setReadApi = (noticeStatusId: string): Promise<Result<null>> => {
+  return postAction<null>(NoticeApiUrl.SET_READ, { noticeStatusId });
 }
 
-export const setReadBatchApi = async (ids: string[]) => {
-  return await postAction(NoticeApiUrl.SET_READ_BATCH, { ids });
+export const setReadBatchApi = (ids: (string | number)[]): Promise<Result<null>> => {
+  return postAction<null>(NoticeApiUrl.SET_READ_BATCH, { ids });
 }
 
-export const setReadAllApi = async () => {
-  return await postAction(NoticeApiUrl.SET_READ_ALL, {});
+export const setReadAllApi = (): Promise<Result<null>> => {
+  return postAction<null>(NoticeApiUrl.SET_READ_ALL, {});
 }
 
-export const issueApi = async (data: any) => {
-  return await postAction(NoticeApiUrl.ISSUE, data);
+export const issueApi = (data: NoticeSaveParams): Promise<Result<null>> => {
+  return postAction<null>(NoticeApiUrl.ISSUE, data);
 }
 
-export const cancelApi = async (id: string) => {
-  return await postAction(NoticeApiUrl.CANCEL, { id });
+export const cancelApi = (id: string): Promise<Result<null>> => {
+  return postAction<null>(NoticeApiUrl.CANCEL, { id });
 }
 
-export const recoverApi = async (id: string) => {
-  return await postAction(NoticeApiUrl.RECOVER, { id });
+export const recoverApi = (id: string): Promise<Result<null>> => {
+  return postAction<null>(NoticeApiUrl.RECOVER, { id });
 }

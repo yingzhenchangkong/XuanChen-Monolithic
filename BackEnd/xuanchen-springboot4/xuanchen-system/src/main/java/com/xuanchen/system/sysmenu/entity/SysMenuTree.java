@@ -54,7 +54,7 @@ public class SysMenuTree implements Serializable {
     /**
      * 是否叶子节点（1是，0不是）
      */
-    private Boolean isLeaf;
+    private Integer isLeaf;
     /**
      * 排序码
      */
@@ -62,7 +62,7 @@ public class SysMenuTree implements Serializable {
     /**
      * 状态（1启用，0停用）
      */
-    private Boolean status;
+    private Integer status;
 
 
     public SysMenuTree() {
@@ -83,7 +83,7 @@ public class SysMenuTree implements Serializable {
         this.isLeaf = sysMenu.getIsLeaf();
         this.orderNo = sysMenu.getOrderNo();
         this.status = sysMenu.getStatus();
-        if (!sysMenu.getIsLeaf()) {
+        if (!Integer.valueOf(1).equals(sysMenu.getIsLeaf())) {
             this.children = new ArrayList<>();
         }
     }
@@ -168,11 +168,11 @@ public class SysMenuTree implements Serializable {
         this.menuType = menuType;
     }
 
-    public Boolean getIsLeaf() {
+    public Integer getIsLeaf() {
         return isLeaf;
     }
 
-    public void setIsLeaf(Boolean isLeaf) {
+    public void setIsLeaf(Integer isLeaf) {
         this.isLeaf = isLeaf;
     }
 
@@ -184,11 +184,11 @@ public class SysMenuTree implements Serializable {
         this.orderNo = orderNo;
     }
 
-    public Boolean getStatus() {
+    public Integer getStatus() {
         return status;
     }
 
-    public void setStatus(Boolean status) {
+    public void setStatus(Integer status) {
         this.status = status;
     }
 

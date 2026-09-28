@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xuanchen.generator.gendatabase.mapper.GenDatabaseMapper">
+    <!-- password 列走 AES 类型处理器（与实体 @TableField 保持一致），其余列自动映射 -->
+    <resultMap id="genDatabaseResultMap" type="com.xuanchen.generator.gendatabase.entity.GenDatabase" autoMapping="true">
+        <result property="password" column="password"
+                typeHandler="com.xuanchen.generator.crypto.DatasourceCryptoTypeHandler"/>
+    </resultMap>
+    <!-- 回收站 列表 -->
+    <select id="listRecycleBin" resultMap="genDatabaseResultMap">
+        SELECT
+        id
+        ,conn_type
+        ,conn_name
+        ,host
+        ,port
+        ,db_name
+        ,user_name
+        ,password
+        ,order_no
+        ,status
+        ,del_flag
+        ,create_by
+        ,create_time
+        ,update_by
+        ,update_time
+        FROM
+        gen_database
+        WHERE
+        del_flag = 1
+    </select>
+    <!-- 回收站 彻底删除 -->
+    <delete id="deleteRecycleBin">
+        DELETE FROM gen_database
+        WHERE
+        del_flag = 1
+        AND id in
+        <foreach collection="genDatabaseIds" index="index" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <!-- 回收站 还原 -->
+    <update id="revertRecycleBin">
+        UPDATE gen_database set del_flag = 0
+        WHERE
+        del_flag = 1
+        AND id in
+        <foreach collection="genDatabaseIds" index="index" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+</mapper>

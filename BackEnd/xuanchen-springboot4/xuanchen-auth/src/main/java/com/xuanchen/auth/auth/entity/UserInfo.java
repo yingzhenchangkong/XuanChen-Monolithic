@@ -38,4 +38,9 @@ public class UserInfo {
      * 令牌
      */
     private String token;
+    /**
+     * 是否要求立即修改密码（1：使用随机临时密码/被管理员重置后首次登录；0：否）。
+     * 为 1 时服务端仅允许调用修改密码/登出接口，前端应引导至改密页。
+     */
+    private Integer pwdResetRequired;
 }

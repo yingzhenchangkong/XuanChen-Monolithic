@@ -2,11 +2,11 @@ package com.xuanchen.system.sysuserpost.service.impl;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import com.xuanchen.system.sysuserpost.entity.SysUserPost;
 import com.xuanchen.system.sysuserpost.mapper.SysUserPostMapper;
 import com.xuanchen.system.sysuserpost.service.ISysUserPostService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -19,9 +19,9 @@ import java.util.List;
  * @date 2026-01-10
  */
 @Service
+@RequiredArgsConstructor
 public class SysUserPostServiceImpl extends ServiceImpl<SysUserPostMapper, SysUserPost> implements ISysUserPostService {
-    @Autowired
-    private SysUserPostMapper sysUserPostMapper;
+    private final SysUserPostMapper sysUserPostMapper;
 
     @Override
     public IPage<SysUserPost> listAssignUser(Page<SysUserPost> page, String postId) {

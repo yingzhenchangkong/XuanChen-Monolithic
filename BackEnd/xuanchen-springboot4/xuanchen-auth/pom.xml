@@ -15,6 +15,11 @@
     <packaging>jar</packaging>
 
     <dependencies>
+        <!-- 本模块提供登录等 REST 接口，直接使用 Spring MVC，显式声明 web 能力 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.xuanchen</groupId>
             <artifactId>xuanchen-common</artifactId>
@@ -23,6 +28,13 @@
         <dependency>
             <groupId>com.auth0</groupId>
             <artifactId>java-jwt</artifactId>
+        </dependency>
+        <!-- 邮件发送（忘记密码邮箱验证码通道）；版本由 Boot BOM 统一管理。
+             未配置 spring.mail.host 时 JavaMailSender 自动配置不生效，应用照常启动，
+             邮件能力降级为"仅日志输出验证码"（开发占位） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
     </dependencies>
 

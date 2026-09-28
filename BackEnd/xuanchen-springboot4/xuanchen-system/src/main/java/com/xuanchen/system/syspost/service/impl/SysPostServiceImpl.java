@@ -2,11 +2,11 @@ package com.xuanchen.system.syspost.service.impl;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import com.xuanchen.system.syspost.entity.SysPost;
 import com.xuanchen.system.syspost.mapper.SysPostMapper;
 import com.xuanchen.system.syspost.service.ISysPostService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 /**
@@ -16,9 +16,9 @@ import org.springframework.stereotype.Service;
  * @date 2026-01-10
  */
 @Service
+@RequiredArgsConstructor
 public class SysPostServiceImpl extends ServiceImpl<SysPostMapper, SysPost> implements ISysPostService {
-    @Autowired
-    private SysPostMapper sysPostMapper;
+    private final SysPostMapper sysPostMapper;
 
     @Override
     public IPage<SysPost> listRecycleBin(Page<SysPost> page, SysPost sysPost) {

@@ -1,0 +1,44 @@
+# ============================================================
+# 本地开发环境（默认 profile）
+# 非敏感项（地址/端口等）提供本地默认值；口令不内置任何默认值，
+# 必须通过同名环境变量注入（如 SPRING_DATASOURCE_PASSWORD），缺失则用空口令连接并启动失败。
+# 生产环境请使用 prod profile，全部敏感项同样无默认值（fail-fast）
+# ============================================================
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/xuanchen-monolithic?serverTimezone=GMT%2B8&characterEncoding=utf-8&allowPublicKeyRetrieval=true&useSSL=false&tinyInt1isBit=true}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    # 不在仓库中写死任何真实口令；本地启动前设置环境变量 SPRING_DATASOURCE_PASSWORD
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+  data:
+    redis:
+      host: ${SPRING_REDIS_HOST:127.0.0.1}
+      port: ${SPRING_REDIS_PORT:6379}
+      database: ${SPRING_REDIS_DATABASE:0}
+      # 本地 Redis 默认无口令；启用了 requirepass 时设置 SPRING_REDIS_PASSWORD
+      password: ${SPRING_REDIS_PASSWORD:}
+
+# 仅本地开发：把 MyBatis 执行的 SQL、参数与结果行数直接打印到控制台；
+# prod profile 不包含此项，生产环境不会输出 SQL
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+xuanchen:
+  security:
+    # 开发环境默认信任本机回环与内网网段（本地 Nginx/Docker 桥接场景），可被环境变量覆盖
+    trusted-proxies: ${XUANCHEN_TRUSTED_PROXIES:127.0.0.0/8,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}
+  cors:
+    # 允许跨域访问的精确来源（前端 Vite dev server），逗号分隔；可被环境变量覆盖
+    allowed-origins: ${XUANCHEN_CORS_ALLOWED_ORIGINS:http://localhost:8060,http://127.0.0.1:8060}
+  crypto:
+    # 仅本地开发使用的数据源密码 AES 密钥，禁止用于生产；可被环境变量覆盖
+    datasource-key: ${XUANCHEN_DATASOURCE_SECRET:dev-only-xuanchen-datasource-key-do-not-use-in-prod}
+  generator:
+    # 仅本地：代码生成默认写入工作目录下的 generated-output 沙箱目录（相对启动 CWD）；
+    # 要直接生成到真实工程源码目录时，用环境变量 XUANCHEN_GEN_OUTPUT_ROOTS 指向一个或多个绝对路径白名单
+    allowed-output-roots: ${XUANCHEN_GEN_OUTPUT_ROOTS:./generated-output}
+    # 默认不覆盖已存在文件（所有 profile 一致）；本地反复生成确需覆盖时显式设置
+    # XUANCHEN_GEN_ALLOW_OVERRIDE=true
+    allow-file-override: ${XUANCHEN_GEN_ALLOW_OVERRIDE:false}

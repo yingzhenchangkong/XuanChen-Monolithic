@@ -15,6 +15,11 @@
     <packaging>jar</packaging>
 
     <dependencies>
+        <!-- 本模块提供文件上传/下载 REST 接口，直接使用 Spring MVC，显式声明 web 能力 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.xuanchen</groupId>
             <artifactId>xuanchen-common</artifactId>

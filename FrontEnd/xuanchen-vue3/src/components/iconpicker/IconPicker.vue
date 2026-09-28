@@ -17,7 +17,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch, getCurrentInstance } from 'vue'
+import { defineComponent, ref, watch } from 'vue'
+// 图标选择器本身就需要枚举全部 700+ 图标，这里引用 vite 虚拟聚合模块（深度路径生成），
+// 它只被“菜单管理”页面使用，随路由懒加载打进异步 chunk，不进主包
+import { icons as antIcons } from 'virtual:ant-icons-all'
 import icons from './icon.json'
 export default defineComponent({
   name: "IconPicker",
@@ -60,9 +63,6 @@ export default defineComponent({
       searchValue.value = ''
       iconArr.value = icons;
     })
-
-    const instance = getCurrentInstance();
-    const antIcons = instance?.appContext.config.globalProperties.$antIcons;
 
     return {
       visible,

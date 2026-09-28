@@ -64,9 +64,9 @@
           </a-popconfirm>
         </template>
         <template v-else-if="column.dataIndex === 'status'">
-          <a-tag :color="record.status === true ? 'green' : 'volcano'" :style="{ cursor: 'pointer' }"
+          <a-tag :color="record.status === 1 ? 'green' : 'volcano'" :style="{ cursor: 'pointer' }"
             @click="handleStatusChange(record, index)">
-            {{ dataSource[index].status === true ? '启用' : '停用' }}
+            {{ dataSource[index].status === 1 ? '启用' : '停用' }}
           </a-tag>
         </template>
       </template>
@@ -110,13 +110,22 @@ const handleRecycleBin = () => {
   refRecycleBin.value.show();
 }
 
-const handleStatusChange = async (record: any, index: number) => {
-  dataSource.value[index].status = record.status === true ? false : true;
-  const res: any = await changeStatusApi(dataSource.value[index].id, dataSource.value[index].status);
-  if (res.code === 200) {
-    message.success(res.msg);
-  } else {
-    message.error(res.msg);
+const handleStatusChange = async (record: Record<string, unknown>, index: number) => {
+  const oldStatus = dataSource.value[index].status;
+  const newStatus = record.status === 1 ? 0 : 1;
+  // 乐观更新先翻 UI；业务失败或网络异常必须回滚，避免界面状态与数据库相反
+  dataSource.value[index].status = newStatus;
+  try {
+    const res = await changeStatusApi(String(dataSource.value[index].id ?? ''), newStatus);
+    if (res.code === 200) {
+      message.success(res.msg);
+    } else {
+      dataSource.value[index].status = oldStatus;
+      message.error(res.msg);
+    }
+  } catch {
+    dataSource.value[index].status = oldStatus;
+    // HTTP/网络错误已由响应拦截器统一提示
   }
 }
 

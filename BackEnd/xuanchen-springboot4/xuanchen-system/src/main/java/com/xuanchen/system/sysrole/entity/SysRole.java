@@ -51,13 +51,13 @@ public class SysRole implements Serializable {
      * 状态（1启用，0停用）
      */
     @ExcelIgnore
-    private Boolean status;
+    private Integer status;
     /**
      * 删除状态（0正常，1已删除）
      */
     @ExcelIgnore
     @TableLogic
-    private Boolean delFlag;
+    private Integer delFlag;
     /**
      * 创建者
      */

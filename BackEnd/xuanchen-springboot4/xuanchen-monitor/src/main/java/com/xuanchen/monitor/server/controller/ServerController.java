@@ -3,6 +3,7 @@ package com.xuanchen.monitor.server.controller;
 import com.xuanchen.common.entity.Result;
 import com.xuanchen.monitor.server.entity.DiskInfoVO;
 import com.xuanchen.monitor.server.entity.ServerInfoVO;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,6 +25,7 @@ import java.util.Properties;
  */
 @RestController
 @RequestMapping("/monitor/server")
+@PreAuthorize("hasRole('admin')")
 public class ServerController {
     @GetMapping("/info")
     public Result<ServerInfoVO> getServerInfo() {

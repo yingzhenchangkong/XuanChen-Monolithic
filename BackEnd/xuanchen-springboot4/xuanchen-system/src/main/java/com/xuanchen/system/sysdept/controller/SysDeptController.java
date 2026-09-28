@@ -6,7 +6,8 @@ import com.xuanchen.common.entity.Result;
 import com.xuanchen.system.sysdept.entity.SysDept;
 import com.xuanchen.system.sysdept.entity.SysDeptTreeVO;
 import com.xuanchen.system.sysdept.service.ISysDeptService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,9 +21,10 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/system/dept")
+@RequiredArgsConstructor
+@PreAuthorize("hasRole('admin')")
 public class SysDeptController {
-    @Autowired
-    private ISysDeptService sysDeptService;
+    private final ISysDeptService sysDeptService;
 
     /**
      * 添加

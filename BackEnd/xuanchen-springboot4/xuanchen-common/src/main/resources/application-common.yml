@@ -1,17 +1,72 @@
 spring:
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/xuanchen-monolithic?serverTimezone=GMT%2B8&characterEncoding=utf-8&allowPublicKeyRetrieval=true&useSSL=false&tinyInt1isBit=true
-    username: root
-    password: Admin123
-  data:
-    redis:
-      host: 127.0.0.1
-      port: 6379
-      database: 0
+  mvc:
+    # 找不到 handler 时抛出 NoHandlerFoundException，交给 GlobalExceptionHandler 统一返回 404 JSON
+    # （默认该异常不抛，请求会被转发到 /error）
+    throw-exception-if-no-handler-found: true
+  web:
+    resources:
+      # 本服务为纯 API 服务，上传文件访问走 FileManageController 的 /static/** 映射，不依赖默认静态资源；
+      # 必须关闭该默认映射，未命中接口的请求才会走到上面的 NoHandlerFoundException（否则被 ResourceHttpRequestHandler 接管）
+      add-mappings: false
+  servlet:
+    multipart:
+      # 全局上传大小限制（FileManageController 内另有同值业务校验）
+      max-file-size: 5MB
+      max-request-size: 10MB
+  # 邮件通道（忘记密码邮箱验证码）：默认全部留空，此时不创建 JavaMailSender，
+  # 应用正常启动但找回密码邮件无法真正发出（开发环境验证码降级为日志输出）。
+  # 启用方式：配置 SPRING_MAIL_HOST/USERNAME/PASSWORD 等环境变量（QQ/163 等用授权码作密码，465+SSL）
+  mail:
+    host: ${SPRING_MAIL_HOST:}
+    port: ${SPRING_MAIL_PORT:465}
+    username: ${SPRING_MAIL_USERNAME:}
+    password: ${SPRING_MAIL_PASSWORD:}
+    default-encoding: UTF-8
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.ssl.enable: ${SPRING_MAIL_SSL_ENABLE:true}
+      mail.smtp.connectiontimeout: 5000
+      mail.smtp.timeout: 5000
+      mail.smtp.writetimeout: 5000
 mybatis-plus:
   mapper-locations: classpath*:com/xuanchen/**/xml/*Mapper.xml
   global-config:
     banner: false
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  # 注意：SQL 全量打印（StdOutImpl）只放在 application-dev.yml；
+  # common 被 dev/prod 共同 include，这里开启会导致生产环境向控制台泄露全部 SQL 与参数
+
+xuanchen:
+  security:
+    # 可信反向代理网段（逗号分隔 CIDR）：只有直连对端命中这些网段时，才采信 X-Forwarded-For/X-Real-IP；
+    # 留空（生产默认）= 只认 TCP 对端 RemoteAddr，客户端伪造的代理头一律无效。
+    # 部署在 Nginx 等反向代理之后时，必须把代理自身地址（如 127.0.0.1/8,10.0.0.0/8）配置进来
+    trusted-proxies: ${XUANCHEN_TRUSTED_PROXIES:}
+  captcha:
+    # 滑块验证码 JWT 签名密钥：生产/多实例环境必须通过环境变量 XUANCHEN_CAPTCHA_SECRET 注入固定值；
+    # 留空时每次启动随机生成（重启后旧验证码 token 全部失效，且多实例之间互不通用）。
+    # prod profile 下该项为必填（见 application-prod.yml）
+    secret: ${XUANCHEN_CAPTCHA_SECRET:}
+  jwt:
+    # 登录态 JWT 服务端签名密钥（不再使用用户密码哈希）：生产/多实例必须通过环境变量
+    # XUANCHEN_JWT_SECRET 注入固定高强度随机串；留空时每次启动随机生成（重启后所有登录态失效）。
+    # prod profile 下该项为必填（见 application-prod.yml）
+    secret: ${XUANCHEN_JWT_SECRET:}
+  crypto:
+    # 代码生成器-数据源连接密码的 AES 加密密钥（AES-256-GCM，SHA-256 派生）。
+    # 与 JWT 不同，该密钥用于持久化数据加解密：多实例必须一致，且严禁随机生成
+    # （更换/丢失密钥会导致 gen_database 中已存密码无法解密）。
+    # 生产必须通过环境变量 XUANCHEN_DATASOURCE_SECRET 注入；
+    # 本地开发默认值见 application-dev.yml，prod 下为必填（见 application-prod.yml）
+    datasource-key: ${XUANCHEN_DATASOURCE_SECRET:}
+  generator:
+    # 代码生成器允许写入的输出根目录白名单（逗号分隔，建议绝对路径）。
+    # 用户配置的输出目录经规范化（normalize）后必须位于其中某个根目录之内，否则拒绝生成，
+    # 用于阻断 moduleName/packageName/outputDir 携带 "../" 造成的任意路径写入。
+    # 留空时代码生成功能不可用（保存/生成均会被拒绝）；本地默认值见 application-dev.yml
+    allowed-output-roots: ${XUANCHEN_GEN_OUTPUT_ROOTS:}
+    # 是否允许覆盖已生成的文件：默认关闭（文件已存在时跳过），确需重新生成覆盖时由管理员显式开启
+    allow-file-override: ${XUANCHEN_GEN_ALLOW_OVERRIDE:false}
+  mail:
+    # 发件人地址（含昵称时形如：萱晨管理系统 <noreply@example.com>）；留空则回退为 spring.mail.username。
+    # 生产使用找回密码功能前必须配置 SPRING_MAIL_* 与 XUANCHEN_MAIL_FROM，否则邮件无法真正发出
+    from: ${XUANCHEN_MAIL_FROM:}

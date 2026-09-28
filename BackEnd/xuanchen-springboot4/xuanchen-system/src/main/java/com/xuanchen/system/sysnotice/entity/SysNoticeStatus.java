@@ -38,7 +38,7 @@ public class SysNoticeStatus implements Serializable {
     /**
      * 是否已读(0未读1已读)
      */
-    private Boolean readStatus;
+    private Integer readStatus;
     @TableField(exist = false)
     private String readStatusName;
 

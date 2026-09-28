@@ -62,10 +62,14 @@ import type { Rule } from 'ant-design-vue/es/form';
 import XCUploadImage from '@/components/xuanchen/XCUploadImage.vue';
 
 import { validateUserNameApi, validateMobileApi, validateEmailApi, saveOrUpdate } from '../user.api';
+import type { UserRecord } from '../user.types';
 import { getRoleSelect } from '../../role/role.api';
+import type { DeptRecord } from '../../dept/dept.types';
 import { getDeptTreeApi } from '../../dept/dept.api';
 import { getPostSelect } from '../../post/post.api';
 import { getDictSelect } from '../../dict/dict.api';
+import type { SelectOption } from '@/types/api';
+import { useAuthStore } from '@/stores';
 
 const labelCol = { span: 6 };
 const wrapperCol = { span: 18 };
@@ -80,15 +84,15 @@ const emit = defineEmits(['childOK']);
 
 const validateUserName = async (_rule: Rule, value: string) => {
   if (!value) return;
-  await validateUserNameApi(model.id, value);
+  await validateUserNameApi(String(model.id ?? ''), value);
 }
 const validateMobile = async (_rule: Rule, value: string) => {
   if (!value) return;
-  await validateMobileApi(model.id, value);
+  await validateMobileApi(String(model.id ?? ''), value);
 }
 const validateEmail = async (_rule: Rule, value: string) => {
   if (!value) return;
-  await validateEmailApi(model.id, value);
+  await validateEmailApi(String(model.id ?? ''), value);
 }
 
 const rulesRef = ref()
@@ -116,17 +120,18 @@ const open = ref(false);
 const userNameDisabled = ref(false);
 const passwordVisible = ref(true);
 
+type IdList = Array<string | number> | undefined;
 const model = reactive({
-  id: '',
+  id: '' as string | number,
   userName: '',
   nickName: '',
   mobile: '',
   email: '',
-  password: undefined,
-  roleIds: undefined,
-  deptIds: undefined,
-  postIds: undefined,
-  avatar: undefined,
+  password: undefined as string | undefined,
+  roleIds: undefined as IdList,
+  deptIds: undefined as IdList,
+  postIds: undefined as IdList,
+  avatar: undefined as string | undefined,
   fileList: [] as string[],
   status: undefined as string | undefined,
 })
@@ -134,26 +139,25 @@ const model = reactive({
 const maxCount = ref(1);
 const maxTagCount = ref(3);
 
-const optionsRoleIds = ref([])
+const optionsRoleIds = ref<SelectOption[]>([])
 const getSelectRole = async () => {
   optionsRoleIds.value = await getRoleSelect();
 }
 getSelectRole();
 
-const treeData = ref();
+const treeData = ref<DeptRecord[]>();
 const getDeptTree = async () => {
   treeData.value = await getDeptTreeApi();
 }
 getDeptTree();
 
-const optionsStatus = ref([]);
+const optionsStatus = ref<SelectOption[]>([]);
 const getUserStatus = async () => {
-  const res: any = await getDictSelect('user_status');
-  optionsStatus.value = res;
+  optionsStatus.value = await getDictSelect('user_status');
 }
 getUserStatus();
 
-const optionsPostIds = ref([]);
+const optionsPostIds = ref<SelectOption[]>([]);
 const getSelectPost = async () => {
   optionsPostIds.value = await getPostSelect();
 }
@@ -180,18 +184,18 @@ const add = () => {
   model.fileList = [];
   model.status = '1';
 }
-const edit = (records: any) => {
+const edit = (records: UserRecord) => {
   open.value = true;
   userNameDisabled.value = true;
   passwordVisible.value = false;
   if (rulesRef.value) {
     rulesRef.value.resetFields();
   }
-  model.id = records.id;
-  model.userName = records.userName;
-  model.nickName = records.nickName;
-  model.mobile = records.mobile;
-  model.email = records.email;
+  model.id = records.id ?? '';
+  model.userName = records.userName ?? '';
+  model.nickName = records.nickName ?? '';
+  model.mobile = records.mobile ?? '';
+  model.email = records.email ?? '';
   model.roleIds = records.roleIds;
   if (model.roleIds == null) {
     model.roleIds = undefined;
@@ -214,13 +218,35 @@ const edit = (records: any) => {
 
 const handleOk = async () => {
   await rulesRef.value.validate();
-  const fileList: any = model.fileList[0];
-  model.avatar = fileList?.response?.msg ?? '';
+  // XCUploadImage 的 v-model 直接回写服务端相对路径字符串数组，无需解析 UploadFile 结构
+  model.avatar = model.fileList?.[0] ?? '';
   model.fileList = [];
-  const res: any = await saveOrUpdate(model);
-  message.success(res.msg);
-  emit('childOK');
-  open.value = false;
+  try {
+    const res = await saveOrUpdate(model);
+    if (res.code !== 200) {
+      message.error(res.msg);
+      return;
+    }
+    message.success(res.msg);
+    // 编辑的是当前登录用户自己时，同步会话中的用户信息（头像/昵称/手机/邮箱），
+    // 否则右上角头像、用户中心等读 authStore 的地方要等重新登录才刷新；
+    // 编辑其他用户绝不能动当前会话
+    const authStore = useAuthStore();
+    const current = authStore.getUserInfo();
+    if (current && String(current.id ?? '') === String(model.id ?? '')) {
+      authStore.setUserInfo({
+        ...current,
+        avatar: model.avatar,
+        nickName: model.nickName,
+        mobile: model.mobile,
+        email: model.email,
+      });
+    }
+    emit('childOK');
+    open.value = false;
+  } catch {
+    // 网络/HTTP 错误已由响应拦截器统一提示，此处仅阻止“成功提示+关窗”
+  }
 };
 
 const handleCancel = () => {

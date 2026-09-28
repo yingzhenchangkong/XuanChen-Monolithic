@@ -7,11 +7,11 @@ import com.xuanchen.common.entity.Result;
 import com.xuanchen.common.utils.StringUtil;
 import com.xuanchen.monitor.monloglogin.entity.MonLogLogin;
 import com.xuanchen.monitor.monloglogin.service.IMonLogLoginService;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.apache.fesod.sheet.FesodSheet;
 import org.apache.fesod.sheet.support.ExcelTypeEnum;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -29,9 +29,10 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/monitor/log/login")
+@RequiredArgsConstructor
+@PreAuthorize("hasRole('admin')")
 public class MonLogLoginController {
-    @Autowired
-    private IMonLogLoginService monLogLoginService;
+    private final IMonLogLoginService monLogLoginService;
 
     /**
      * 分页列表查询
@@ -39,14 +40,12 @@ public class MonLogLoginController {
      * @param monLogLogin
      * @param pageNo
      * @param pageSize
-     * @param req
      * @return
      */
     @GetMapping("/list")
     public Result<IPage<MonLogLogin>> list(MonLogLogin monLogLogin,
                                            @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
-                                           @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
-                                           HttpServletRequest req) {
+                                           @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize) {
         QueryWrapper<MonLogLogin> queryWrapper = new QueryWrapper<>();
         // 用户名精确查询
         if (StringUtil.isNotEmpty(monLogLogin.getUserName())) {

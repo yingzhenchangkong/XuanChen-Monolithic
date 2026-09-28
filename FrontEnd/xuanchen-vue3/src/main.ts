@@ -3,22 +3,14 @@ import { createPinia } from 'pinia'
 
 import App from './App.vue'
 import router from './router'
-import Antd from 'ant-design-vue'
+// 组件与静态图标改由 unplugin-vue-components + AntDesignVueResolver 按需自动引入（见 vite.config.ts），
+// 不再 app.use(Antd) 全量注册、不再全量注册 700+ 图标，未使用代码可被 tree-shaking
 import 'ant-design-vue/dist/reset.css'
-import * as IconAll from '@ant-design/icons-vue'
 import '@/permission'
 import '@/assets/basic.css'
-
-const icons:any = IconAll
 
 const app = createApp(App)
 
 app.use(createPinia())
 app.use(router)
-app.use(Antd)
-
-for(const i in icons){
-  app.component(i, icons[i])
-}
-app.config.globalProperties.$antIcons = IconAll
 app.mount('#app')

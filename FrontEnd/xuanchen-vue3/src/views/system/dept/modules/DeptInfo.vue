@@ -19,7 +19,7 @@
               <a-input v-model:value="model.deptName" placeholder="请输入部门名称" allowClear />
             </a-form-item>
             <a-form-item label="状态" :labelCol="labelCol" :wrapperCol="wrapperCol">
-              <a-switch v-model:checked="model.status" checked-children="启用" un-checked-children="停用" />
+              <a-switch v-model:checked="model.status" :checked-value="1" :un-checked-value="0" checked-children="启用" un-checked-children="停用" />
             </a-form-item>
             <a-form-item label="排序码" :labelCol="labelCol" :wrapperCol="wrapperCol">
               <a-input-number v-model:value="model.orderNo" placeholder="请输入排序码" allowClear style="width: 100%" />
@@ -53,20 +53,20 @@ import { message } from 'ant-design-vue';
 import DeptUser from './DeptUser.vue';
 
 import { getDeptTreeApi, getSelectedDeptApi, createDeptCodeApi, saveOrUpdate } from '../dept.api';
-import type { DeptTranData, DeptModel } from '../dept.types';
+import type { DeptTranData, DeptModel, DeptRecord } from '../dept.types';
 
 const model = reactive<DeptModel>({
   id: '',
   deptCode: '',
   parentDeptCode: undefined as string | undefined,
   deptName: '',
-  status: true,
+  status: 1,
   orderNo: undefined,
 })
 
 const labelCol = { span: 4 };
 const wrapperCol = { span: 18 };
-const treeData = ref();
+const treeData = ref<DeptRecord[]>([]);
 const emit = defineEmits(['childData']);
 
 const rulesRef = ref()
@@ -78,9 +78,17 @@ const rules: Record<string, Rule[]> = {
 
 const handleSave = async () => {
   await rulesRef.value.validate();
-  const res: any = await saveOrUpdate(model);
-  message.success(res.msg);
-  emit('childData', { selectedKey: model.deptCode, ifAddChild: false });
+  try {
+    const res = await saveOrUpdate(model);
+    if (res.code !== 200) {
+      message.error(res.msg);
+      return;
+    }
+    message.success(res.msg);
+    emit('childData', { selectedKey: model.deptCode, ifAddChild: false });
+  } catch {
+    // 网络/HTTP 错误已由响应拦截器统一提示
+  }
 };
 
 const handleReset = () => {
@@ -88,7 +96,7 @@ const handleReset = () => {
   model.deptCode = '';
   model.parentDeptCode = undefined as string | undefined;
   model.deptName = '';
-  model.status = true;
+  model.status = 1;
   model.orderNo = undefined;
   ;
 }
@@ -99,7 +107,7 @@ const getDeptTree = async () => {
 getDeptTree();
 
 const getSelectedDept = async (deptCode: string) => {
-  const res: any = await getSelectedDeptApi(deptCode);
+  const res = await getSelectedDeptApi(deptCode);
   model.id = res.id;
   model.deptCode = res.deptCode;
   model.deptName = res.deptName;
@@ -108,11 +116,10 @@ const getSelectedDept = async (deptCode: string) => {
 }
 
 const createDeptCode = async (value: string) => {
-  const res: any = await createDeptCodeApi(value);
-  model.deptCode = res;
+  model.deptCode = await createDeptCodeApi(value);
 }
 
-const getParentCode = (tree: any[], targetCode: string, parentCode: string = ''): string => {
+const getParentCode = (tree: DeptRecord[], targetCode: string, parentCode: string = ''): string => {
   for (const node of tree) {
     if (node.key === targetCode) {
       return parentCode;
@@ -132,7 +139,7 @@ const recParentData = async (data: DeptTranData) => {
     model.id = '';
     model.parentDeptCode = undefined;
     model.deptName = '';
-    model.status = true;
+    model.status = 1;
     model.orderNo = undefined;
     await createDeptCode('');
     await getDeptTree();
@@ -142,7 +149,7 @@ const recParentData = async (data: DeptTranData) => {
       model.id = '';
       model.parentDeptCode = data.selectedKey;
       model.deptName = '';
-      model.status = true;
+      model.status = 1;
       model.orderNo = undefined;
     } else {
       await getDeptTree();

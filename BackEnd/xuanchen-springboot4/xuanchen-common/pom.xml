@@ -15,9 +15,23 @@
     <packaging>jar</packaging>
 
     <dependencies>
+        <!-- 本模块直接使用 Servlet/MVC API（LogOperationAspect、GlobalExceptionHandler、Result.HttpStatus），显式声明；
+             Boot 4 起 web starter 更名为 spring-boot-starter-webmvc（旧名 spring-boot-starter-web 已废弃） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-aop</artifactId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+        <!-- Boot 4 起 AOP/AspectJ 支持由 spring-boot-starter-aspectj 提供（旧 spring-boot-starter-aop 已移除，
+             版本由 Boot BOM 统一管理，对齐 Spring Framework 7） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aspectj</artifactId>
+        </dependency>
+        <!-- DictAspect 需要复用与 Web 层一致的序列化契约（@JsonFormat/@JsonProperty 等）；
+             Spring Boot 4 使用 Jackson 3（tools.jackson 包） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jackson</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

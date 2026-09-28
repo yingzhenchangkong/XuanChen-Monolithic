@@ -65,6 +65,7 @@ import Operation from './modal/Operation.vue';
 import XCQueryForm from '@/components/xuanchen/XCQueryForm.vue';
 import { GenTableApiUrl, generator } from './gentable.api';
 import { queryParams, queryFormItems, columnsIndex } from './gentable.data';
+import type { GenTable } from './gentable.types';
 
 /** url */
 const url = reactive({
@@ -79,9 +80,12 @@ const handleReset = () => {
   queryParams.tableComment = '';
   loadData();
 }
-/** 代码生成 */
-const handleGenerator = async (record: any) => {
-  await generator();
+/** 代码生成：按当前行的表配置 id 触发，数据源与输出配置由后端按 id 组装 */
+const handleGenerator = async (record: GenTable) => {
+  if (!record.id) {
+    return;
+  }
+  await generator(record.id);
 }
 
 const {

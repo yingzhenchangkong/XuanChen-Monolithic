@@ -7,11 +7,11 @@ import com.xuanchen.common.entity.Result;
 import com.xuanchen.common.utils.StringUtil;
 import com.xuanchen.monitor.monlogoperation.entity.MonLogOperation;
 import com.xuanchen.monitor.monlogoperation.service.IMonLogOperationService;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.apache.fesod.sheet.FesodSheet;
 import org.apache.fesod.sheet.support.ExcelTypeEnum;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -29,9 +29,10 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/monitor/log/operation")
+@RequiredArgsConstructor
+@PreAuthorize("hasRole('admin')")
 public class MonLogOperationController {
-    @Autowired
-    private IMonLogOperationService monLogOperationService;
+    private final IMonLogOperationService monLogOperationService;
 
     /**
      * 分页列表查询
@@ -39,14 +40,12 @@ public class MonLogOperationController {
      * @param monLogOperation 查询条件
      * @param pageNo          当前页码
      * @param pageSize        每页条数
-     * @param req             HTTP请求对象
      * @return 分页结果
      */
     @GetMapping("/list")
     public Result<IPage<MonLogOperation>> list(MonLogOperation monLogOperation,
                                                @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
-                                               @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
-                                               HttpServletRequest req) {
+                                               @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize) {
         QueryWrapper<MonLogOperation> queryWrapper = new QueryWrapper<>();
         // 用户名精确查询
         if (StringUtil.isNotEmpty(monLogOperation.getUserName())) {

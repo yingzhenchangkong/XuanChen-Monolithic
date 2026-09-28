@@ -42,6 +42,22 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
     Integer deleteUserRole(@Param("sysUserIds") String[] sysUserIds);
 
     /**
+     * 回收站 彻底删除 用户 部门 关系
+     *
+     * @param sysUserIds
+     * @return
+     */
+    Integer deleteUserDept(@Param("sysUserIds") String[] sysUserIds);
+
+    /**
+     * 回收站 彻底删除 用户 岗位 关系
+     *
+     * @param sysUserIds
+     * @return
+     */
+    Integer deleteUserPost(@Param("sysUserIds") String[] sysUserIds);
+
+    /**
      * 回收站 还原
      *
      * @param sysUserIds

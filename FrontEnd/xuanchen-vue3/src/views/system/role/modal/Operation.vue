@@ -11,7 +11,7 @@
         <a-input v-model:value="model.roleDescription" placeholder="请输入角色描述" allowClear />
       </a-form-item>
       <a-form-item label="状态" :labelCol="labelCol" :wrapperCol="wrapperCol">
-        <a-switch v-model:checked="model.status" checked-children="启用" un-checked-children="停用" />
+        <a-switch v-model:checked="model.status" :checked-value="1" :un-checked-value="0" checked-children="启用" un-checked-children="停用" />
       </a-form-item>
       <a-form-item label="排序码" :labelCol="labelCol" :wrapperCol="wrapperCol">
         <a-input-number v-model:value="model.orderNo" placeholder="请输入排序码" allowClear style="width: 100%" />
@@ -47,18 +47,18 @@ const model = reactive<RoleModel>({
   roleCode: '',
   roleName: '',
   roleDescription: '',
-  status: true,
+  status: 1,
   orderNo: '',
 })
 
 const validateRoleCode = async (_rule: Rule, value: string) => {
   if(!value) return;
-  await validateRoleCodeApi(model.id, value);
+  await validateRoleCodeApi(model.id ?? '', value);
 }
 
 const validateRoleName = async (_rule: Rule, value: string) => {
   if(!value) return;
-  await validateRoleNameApi(model.id, value);
+  await validateRoleNameApi(model.id ?? '', value);
 }
 
 const rulesRef = ref();
@@ -84,7 +84,7 @@ const add = () => {
   model.roleCode = '';
   model.roleName = '';
   model.roleDescription = '';
-  model.status = true;
+  model.status = 1;
   model.orderNo = '';
 }
 const edit = (records: any) => {
@@ -103,10 +103,18 @@ const edit = (records: any) => {
 
 const handleOk = async () => {
   await rulesRef.value.validate();
-  const res: any = await saveOrUpdate(model);
-  message.success(res.msg);
-  emit('childOK');
-  visible.value = false;
+  try {
+    const res = await saveOrUpdate(model);
+    if (res.code !== 200) {
+      message.error(res.msg);
+      return;
+    }
+    message.success(res.msg);
+    emit('childOK');
+    visible.value = false;
+  } catch {
+    // 网络/HTTP 错误已由响应拦截器统一提示，此处仅保持弹窗打开
+  }
 };
 
 //子组件方法默认为私有

@@ -15,6 +15,7 @@ import { reactive, ref } from 'vue';
 import { message } from 'ant-design-vue';
 import type { TreeProps } from 'ant-design-vue';
 import { getListAllMenu, getListAuthMenu, saveAuthMenu } from '../role.api';
+import type { MenuTreeNode } from '../role.types';
 
 /** 查询参数 */
 const queryParams = reactive({
@@ -22,7 +23,7 @@ const queryParams = reactive({
 })
 const open = ref(false);
 
-const treeData: any = ref([]);
+const treeData = ref<MenuTreeNode[]>([]);
 const fieldNames: TreeProps['fieldNames'] = {
   children: 'children',
   title: 'title',
@@ -44,9 +45,17 @@ const show = (roleId: string) => {
 }
 
 const handleOk = async () => {
-  const res: any = await saveAuthMenu(queryParams.roleId, checkedKeys.value);
-  message.success(res.msg);
-  handleCancel();
+  try {
+    const res = await saveAuthMenu(queryParams.roleId, checkedKeys.value);
+    if (res.code !== 200) {
+      message.error(res.msg);
+      return;
+    }
+    message.success(res.msg);
+    handleCancel();
+  } catch {
+    // 网络/HTTP 错误已由响应拦截器统一提示，此处仅保持抽屉打开
+  }
 }
 
 const handleCancel = () => {

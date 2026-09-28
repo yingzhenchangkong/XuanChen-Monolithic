@@ -2,11 +2,11 @@ package com.xuanchen.system.sysnotice.service.impl;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import com.xuanchen.system.sysnotice.entity.SysNoticeStatus;
 import com.xuanchen.system.sysnotice.mapper.SysNoticeStatusMapper;
 import com.xuanchen.system.sysnotice.service.ISysNoticeStatusService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 /**
@@ -16,9 +16,9 @@ import org.springframework.stereotype.Service;
  * @date 2025-10-21
  */
 @Service
+@RequiredArgsConstructor
 public class SysNoticeStatusServiceImpl extends ServiceImpl<SysNoticeStatusMapper, SysNoticeStatus> implements ISysNoticeStatusService {
-    @Autowired
-    private SysNoticeStatusMapper sysNoticeStatusMapper;
+    private final SysNoticeStatusMapper sysNoticeStatusMapper;
 
     @Override
     public IPage<SysNoticeStatus> list(Page<SysNoticeStatus> page, SysNoticeStatus sysNoticeStatus) {

@@ -52,6 +52,7 @@ import { reactive, ref } from 'vue';
 import { message } from 'ant-design-vue';
 import { columnsAssignUser } from '../post.data';
 import { PostApiUrl, cancelAssignUser, cancleAssignUserBatch, assignUser, assignUserBatch, getListUnAssignUser } from '../post.api';
+import type { UnAssignUserOption } from '../post.types';
 
 const url = {
   list: PostApiUrl.ASSIGN_USER_LIST_ASSIGN_USER,
@@ -79,16 +80,32 @@ const handleCancel = () => {
 }
 /** 取消分配 */
 const handleCancleAssign = async (record: any) => {
-  const res: any = await cancelAssignUser(record.userId, queryParams.postId);
-  message.success(res.msg);
-  refresh();
+  try {
+    const res = await cancelAssignUser(record.userId, queryParams.postId);
+    if (res.code !== 200) {
+      message.error(res.msg);
+      return;
+    }
+    message.success(res.msg);
+    refresh();
+  } catch {
+    // 网络/HTTP 错误已由响应拦截器统一提示
+  }
 }
 /** 批量取消分配 */
 const handleCancleAssignBatch = async () => {
   const userIds = state.selectedRowKeys.map(key => String(key));
-  const res: any = await cancleAssignUserBatch(userIds, queryParams.postId);
-  message.success(res.msg);
-  refresh();
+  try {
+    const res = await cancleAssignUserBatch(userIds, queryParams.postId);
+    if (res.code !== 200) {
+      message.error(res.msg);
+      return;
+    }
+    message.success(res.msg);
+    refresh();
+  } catch {
+    // 网络/HTTP 错误已由响应拦截器统一提示
+  }
 }
 const {
   loadData,
@@ -96,13 +113,13 @@ const {
 } = useList({ url, queryParams })
 
 const modelUnAssignUser = reactive({
-  listUnAssignUser: [],
+  listUnAssignUser: [] as string[],
 });
 
-const optionsUnAssignUser = ref([]);
+const optionsUnAssignUser = ref<UnAssignUserOption[]>([]);
 
 const loadDataUnAssignUser = async () => {
-  const res: any = await getListUnAssignUser(queryParams.postId);
+  const res = await getListUnAssignUser(queryParams.postId);
   optionsUnAssignUser.value = res.data.records;
 }
 
@@ -119,16 +136,20 @@ const handleAssign = async () => {
     message.error('请选择用户');
     return;
   }
-  let res: any;
   const postId = queryParams.postId;
-  if (selectedUserIds.length === 1) {
-    res = await assignUser(selectedUserIds[0]!, postId);
-  } else if (selectedUserIds.length > 1) {
-    const userIds = selectedUserIds.map(key => String(key));
-    res = await assignUserBatch(userIds, postId);
+  try {
+    const res = selectedUserIds.length === 1
+      ? await assignUser(selectedUserIds[0], postId)
+      : await assignUserBatch(selectedUserIds.map(key => String(key)), postId);
+    if (res.code !== 200) {
+      message.error(res.msg);
+      return;
+    }
+    message.success(res.msg || '操作成功');
+    refresh();
+  } catch {
+    // 网络/HTTP 错误已由响应拦截器统一提示
   }
-  message.success(res.msg || '操作成功');
-  refresh();
 }
 
 //子组件方法默认为私有

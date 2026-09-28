@@ -1,5 +1,6 @@
 import { getAction, postAction, httpAction } from '@/utils/httpAction';
-import type { RoleModel } from './role.types';
+import type { Result, SelectOption, PageResult } from '@/types/api';
+import type { RoleModel, MenuTreeNode, UnAuthUserOption } from './role.types';
 
 enum RoleApiUrl {
   INDEX_LIST = '/system/role/list',
@@ -35,69 +36,69 @@ enum RoleApiUrl {
 
 export { RoleApiUrl };
 
-export const getRoleSelect = async () => {
-  const res: any = await getAction(RoleApiUrl.SELECT, {});
+export const getRoleSelect = async (): Promise<SelectOption[]> => {
+  const res = await getAction<SelectOption[]>(RoleApiUrl.SELECT, {});
   return res.data;
 }
 
-export const validateRoleCodeApi = async (id: string, roleCode: string) => {
-  const res: any = await getAction(RoleApiUrl.OPERATION_VALIDATE, { id, roleCode });
-  if (res.code === 500) {
+export const validateRoleCodeApi = async (id: string, roleCode: string): Promise<void> => {
+  const res = await getAction(RoleApiUrl.OPERATION_VALIDATE, { id, roleCode });
+  if (res.code !== 200) {
     return Promise.reject("角色编码已存在!");
   } else {
     return Promise.resolve();
   }
 }
 
-export const validateRoleNameApi = async (id: string, roleName: string) => {
-  const res: any = await getAction(RoleApiUrl.OPERATION_VALIDATE, { id, roleName });
-  if (res.code === 500) {
+export const validateRoleNameApi = async (id: string, roleName: string): Promise<void> => {
+  const res = await getAction(RoleApiUrl.OPERATION_VALIDATE, { id, roleName });
+  if (res.code !== 200) {
     return Promise.reject("角色名称已存在!");
   } else {
     return Promise.resolve();
   }
 }
 
-export const changeStatusApi = async (id: string, status: number) => {
-  return await postAction(RoleApiUrl.INDEX_CHANGE_STATUS, { id, status });
+export const changeStatusApi = (id: string, status: number): Promise<Result<null>> => {
+  return postAction<null>(RoleApiUrl.INDEX_CHANGE_STATUS, { id, status });
 }
 
-export const saveOrUpdate = async (data: RoleModel) => {
+export const saveOrUpdate = (data: RoleModel) => {
   const httpUrl = data.id ? RoleApiUrl.OPERATION_EDIT : RoleApiUrl.OPERATION_ADD;
   const method = data.id ? 'put' : 'post';
-  return await httpAction(httpUrl, data, method);
+  return httpAction(httpUrl, data, method);
 };
 
-export const getListAllMenu = async () => {
-  const res: any = await getAction(RoleApiUrl.ASSIGN_MENU_LIST_ALL_MENU, {});
+export const getListAllMenu = async (): Promise<MenuTreeNode[]> => {
+  const res = await getAction<PageResult<MenuTreeNode>>(RoleApiUrl.ASSIGN_MENU_LIST_ALL_MENU, {});
   return res.data.records;
 };
 
-export const getListAuthMenu = async (roleId: string) => {
-  const res: any = await getAction(RoleApiUrl.ASSIGN_MENU_LIST_AUTH_MENU, { roleId });
+export const getListAuthMenu = async (roleId: string): Promise<string[]> => {
+  const res = await getAction<string[]>(RoleApiUrl.ASSIGN_MENU_LIST_AUTH_MENU, { roleId });
   return res.data;
 }
 
-export const saveAuthMenu = async (roleId: string, menuIds: string[]) => {
-  return await postAction(RoleApiUrl.ASSIGN_MENU_SAVE_AUTH_MENU, { roleId, menuIds });
+export const saveAuthMenu = (roleId: string, menuIds: string[]): Promise<Result<null>> => {
+  return postAction<null>(RoleApiUrl.ASSIGN_MENU_SAVE_AUTH_MENU, { roleId, menuIds });
 }
 
-export const cancelAuthUser = async (userId: string, roleId: string) => {
-  return await postAction(RoleApiUrl.ASSIGN_USER_CANCEL_AUTH, { userId, roleId });
+export const cancelAuthUser = (userId: string, roleId: string): Promise<Result<null>> => {
+  return postAction<null>(RoleApiUrl.ASSIGN_USER_CANCEL_AUTH, { userId, roleId });
 };
 
-export const cancleAuthUserBatch = async (userIds: string[], roleId: string) => {
-  return await postAction(RoleApiUrl.ASSIGN_USER_CANCEL_AUTH_BATCH, { userIds, roleId });
+export const cancleAuthUserBatch = (userIds: string[], roleId: string): Promise<Result<null>> => {
+  return postAction<null>(RoleApiUrl.ASSIGN_USER_CANCEL_AUTH_BATCH, { userIds, roleId });
 }
 
-export const authUser = async (userId: string, roleId: string) => {
-  return await postAction(RoleApiUrl.ASSIGN_USER_AUTH, { userId, roleId });
+export const authUser = (userId: string, roleId: string): Promise<Result<null>> => {
+  return postAction<null>(RoleApiUrl.ASSIGN_USER_AUTH, { userId, roleId });
 };
 
-export const authUserBatch = async (userIds: string[], roleId: string) => {
-  return await postAction(RoleApiUrl.ASSIGN_USER_AUTH_BATCH, { userIds, roleId });
+export const authUserBatch = (userIds: string[], roleId: string): Promise<Result<null>> => {
+  return postAction<null>(RoleApiUrl.ASSIGN_USER_AUTH_BATCH, { userIds, roleId });
 }
 
-export const getListUnAuthUser = async (roleId: string) => {
-  return await getAction(RoleApiUrl.ASSIGN_USER_LIST_UN_AUTH_USER, { roleId });
+export const getListUnAuthUser = (roleId: string) => {
+  return getAction<PageResult<UnAuthUserOption>>(RoleApiUrl.ASSIGN_USER_LIST_UN_AUTH_USER, { roleId });
 }

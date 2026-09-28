@@ -2,13 +2,19 @@
   <div ref="chartContainer" style="width: 100%; height: 300px;"></div>
 </template>
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 import * as echarts from 'echarts';
 const chartContainer = ref<HTMLDivElement | null>(null);
+// 实例提升到 setup 作用域：卸载时必须 dispose，否则切页后 canvas、内部 ZRender
+// 与事件监听全部残留，反复进出首页会持续泄漏
+let myChart: echarts.ECharts | null = null;
+// 具名引用 resize 处理器，卸载时才能精确 removeEventListener
+const handleResize = () => myChart?.resize();
 
 onMounted(() => {
   if (chartContainer.value) {
-    const myChart = echarts.init(chartContainer.value);
+    myChart = echarts.init(chartContainer.value);
+    window.addEventListener('resize', handleResize);
     const option = {
       radar: {
         indicator: [
@@ -74,5 +80,11 @@ onMounted(() => {
     };
     myChart.setOption(option);
   }
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', handleResize);
+  myChart?.dispose();
+  myChart = null;
 });
 </script>

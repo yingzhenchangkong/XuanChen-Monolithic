@@ -1,12 +1,12 @@
 package com.xuanchen.system.sysdept.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import com.xuanchen.system.sysdept.entity.SysDept;
 import com.xuanchen.system.sysdept.entity.SysDeptTreeVO;
 import com.xuanchen.system.sysdept.mapper.SysDeptMapper;
 import com.xuanchen.system.sysdept.service.ISysDeptService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -21,9 +21,9 @@ import java.util.stream.Collectors;
  * @date 2025-11-12
  */
 @Service
+@RequiredArgsConstructor
 public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> implements ISysDeptService {
-    @Autowired
-    private SysDeptMapper sysDeptMapper;
+    private final SysDeptMapper sysDeptMapper;
 
     @Override
     public List<SysDeptTreeVO> getDeptTree() {

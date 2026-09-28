@@ -29,7 +29,7 @@ CREATE TABLE `gen_database`  (
   `port` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '端口',
   `db_name` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '数据库名称',
   `user_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '用户名',
-  `password` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '密码',
+  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '密码（AES-GCM 密文，ENC(...) 包裹）',
   `order_no` int NULL DEFAULT NULL COMMENT '排序码',
   `status` tinyint(1) NULL DEFAULT NULL COMMENT '状态（1启用，0停用）',
   `del_flag` tinyint(1) NULL DEFAULT 0 COMMENT '删除状态（0正常，1已删除）',
@@ -43,7 +43,8 @@ CREATE TABLE `gen_database`  (
 -- ----------------------------
 -- Records of gen_database
 -- ----------------------------
-INSERT INTO `gen_database` VALUES ('2026135176626184194', 'mysql', '本地MySQL测试数据库', 'localhost', '3306', 'xuanchen-test', 'root', 'Admin123', 1, 1, 0, 'admin', '2026-02-24 11:20:45', NULL, NULL);
+-- 密码列为 AES-GCM 密文（明文 Admin123，使用 dev 默认密钥加密；生产部署后请在页面重新设置数据源密码）
+INSERT INTO `gen_database` VALUES ('2026135176626184194', 'mysql', '本地MySQL测试数据库', 'localhost', '3306', 'xuanchen-test', 'root', 'ENC(ukX0FG6QDScCD7lSfQiMbplujKj3p66FUbJ9bGDtpdC+8512)', 1, 1, 0, 'admin', '2026-02-24 11:20:45', NULL, NULL);
 
 -- ----------------------------
 -- Table structure for gen_table
@@ -265,14 +266,14 @@ CREATE TABLE `sys_dict_item`  (
 -- ----------------------------
 -- Records of sys_dict_item
 -- ----------------------------
-INSERT INTO `sys_dict_item` VALUES ('1988219316371537922', 'yes_no', '是', 'true', 1, 1, 0, 'admin', '2025-11-11 20:16:39', NULL, NULL);
-INSERT INTO `sys_dict_item` VALUES ('1988219354069942274', 'yes_no', '否', 'false', 2, 1, 0, 'admin', '2025-11-11 20:16:48', NULL, NULL);
+INSERT INTO `sys_dict_item` VALUES ('1988219316371537922', 'yes_no', '是', '1', 1, 1, 0, 'admin', '2025-11-11 20:16:39', NULL, NULL);
+INSERT INTO `sys_dict_item` VALUES ('1988219354069942274', 'yes_no', '否', '0', 2, 1, 0, 'admin', '2025-11-11 20:16:48', NULL, NULL);
 INSERT INTO `sys_dict_item` VALUES ('2012158582834413569', 'config_type', '系统', '1', 1, 1, 0, 'admin', '2026-01-16 21:42:45', NULL, NULL);
 INSERT INTO `sys_dict_item` VALUES ('2012158635976245250', 'config_type', '业务', '2', 2, 1, 0, 'admin', '2026-01-16 21:42:58', NULL, NULL);
 INSERT INTO `sys_dict_item` VALUES ('2015181432967270402', 'user_status', '正常', '1', 1, 1, 0, 'admin', '2026-01-25 05:54:29', NULL, NULL);
 INSERT INTO `sys_dict_item` VALUES ('2015181480673284097', 'user_status', '冻结', '2', 2, 1, 0, 'admin', '2026-01-25 05:54:40', NULL, NULL);
-INSERT INTO `sys_dict_item` VALUES ('2022685559305678850', 'succ_fail', '成功', 'true', 1, 1, 0, 'admin', '2026-02-14 22:53:12', NULL, NULL);
-INSERT INTO `sys_dict_item` VALUES ('2022685602842554369', 'succ_fail', '失败', 'false', 2, 1, 0, 'admin', '2026-02-14 22:53:22', NULL, NULL);
+INSERT INTO `sys_dict_item` VALUES ('2022685559305678850', 'succ_fail', '成功', '1', 1, 1, 0, 'admin', '2026-02-14 22:53:12', NULL, NULL);
+INSERT INTO `sys_dict_item` VALUES ('2022685602842554369', 'succ_fail', '失败', '0', 2, 1, 0, 'admin', '2026-02-14 22:53:22', NULL, NULL);
 INSERT INTO `sys_dict_item` VALUES ('2026841998664359937', 'db_conn_type', 'MySQL', 'mysql', 1, 1, 0, 'admin', '2026-02-26 10:09:24', NULL, NULL);
 INSERT INTO `sys_dict_item` VALUES ('2026842286813044738', 'db_conn_type', 'PostgreSQL', 'postgresql', 2, 1, 0, 'admin', '2026-02-26 10:10:33', NULL, NULL);
 INSERT INTO `sys_dict_item` VALUES ('2026843088566837249', 'db_conn_type', 'SQL Server', 'sqlserver', 3, 1, 0, 'admin', '2026-02-26 10:13:44', NULL, NULL);
@@ -495,6 +496,7 @@ CREATE TABLE `sys_user`  (
   `user_name` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'NULL' COMMENT '用户名',
   `nick_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '昵称',
   `password` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'NULL' COMMENT '密码',
+  `pwd_reset_required` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否要求下次登录修改密码（1是0否）',
   `mobile` varchar(11) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '手机号',
   `email` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '邮箱',
   `avatar` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '头像',
@@ -511,14 +513,14 @@ CREATE TABLE `sys_user`  (
 -- ----------------------------
 -- Records of sys_user
 -- ----------------------------
-INSERT INTO `sys_user` VALUES ('1757768950749499393', 'admin', '管理员', '0c633818ae54281006d5ef2ee7559d6af1df38d4fe93aea77c733adc9a817df2d3149ce6c7e053e97d67de3d028ec61c921e4b4b6b66e3b787e193bb0a6e5d39', '18931540689', 'admin@xuanchen.com', 'avatar\\pic1_1769293937728.png', 1, 'hBOpLQrn', 0, 'super', '2024-02-14 22:09:10', 'admin', '2026-01-25 06:32:19');
-INSERT INTO `sys_user` VALUES ('1757769284339273730', 'test01', '测试01', '77a399ac55ae7b8400f27ef6c7d936d623bf54137a6c356cd96d97d14895dcae756e60f1cfd70bc3b2069800f206950ef1ef13169898df979b034217af528acb', '18931541689', 'test01@xuanchen.com', 'avatar\\2025-04-21_221928_1745245996042.png', 1, 'RAtMIWos', 0, 'admin', '2024-02-14 22:10:30', 'admin', '2026-01-06 07:05:51');
-INSERT INTO `sys_user` VALUES ('1757769358909804546', 'test02', '测试02', '9e83250f13f5ad1d60c468602bdc399237cfa5462d1f431fca9726a888f14fb086ab3abba7197b420397f23cfa87f072f57afb3b77d8b343e0c4a434861d2b52', '18931542689', 'test02@xuanchen.com', 'avatar\\2025-04-21_221928_1745246499366.png', 1, 'icXXjqXS', 0, 'admin', '2024-02-14 22:10:48', 'admin', '2025-11-11 18:33:15');
-INSERT INTO `sys_user` VALUES ('1772395839434694658', 'test03', '测试03', 'f867ff114a35884dce6879007c0d6f80ed5215cd584bc21aa94425dc5795216d7d2b6fc7110abd503eba305eeed65bbd165093ee0742346b6a20170ae8f8c2d5', '18931543689', 'test03@xuanchen.com', 'avatar\\2025-04-21_221928_1745246712100.png', 1, 'WV!cdspi', 0, NULL, '2024-03-26 06:51:12', 'admin', '2025-11-11 18:33:22');
-INSERT INTO `sys_user` VALUES ('1772396269187276802', 'test04', '测试04', '8adc7121a7680e80c2bf7220d04e025ecdf5fca6110f603c29c4e94cf2873d161d5cf22b14ac30d0d7d58cea9000e7bd9a595f09b2e67514579932cf6d0b8bd8', '18931544689', 'test04@xuanchen.com', '', 1, 'fucgEGEe', 0, NULL, '2024-03-26 06:52:55', 'admin', '2026-01-06 07:06:13');
-INSERT INTO `sys_user` VALUES ('1779508954504761345', 'test05', '测试05', 'dfccc65fb09352a3f7fb7e971d96aaa9feafbc38fd5d61815ef2dc8c721743b009e4bcdc9c19cef1805a905157ee8fb66d588334803d93519608a9117631aacd', '18931545689', 'test05@xuanchen.com', '', 1, 'cFy&xQYO', 0, 'admin', '2024-04-14 21:56:11', 'admin', '2026-01-06 07:06:28');
-INSERT INTO `sys_user` VALUES ('1779511801023696897', 'test06', '测试06', 'd67ed4a624a53499d0bfa739aaf4e59071314a9cf1dd9cf59a17577a6d80d8d5f90c2dab9e3819b81321532261fea439d0869869961c5a0e980c98941389cc61', '18931546689', 'test06@xuanchen.com', '', 1, 'iRbcpUG%', 0, 'admin', '2024-04-14 22:07:30', 'admin', '2026-01-25 06:01:48');
-INSERT INTO `sys_user` VALUES ('1779511801023696898', 'admin4', '管理员4', '$2a$10$lSSiQQ4P1atDCM89UxYZJOMWLSeseVtecdmIifTJNCzRJ1dbPi6EW', '18931548689', 'admin4@xuanchen.com', '', 1, NULL, 0, 'super', '2026-03-27 09:48:15', 'admin', '2026-03-27 09:49:47');
+INSERT INTO `sys_user` VALUES ('1757768950749499393', 'admin', '管理员', '0c633818ae54281006d5ef2ee7559d6af1df38d4fe93aea77c733adc9a817df2d3149ce6c7e053e97d67de3d028ec61c921e4b4b6b66e3b787e193bb0a6e5d39', 0, '18931540689', 'admin@xuanchen.com', 'avatar\\pic1_1769293937728.png', 1, 'hBOpLQrn', 0, 'super', '2024-02-14 22:09:10', 'admin', '2026-01-25 06:32:19');
+INSERT INTO `sys_user` VALUES ('1757769284339273730', 'test01', '测试01', '77a399ac55ae7b8400f27ef6c7d936d623bf54137a6c356cd96d97d14895dcae756e60f1cfd70bc3b2069800f206950ef1ef13169898df979b034217af528acb', 0, '18931541689', 'test01@xuanchen.com', 'avatar\\2025-04-21_221928_1745245996042.png', 1, 'RAtMIWos', 0, 'admin', '2024-02-14 22:10:30', 'admin', '2026-01-06 07:05:51');
+INSERT INTO `sys_user` VALUES ('1757769358909804546', 'test02', '测试02', '9e83250f13f5ad1d60c468602bdc399237cfa5462d1f431fca9726a888f14fb086ab3abba7197b420397f23cfa87f072f57afb3b77d8b343e0c4a434861d2b52', 0, '18931542689', 'test02@xuanchen.com', 'avatar\\2025-04-21_221928_1745246499366.png', 1, 'icXXjqXS', 0, 'admin', '2024-02-14 22:10:48', 'admin', '2025-11-11 18:33:15');
+INSERT INTO `sys_user` VALUES ('1772395839434694658', 'test03', '测试03', 'f867ff114a35884dce6879007c0d6f80ed5215cd584bc21aa94425dc5795216d7d2b6fc7110abd503eba305eeed65bbd165093ee0742346b6a20170ae8f8c2d5', 0, '18931543689', 'test03@xuanchen.com', 'avatar\\2025-04-21_221928_1745246712100.png', 1, 'WV!cdspi', 0, NULL, '2024-03-26 06:51:12', 'admin', '2025-11-11 18:33:22');
+INSERT INTO `sys_user` VALUES ('1772396269187276802', 'test04', '测试04', '8adc7121a7680e80c2bf7220d04e025ecdf5fca6110f603c29c4e94cf2873d161d5cf22b14ac30d0d7d58cea9000e7bd9a595f09b2e67514579932cf6d0b8bd8', 0, '18931544689', 'test04@xuanchen.com', '', 1, 'fucgEGEe', 0, NULL, '2024-03-26 06:52:55', 'admin', '2026-01-06 07:06:13');
+INSERT INTO `sys_user` VALUES ('1779508954504761345', 'test05', '测试05', 'dfccc65fb09352a3f7fb7e971d96aaa9feafbc38fd5d61815ef2dc8c721743b009e4bcdc9c19cef1805a905157ee8fb66d588334803d93519608a9117631aacd', 0, '18931545689', 'test05@xuanchen.com', '', 1, 'cFy&xQYO', 0, 'admin', '2024-04-14 21:56:11', 'admin', '2026-01-06 07:06:28');
+INSERT INTO `sys_user` VALUES ('1779511801023696897', 'test06', '测试06', 'd67ed4a624a53499d0bfa739aaf4e59071314a9cf1dd9cf59a17577a6d80d8d5f90c2dab9e3819b81321532261fea439d0869869961c5a0e980c98941389cc61', 0, '18931546689', 'test06@xuanchen.com', '', 1, 'iRbcpUG%', 0, 'admin', '2024-04-14 22:07:30', 'admin', '2026-01-25 06:01:48');
+INSERT INTO `sys_user` VALUES ('1779511801023696898', 'admin4', '管理员4', '$2a$10$lSSiQQ4P1atDCM89UxYZJOMWLSeseVtecdmIifTJNCzRJ1dbPi6EW', 0, '18931548689', 'admin4@xuanchen.com', '', 1, NULL, 0, 'super', '2026-03-27 09:48:15', 'admin', '2026-03-27 09:49:47');
 
 -- ----------------------------
 -- Table structure for sys_user_dept

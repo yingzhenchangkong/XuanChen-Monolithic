@@ -1,14 +1,14 @@
 <template>
   <a-sub-menu :key="menuInfo.name">
     <template #icon>
-      <component :is="menuInfo.meta.icon" v-if="menuInfo.meta.icon" />
+      <component :is="resolveMenuIcon(menuInfo.meta.icon)" v-if="menuInfo.meta.icon" />
     </template>
     <template #title>{{ menuInfo.meta.title }}</template>
     <template v-for="item in menuInfo.children" :key="item.name">
       <template v-if="item.children === null">
         <a-menu-item :key="item.name" @click="menuClick(item.name)">
           <template #icon>
-            <component :is="item.meta.icon" v-if="item.meta.icon" />
+            <component :is="resolveMenuIcon(item.meta.icon)" v-if="item.meta.icon" />
           </template>
           <router-link :to="{ name: item.name }">{{ item.meta.title }}</router-link>
         </a-menu-item>
@@ -22,6 +22,7 @@
 
 <script setup lang="ts">
 import { useTabsStore } from '@/stores';
+import { resolveMenuIcon } from '@/utils/menuIcons';
 const tabStore = useTabsStore();
 
 const props = defineProps({

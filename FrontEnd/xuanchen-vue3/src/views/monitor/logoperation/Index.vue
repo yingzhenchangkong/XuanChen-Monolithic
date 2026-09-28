@@ -16,8 +16,8 @@
       size="small" @change="handleTableChange" :scroll="{ x: 'max-content' }">
       <template #bodyCell="{ column, text, record, index }">
         <template v-if="column.dataIndex === 'status'">
-          <a-tag :color="record.status === true ? 'green' : 'volcano'">
-            {{ record.status === true ? '操作成功' : '操作失败' }}
+          <a-tag :color="record.status === 1 ? 'green' : 'volcano'">
+            {{ record.status === 1 ? '操作成功' : '操作失败' }}
           </a-tag>
         </template>
       </template>

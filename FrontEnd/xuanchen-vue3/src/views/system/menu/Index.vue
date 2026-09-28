@@ -44,15 +44,15 @@
           </a-popconfirm>
         </template>
         <template v-else-if="column.dataIndex === 'status'">
-          <a-tag :color="record.status === true ? 'green' : 'volcano'">
-            {{ record.status === true ? '启用' : '停用' }}
+          <a-tag :color="record.status === 1 ? 'green' : 'volcano'">
+            {{ record.status === 1 ? '启用' : '停用' }}
           </a-tag>
         </template>
         <template v-else-if="column.dataIndex === 'title'">
           {{ record.meta.title }}
         </template>
         <template v-else-if="column.dataIndex === 'icon'">
-          <component :is="record.meta.icon" v-if="record.meta.icon" />
+          <component :is="resolveMenuIcon(record.meta.icon)" v-if="record.meta.icon" />
         </template>
       </template>
     </a-table>
@@ -67,6 +67,7 @@ import { message } from 'ant-design-vue';
 import { useList } from '@/hooks/useList';
 
 import Operation from './modal/Operation.vue';
+import { resolveMenuIcon } from '@/utils/menuIcons';
 
 import { MenuApiUrl } from './menu.api';
 import { columns } from './menu.data';
@@ -76,13 +77,21 @@ const url = {
   list: MenuApiUrl.LIST,
   delete: MenuApiUrl.DELETE,
 }
+/** 菜单弹窗在标准 add/edit 之外额外暴露的方法 */
+interface MenuOperationExposed {
+  addSub?: (parentId: string) => void;
+}
+
 /** 添加子菜单 */
 const handleAddSub = (parentId: string) => {
   operationTitle.value = '新增'
-  refOperation.value.addSub(parentId)
+  const menuOperation = refOperation.value as MenuOperationExposed | undefined;
+  if (menuOperation?.addSub) {
+    menuOperation.addSub(parentId);
+  }
 }
 
-const expandedRowKeys = ref([])
+const expandedRowKeys = ref<(string | number)[]>([])
 const expandCollapse = () => {
   if (expandedRowKeys.value.length === 0) {
     expandAll()
@@ -92,9 +101,9 @@ const expandCollapse = () => {
 }
 //展开全部
 const expandAll = () => {
-  let expandArr: any = [];
-  dataSource.value.forEach((item: any) => {
-    expandArr.push(item.id);
+  const expandArr: (string | number)[] = [];
+  dataSource.value.forEach((item) => {
+    expandArr.push(item.id as string | number);
   })
   expandedRowKeys.value = expandArr; //给expandedRowKeys赋值为id组成的数组
 }
@@ -103,7 +112,7 @@ const collapseAll = () => {
   expandedRowKeys.value = [];//清空数组，表格行全部折叠
 }
 // 表格行操作（展开折叠）
-const expandedRowsChange = (expandedRows: any) => {
+const expandedRowsChange = (expandedRows: (string | number)[]) => {
   expandedRowKeys.value = expandedRows; // 点击树形表格内的展开折叠图标时
 };
 

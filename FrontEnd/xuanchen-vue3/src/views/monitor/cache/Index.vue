@@ -60,10 +60,18 @@
 import { ref } from 'vue';
 
 import { getCache } from './cache.api';
+import type { CacheInfo } from './cache.api';
 import { columns } from './cache.data';
 
-const cache = ref<any>([]);
-const dataSource = ref<any>([]);
+/** Redis 信息表格行 */
+interface CacheInfoRow {
+  description: string;
+  key: string;
+  value: unknown;
+}
+
+const cache = ref<CacheInfo>({});
+const dataSource = ref<CacheInfoRow[]>([]);
 const getRedisInfo = async () => {
   const res = await getCache();
   cache.value = res.data;

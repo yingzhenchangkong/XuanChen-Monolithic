@@ -35,6 +35,7 @@ import { message } from 'ant-design-vue';
 import { DeptApiUrl, link, unlink } from '../dept.api';
 import { getUserSelect } from '../../user/user.api';
 import { columnsDeptUser } from '../dept.data';
+import type { SelectOption } from '@/types/api';
 
 const props = defineProps({
   deptCode: { type: String, default: '', required: true }
@@ -49,7 +50,7 @@ const model = reactive({
   listUser: [],
 });
 
-const optionsUser = ref([]);
+const optionsUser = ref<SelectOption[]>([]);
 const getSelectUser = async () => {
   optionsUser.value = await getUserSelect();
 };
@@ -70,7 +71,7 @@ const handleLink = async () => {
     message.error('请选择员工');
     return;
   }
-  const res: any = await link(model.listUser, props.deptCode);
+  const res = await link(model.listUser, props.deptCode);
   if (res.code === 200) {
     message.success(res.msg);
     model.listUser = [];
@@ -82,7 +83,7 @@ const handleLink = async () => {
 }
 
 async function handleUnlink(record: any) {
-  const res: any = await unlink(record.id);
+  const res = await unlink(record.id);
   if (res.code === 200) {
     message.success(res.msg);
     queryParams.deptCode = props.deptCode;

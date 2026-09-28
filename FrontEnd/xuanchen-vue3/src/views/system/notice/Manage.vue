@@ -72,7 +72,7 @@ const handleDetail = (record: any) => {
 }
 /** 撤销 */
 const handleCancel = async (id: string) => {
-  const res: any = await cancelApi(id);
+  const res = await cancelApi(id);
   if (res.code == 200) {
     message.success(res.msg);
     handleReset();
@@ -83,7 +83,7 @@ const handleCancel = async (id: string) => {
 
 /** 恢复 */
 const handleRecover = async (id: string) => {
-  const res: any = await recoverApi(id);
+  const res = await recoverApi(id);
   if (res.code == 200) {
     message.success(res.msg);
     handleReset();
