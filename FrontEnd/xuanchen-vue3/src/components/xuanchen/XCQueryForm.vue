@@ -20,13 +20,15 @@
           :format="item.displayFormat || 'YYYY-MM-DD HH:mm:ss'" :placeholder="item.placeholder || ['开始时间', '结束时间']"
           style="width: 100%;" allowClear />
       </a-form-item>
+      <!-- 自定义表单字段插槽：用于注入内置类型（input / select / datePicker / rangePicker）之外的控件 -->
+      <slot></slot>
       <a-form-item>
         <a-button type="primary" @click="$emit('search')">
           <template #icon>
             <SearchOutlined />
           </template>查询
         </a-button>
-        <a-button @click="$emit('reset')" style="margin-left: 10px;">
+        <a-button @click="handleReset" style="margin-left: 10px;">
           <template #icon>
             <ReloadOutlined />
           </template>重置
@@ -37,7 +39,7 @@
 </template>
 
 <script setup lang="ts">
-interface FormItem {
+export interface FormItem {
   name: string;
   label: string;
   type: 'input' | 'select' | 'datePicker' | 'rangePicker';
@@ -50,13 +52,20 @@ interface FormItem {
   displayFormat?: string;
 }
 
-defineProps<{
+const props = defineProps<{
   modelValue: Record<string, any>;
   formItems: FormItem[];
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
   (e: 'search'): void;
   (e: 'reset'): void;
 }>();
+
+const handleReset = () => {
+  Object.keys(props.modelValue).forEach(key => {
+    props.modelValue[key] = undefined;
+  });
+  emit('reset');
+};
 </script>

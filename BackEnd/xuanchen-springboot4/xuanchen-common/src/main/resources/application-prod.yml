@@ -14,6 +14,8 @@ spring:
       host: ${SPRING_REDIS_HOST}
       port: ${SPRING_REDIS_PORT:6379}
       database: ${SPRING_REDIS_DATABASE:0}
+      # 启用了 requirepass 的 Redis 必须注入口令；无口令 Redis 时显式置空
+      password: ${SPRING_REDIS_PASSWORD}
 
 xuanchen:
   security:
@@ -31,8 +33,9 @@ xuanchen:
     # 数据源连接密码 AES 密钥：必填、无默认值，多实例须保持一致，轮换密钥前需先迁移存量密文
     datasource-key: ${XUANCHEN_DATASOURCE_SECRET}
   generator:
-    # 代码生成输出根目录白名单：部署使用代码生成功能前必须显式配置为一个或多个绝对路径（逗号分隔）；
-    # 留空则该功能保持禁用（保存/生成请求会被拒绝）。禁止填入 "/"、"C:/" 等过大范围根
+    # 代码生成输出目录：页面用「选择目录」挑选，留空 = 不限制（无需任何配置）。
+    # 生产环境强烈建议配置为一个或多个绝对路径（逗号分隔）：配置后目录选择器只能在该范围内浏览，
+    # 写入路径也必须在白名单之下。禁止填入 "/"、"C:/" 等过大范围根
     allowed-output-roots: ${XUANCHEN_GEN_OUTPUT_ROOTS:}
     # 生产默认禁止覆盖任何已存在文件；仅在确认风险后对单实例临时开启
     allow-file-override: ${XUANCHEN_GEN_ALLOW_OVERRIDE:false}

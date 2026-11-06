@@ -1,6 +1,6 @@
 package com.xuanchen.auth.security;
 
-import com.alibaba.fastjson2.JSON;
+import com.xuanchen.common.utils.JsonUtils;
 import com.xuanchen.common.entity.Result;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,6 +29,6 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
         Result<String> result = Result.unauthorized("未授权，请先登录");
-        response.getWriter().write(JSON.toJSONString(result));
+        response.getWriter().write(JsonUtils.toJson(result));
     }
 }

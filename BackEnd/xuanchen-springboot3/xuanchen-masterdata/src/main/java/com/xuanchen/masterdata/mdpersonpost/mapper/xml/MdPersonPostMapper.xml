@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xuanchen.masterdata.mdpersonpost.mapper.MdPersonPostMapper">
+    <select id="listAssignUser" parameterType="String" resultType="com.xuanchen.masterdata.mdpersonpost.entity.MdPersonPost">
+        SELECT
+            md_person_post.person_id,
+            md_person_post.post_id,
+            p.real_name,
+            p.person_code,
+            p.mobile,
+            p.email
+        FROM
+            md_person_post
+            LEFT JOIN md_person p ON p.id = md_person_post.person_id
+        WHERE
+            md_person_post.post_id = #{postId}
+    </select>
+    <select id="listUnAssignUser" parameterType="String" resultType="com.xuanchen.masterdata.mdpersonpost.entity.MdPersonPost">
+        SELECT
+            p.id AS person_id,
+            p.real_name,
+            p.person_code,
+            p.mobile,
+            p.email
+        FROM
+            md_person p
+        WHERE
+            p.id NOT IN (SELECT person_id FROM md_person_post WHERE post_id = #{postId})
+    </select>
+</mapper>

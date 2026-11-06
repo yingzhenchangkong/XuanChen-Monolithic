@@ -1,9 +1,9 @@
 package com.xuanchen.common.aspect;
 
-import com.alibaba.fastjson2.JSON;
 import com.xuanchen.common.aspect.annotation.LogOperation;
 import com.xuanchen.common.service.ILogOperationServiceCommon;
 import com.xuanchen.common.utils.IPUtil;
+import com.xuanchen.common.utils.JsonUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -128,7 +128,7 @@ public class LogOperationAspect {
             }
             params.append("body=");
             try {
-                String json = JSON.toJSONString(bodyArgs);
+                String json = JsonUtils.toJson(bodyArgs);
                 params.append(maskSensitive(json));
             } catch (Exception e) {
                 params.append("[unserializable]");

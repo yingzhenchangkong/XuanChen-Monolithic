@@ -6,13 +6,14 @@
         *
         FROM
         (SELECT * FROM sys_dict WHERE id NOT IN (#{sysDict.id})) sys_dict
-        WHERE 1=1
-        <if test="sysDict.dictCode != '' and sysDict.dictCode != null">
-            AND dict_code = #{sysDict.dictCode}
-        </if>
-        <if test="sysDict.dictName != '' and sysDict.dictName != null">
-            AND dict_name = #{sysDict.dictName}
-        </if>
+        <where>
+            <if test="sysDict.dictCode != '' and sysDict.dictCode != null">
+                AND dict_code = #{sysDict.dictCode}
+            </if>
+            <if test="sysDict.dictName != '' and sysDict.dictName != null">
+                AND dict_name = #{sysDict.dictName}
+            </if>
+        </where>
     </select>
 
     <select id="ifExistsNoId" parameterType="com.xuanchen.system.sysdict.entity.SysDict" resultType="com.xuanchen.system.sysdict.entity.SysDict">
@@ -20,12 +21,13 @@
         *
         FROM
         sys_dict
-        WHERE 1=1
-        <if test="sysDict.dictCode != '' and sysDict.dictCode != null">
-            AND dict_code = #{sysDict.dictCode}
-        </if>
-        <if test="sysDict.dictName != '' and sysDict.dictName != null">
-            AND dict_name = #{sysDict.dictName}
-        </if>
+        <where>
+            <if test="sysDict.dictCode != '' and sysDict.dictCode != null">
+                AND dict_code = #{sysDict.dictCode}
+            </if>
+            <if test="sysDict.dictName != '' and sysDict.dictName != null">
+                AND dict_name = #{sysDict.dictName}
+            </if>
+        </where>
     </select>
 </mapper>

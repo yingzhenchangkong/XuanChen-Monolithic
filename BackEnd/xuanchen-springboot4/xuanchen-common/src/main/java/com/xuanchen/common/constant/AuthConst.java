@@ -59,6 +59,12 @@ public interface AuthConst {
      */
     String CONFIG_CAPTCHA_ENABLED = "captchaEnabled";
     /**
+     * 系统参数：验证码背景图类型（sys_config.config_key），值：dynamic=动态生成，static=预置图片
+     */
+    String CONFIG_CAPTCHA_TYPE = "captchaType";
+    String CAPTCHA_TYPE_DYNAMIC = "dynamic";
+    String CAPTCHA_TYPE_STATIC = "static";
+    /**
      * 自助注册次数限制前缀（按来源 IP，防批量注册刷库）
      */
     String PREFIX_REGISTER_TIMES_IP = "PREFIX_REGISTER_TIMES_IP_";
@@ -139,4 +145,22 @@ public interface AuthConst {
      * 密码不合规时的统一提示
      */
     String PASSWORD_POLICY_TIP = "密码须为6-20位，且同时包含字母、数字和特殊字符！";
+    /**
+     * 刷新令牌 Cookie 名称（httpOnly，前端 JS 不可读）
+     */
+    String REFRESH_TOKEN_COOKIE = "XC-REFRESH-TOKEN";
+    /**
+     * 刷新令牌 Redis 键前缀：值为 JSON（{"username":用户名,"sessionId":会话ID}），
+     * TTL = REFRESH_TOKEN_EXPIRE_SECONDS。
+     * <p>
+     * sessionId 与会话/终端绑定：同一个浏览器会话在多次续期（访问令牌轮换）间保持不变，
+     * 因此"强制退出某一条会话"只需按 sessionId 撤销其对应的刷新令牌，
+     * 不会误伤同账号在其他终端上的"记住我"凭据（改动前为账号级凭据，一踢全掉）。
+     * 历史数据值为纯用户名，读取侧做兼容处理。
+     */
+    String PREFIX_REFRESH_TOKEN = "PREFIX_REFRESH_TOKEN_";
+    /**
+     * 刷新令牌有效期（秒）：7 天绝对超时，过期后须重新输入密码登录
+     */
+    int REFRESH_TOKEN_EXPIRE_SECONDS = 7 * 24 * 3600;
 }

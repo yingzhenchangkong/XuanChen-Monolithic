@@ -1,0 +1,94 @@
+package com.xuanchen.monitor.loglogin.entity;
+
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.Data;
+import org.apache.fesod.sheet.annotation.ExcelIgnore;
+import org.apache.fesod.sheet.annotation.ExcelProperty;
+import org.apache.fesod.sheet.annotation.write.style.ColumnWidth;
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.io.Serializable;
+import java.time.LocalDateTime;
+
+/**
+ * 实体类-->日志 登录
+ *
+ * @author XuanChen
+ * @date 2026-02-04
+ */
+@Data
+@TableName("log_login")
+public class LogLogin implements Serializable {
+    private static final long serialVersionUID = 1L;
+    /**
+     * 主键
+     */
+    @ExcelIgnore
+    private String id;
+
+    /**
+     * 用户名
+     */
+    @ExcelProperty("用户名")
+    @ColumnWidth(20)
+    private String userName;
+
+    /**
+     * 用户名对应的昵称（字典翻译回填，非数据库字段）
+     */
+    @ExcelIgnore
+    @TableField(exist = false)
+    private String userName_dictText;
+
+    /**
+     * 登录时间
+     */
+    @ExcelProperty("登录时间")
+    @ColumnWidth(20)
+    @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime loginTime;
+    /**
+     * 时间区间查询
+     */
+    @ExcelIgnore
+    @TableField(exist = false)
+    private String[] timeRange;
+
+    /**
+     * 开始时间（用于区间查询）
+     */
+    @ExcelIgnore
+    @TableField(exist = false)
+    private String beginTime;
+
+    /**
+     * 结束时间（用于区间查询）
+     */
+    @ExcelIgnore
+    @TableField(exist = false)
+    private String endTime;
+
+    /**
+     * 登录IP地址
+     */
+    @ExcelProperty("登录IP地址")
+    @ColumnWidth(20)
+    private String ipAddress;
+
+    /**
+     * 登录状态（1: 成功, 0: 失败）
+     */
+    @ExcelProperty("登录状态")
+    @ColumnWidth(20)
+    private Integer status;
+
+    /**
+     * 描述信息
+     */
+    @ExcelProperty("描述信息")
+    @ColumnWidth(20)
+    private String description;
+}

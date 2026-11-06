@@ -12,7 +12,8 @@ export const useMenuStore = defineStore('menu', () => {
     menuList.value = menuListIn;
   }
   const state = reactive({
-    openKeys: [''],
+    // 展开的分组 key 链（含祖先）。空数组表示全收起；曾用 [''] 占位，会让"是否为空"的判断失效
+    openKeys: [] as string[],
     selectedKeys: [''],
   })
   return { getMenuList, setMenuList, state }

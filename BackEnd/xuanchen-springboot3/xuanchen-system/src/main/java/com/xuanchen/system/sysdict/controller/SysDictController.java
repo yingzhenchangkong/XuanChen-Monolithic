@@ -13,6 +13,7 @@ import com.xuanchen.system.sysdict.service.ISysDictItemService;
 import com.xuanchen.system.sysdict.service.ISysDictService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -42,7 +43,7 @@ public class SysDictController {
      * @return
      */
     @GetMapping("/list")
-    public Result list(SysDict sysDict,
+    public Result<IPage<SysDict>> list(SysDict sysDict,
                        @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
                        @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
                        HttpServletRequest req) {
@@ -63,7 +64,7 @@ public class SysDictController {
      * @return
      */
     @PostMapping("/add")
-    public Result add(@RequestBody SysDict sysDict) {
+    public Result<String> add(@RequestBody SysDict sysDict) {
         sysDictService.save(sysDict);
         return Result.success(TipConst.ADD_SUCC);
     }
@@ -75,8 +76,14 @@ public class SysDictController {
      * @return
      */
     @RequestMapping(value = "/edit", method = {RequestMethod.PUT, RequestMethod.POST})
-    public Result edit(@RequestBody SysDict sysDict) {
-        sysDictService.updateById(sysDict);
+    public Result<String> edit(@RequestBody SysDict sysDict) {
+        if (StringUtil.isEmpty(sysDict.getId())) {
+            return Result.badRequest("缺少字典ID！");
+        }
+        // 影响行数为 0（id 不存在或已被删除）必须返回失败，避免前端误判成功
+        if (!sysDictService.updateById(sysDict)) {
+            return Result.badRequest("字典不存在或已被删除！");
+        }
         return Result.success(TipConst.EDIT_SUCC);
     }
 
@@ -87,7 +94,8 @@ public class SysDictController {
      * @return
      */
     @DeleteMapping(value = "/delete")
-    public Result delete(@RequestParam(name = "id", required = true) String id) {
+    @Transactional(rollbackFor = Exception.class)
+    public Result<String> delete(@RequestParam(name = "id", required = true) String id) {
         SysDict sysDict = sysDictService.getById(id);
         QueryWrapper<SysDictItem> queryWrapperItem = new QueryWrapper<>();
         queryWrapperItem.eq("dict_code", sysDict.getDictCode());
@@ -106,7 +114,7 @@ public class SysDictController {
      * @return
      */
     @GetMapping("/listItem")
-    public Result listItem(SysDictItem sysDictItem,
+    public Result<IPage<SysDictItem>> listItem(SysDictItem sysDictItem,
                            @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
                            @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
                            HttpServletRequest req) {
@@ -124,7 +132,7 @@ public class SysDictController {
      * @return
      */
     @PostMapping("/addItem")
-    public Result addItem(@RequestBody SysDictItem sysDictItem) {
+    public Result<String> addItem(@RequestBody SysDictItem sysDictItem) {
         sysDictItemService.save(sysDictItem);
         return Result.success(TipConst.ADD_SUCC);
     }
@@ -136,8 +144,14 @@ public class SysDictController {
      * @return
      */
     @RequestMapping(value = "/editItem", method = {RequestMethod.PUT, RequestMethod.POST})
-    public Result editItem(@RequestBody SysDictItem sysDictItem) {
-        sysDictItemService.updateById(sysDictItem);
+    public Result<String> editItem(@RequestBody SysDictItem sysDictItem) {
+        if (StringUtil.isEmpty(sysDictItem.getId())) {
+            return Result.badRequest("缺少字典子项ID！");
+        }
+        // 影响行数为 0（id 不存在或已被删除）必须返回失败，避免前端误判成功
+        if (!sysDictItemService.updateById(sysDictItem)) {
+            return Result.badRequest("字典子项不存在或已被删除！");
+        }
         return Result.success(TipConst.EDIT_SUCC);
     }
 
@@ -148,7 +162,7 @@ public class SysDictController {
      * @return
      */
     @DeleteMapping(value = "/deleteItem")
-    public Result deleteItem(@RequestParam(name = "id", required = true) String id) {
+    public Result<String> deleteItem(@RequestParam(name = "id", required = true) String id) {
         sysDictItemService.removeById(id);
         return Result.success(TipConst.DEL_SUCC);
     }
@@ -159,7 +173,7 @@ public class SysDictController {
      * @return
      */
     @GetMapping("/select")
-    public Result select(@RequestParam(name = "dictCode") String dictCode) {
+    public Result<List<SysDictItem>> select(@RequestParam(name = "dictCode") String dictCode) {
         List<SysDictItem> list = new ArrayList<>();
         if (StringUtil.isNotEmpty(dictCode)) {
             QueryWrapper<SysDictItem> queryWrapper = new QueryWrapper<>();
@@ -178,10 +192,16 @@ public class SysDictController {
      * @return
      */
     @RequestMapping(value = "/changeStatus", method = {RequestMethod.PUT, RequestMethod.POST})
-    public Result changeStatus(@RequestBody SysDict sysDict, HttpServletRequest request) {
+    public Result<String> changeStatus(@RequestBody SysDict sysDict, HttpServletRequest request) {
+        if (StringUtil.isEmpty(sysDict.getId())) {
+            return Result.badRequest("缺少字典ID！");
+        }
         UpdateWrapper<SysDict> updateWrapper = new UpdateWrapper<>();
         updateWrapper.set("status", sysDict.getStatus()).eq("id", sysDict.getId());
-        sysDictService.update(updateWrapper);
+        // 影响行数为 0（id 不存在或已被删除）必须返回失败，避免前端误判成功
+        if (!sysDictService.update(updateWrapper)) {
+            return Result.badRequest("字典不存在或已被删除！");
+        }
         return Result.success("状态修改成功！");
     }
 
@@ -193,10 +213,16 @@ public class SysDictController {
      * @return
      */
     @RequestMapping(value = "/changeStatusItem", method = {RequestMethod.PUT, RequestMethod.POST})
-    public Result changeStatusItem(@RequestBody SysDictItem sysDictItem, HttpServletRequest request) {
+    public Result<String> changeStatusItem(@RequestBody SysDictItem sysDictItem, HttpServletRequest request) {
+        if (StringUtil.isEmpty(sysDictItem.getId())) {
+            return Result.badRequest("缺少字典子项ID！");
+        }
         UpdateWrapper<SysDictItem> updateWrapper = new UpdateWrapper<>();
         updateWrapper.set("status", sysDictItem.getStatus()).eq("id", sysDictItem.getId());
-        sysDictItemService.update(updateWrapper);
+        // 影响行数为 0（id 不存在或已被删除）必须返回失败，避免前端误判成功
+        if (!sysDictItemService.update(updateWrapper)) {
+            return Result.badRequest("字典子项不存在或已被删除！");
+        }
         return Result.success("状态修改成功！");
     }
 
@@ -207,7 +233,7 @@ public class SysDictController {
      * @return
      */
     @GetMapping("/validate")
-    public Result validate(SysDict sysDict) {
+    public Result<Void> validate(SysDict sysDict) {
         boolean exists = StringUtil.isEmpty(sysDict.getId())
                 ? sysDictService.ifExistsNoId(sysDict)
                 : sysDictService.ifExistsId(sysDict);
@@ -223,7 +249,7 @@ public class SysDictController {
      * @return
      */
     @GetMapping("/validateItem")
-    public Result validateItem(SysDictItem sysDictItem) {
+    public Result<Void> validateItem(SysDictItem sysDictItem) {
         boolean exists = StringUtil.isEmpty(sysDictItem.getId())
                 ? sysDictItemService.ifExistsNoId(sysDictItem)
                 : sysDictItemService.ifExistsId(sysDictItem);

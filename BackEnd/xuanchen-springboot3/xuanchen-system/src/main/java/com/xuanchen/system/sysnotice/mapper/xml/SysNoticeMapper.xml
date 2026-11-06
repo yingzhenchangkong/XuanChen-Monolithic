@@ -6,18 +6,18 @@
                SN.title,
                SN.content,
                SN.create_by,
-               SUA.nick_name AS create_name,
+               COALESCE(NULLIF(SUA.nick_name, ''), SUA.user_name) AS create_name,
                SN.create_time,
                SNS.user_id,
-               SUB.nick_name AS user_name,
+               COALESCE(NULLIF(SUB.nick_name, ''), SUB.user_name) AS user_name,
                SNS.id AS notice_status_id,
                SNS.read_status,
                CASE WHEN SNS.read_status = 1 THEN '已读' WHEN SNS.read_status = 0 THEN '未读' END as read_status_name,
                SNS.read_time
         FROM sys_notice SN
                  INNER JOIN sys_notice_status SNS ON SN.id = SNS.notice_id AND SNS.user_id = #{sysNotice.userName}
-                 INNER JOIN sys_user SUA ON SN.create_by = SUA.user_name
-                 INNER JOIN sys_user SUB ON SNS.user_id = SUB.user_name
+                 LEFT JOIN sys_account SUA ON SN.create_by = SUA.user_name
+                 LEFT JOIN sys_account SUB ON SNS.user_id = SUB.user_name
         WHERE SN.status = 1
         <if test="sysNotice.title != '' and sysNotice.title != null">
             <bind name="noticeTitle" value="'%' + sysNotice.title + '%'"/>
@@ -37,20 +37,21 @@
         SN.STATUS,
         CASE WHEN SN.STATUS = 1 THEN '已发布' WHEN SN.STATUS = 2 THEN '已撤销' END AS status_name,
         SN.create_by,
-        SUA.nick_name AS create_name,
+        COALESCE(NULLIF(SUA.nick_name, ''), SUA.user_name) AS create_name,
         SN.create_time,
         SN.update_by,
-        SUB.nick_name AS update_name,
+        COALESCE(NULLIF(SUB.nick_name, ''), SUB.user_name) AS update_name,
         SN.update_time
         FROM
         sys_notice SN
-        INNER JOIN sys_user SUA ON SN.create_by = SUA.user_name
-        LEFT JOIN sys_user SUB ON SN.update_by = SUB.user_name
-        WHERE 1=1
-        <if test="sysNotice.title != '' and sysNotice.title != null">
-            <bind name="noticeTitle" value="'%' + sysNotice.title + '%'"/>
-            AND SN.title LIKE #{noticeTitle}
-        </if>
+        LEFT JOIN sys_account SUA ON SN.create_by = SUA.user_name
+        LEFT JOIN sys_account SUB ON SN.update_by = SUB.user_name
+        <where>
+            <if test="sysNotice.title != '' and sysNotice.title != null">
+                <bind name="noticeTitle" value="'%' + sysNotice.title + '%'"/>
+                AND SN.title LIKE #{noticeTitle}
+            </if>
+        </where>
         ORDER BY SN.create_time DESC
     </select>
 </mapper>

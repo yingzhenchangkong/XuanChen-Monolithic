@@ -3,10 +3,10 @@
     <div class="query-style btn-style">
       <a-form layout="inline" :model="modelUnAuthUser">
         <a-form-item name="listUnAuthUser" label="用户">
-          <a-select v-model:value="modelUnAuthUser.listUnAuthUser" style="width: 400px" :options="optionsUnAuthUser"
-            mode="multiple" :fieldNames="{ label: 'nickName', value: 'userId' }" placeholder="请选择用户" allowClear
-            show-search :filter-option="filterOption">
-          </a-select>
+          <XCSelect v-model="modelUnAuthUser.listUnAuthUser" style="width: 400px"
+            apiUrl="/system/accountrole/listUnAuthUser" :watchValue="queryParams.roleId" watchParamName="roleId"
+            dataPath="data.records" mode="multiple" :fieldNames="{ label: 'nickName', value: 'accountId' }"
+            placeholder="请选择用户" showSearch :filter-option="filterOption" />
         </a-form-item>
         <a-button type="primary" @click="handleAuth">
           <template #icon>
@@ -51,8 +51,8 @@ import { useList } from '@/hooks/useList'
 import { reactive, ref } from 'vue';
 import { message } from 'ant-design-vue';
 import { columnsAssignUser } from '../role.data';
-import { RoleApiUrl, cancelAuthUser, cancleAuthUserBatch, authUser, authUserBatch, getListUnAuthUser } from '../role.api';
-import type { UnAuthUserOption } from '../role.types';
+import { RoleApiUrl, cancelAuthUser, cancleAuthUserBatch, authUser, authUserBatch } from '../role.api';
+import XCSelect from '@/components/xuanchen/XCSelect.vue';
 
 const url = {
   list: RoleApiUrl.ASSIGN_USER_LIST_AUTH_USER,
@@ -72,7 +72,6 @@ const show = (roleId: string) => {
 
 const refresh = () => {
   loadData();
-  loadDataUnAuthUser();
 }
 
 const handleCancel = () => {
@@ -81,7 +80,7 @@ const handleCancel = () => {
 /** 取消授权 */
 const handleCancleAuth = async (record: any) => {
   try {
-    const res = await cancelAuthUser(record.userId, queryParams.roleId);
+    const res = await cancelAuthUser(record.accountId, queryParams.roleId);
     if (res.code !== 200) {
       message.error(res.msg);
       return;
@@ -94,9 +93,9 @@ const handleCancleAuth = async (record: any) => {
 }
 /** 批量取消授权 */
 const handleCancleAuthBatch = async () => {
-  const userIds = state.selectedRowKeys.map(key => String(key));
+  const accountIds = state.selectedRowKeys.map(key => String(key));
   try {
-    const res = await cancleAuthUserBatch(userIds, queryParams.roleId);
+    const res = await cancleAuthUserBatch(accountIds, queryParams.roleId);
     if (res.code !== 200) {
       message.error(res.msg);
       return;
@@ -115,11 +114,6 @@ const {
 const modelUnAuthUser = reactive({
   listUnAuthUser: [] as string[],
 });
-const optionsUnAuthUser = ref<UnAuthUserOption[]>([]);
-const loadDataUnAuthUser = async () => {
-  const res = await getListUnAuthUser(queryParams.roleId);
-  optionsUnAuthUser.value = res.data.records;
-}
 const filterOption = (input: string, option: any) => {
   if (!option) return false;
   const label = option.nickName || '';

@@ -4,6 +4,7 @@ import type { Result, LoginResult } from "@/types/api";
 enum AuthApiUrl {
   LOGIN = '/login',
   LOGOUT = '/logout',
+  REFRESH = '/auth/refresh',
   REGISTER = '/register',
   PWD_SEND_EMAIL_CODE = '/password/sendEmailCode',
   PWD_VERIFY_EMAIL_CODE = '/password/verifyEmailCode',
@@ -39,12 +40,18 @@ export const login = (
   password: string,
   captchaId: string,
   captchaToken: string,
+  rememberMe: boolean,
 ): Promise<Result<LoginResult>> => {
-  return postAction<LoginResult>(AuthApiUrl.LOGIN, { userName, password, captchaId, captchaToken });
+  return postAction<LoginResult>(AuthApiUrl.LOGIN, { userName, password, captchaId, captchaToken, rememberMe });
 }
 
 export const logout = (): Promise<Result<null>> => {
   return postAction<null>(AuthApiUrl.LOGOUT, {});
+}
+
+/** 用 httpOnly cookie 中的刷新令牌静默换取新访问令牌 */
+export const refreshTokenApi = (): Promise<Result<LoginResult>> => {
+  return postAction<LoginResult>(AuthApiUrl.REFRESH, {});
 }
 
 /**

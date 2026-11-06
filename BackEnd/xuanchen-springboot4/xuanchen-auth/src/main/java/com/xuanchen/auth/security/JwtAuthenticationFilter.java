@@ -5,7 +5,7 @@ import com.xuanchen.common.constant.AuthConst;
 import com.xuanchen.common.entity.Result;
 import com.xuanchen.common.utils.RedisUtil;
 import com.xuanchen.common.utils.StringUtil;
-import com.alibaba.fastjson2.JSON;
+import com.xuanchen.common.utils.JsonUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -48,7 +48,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * 否则用户在改密引导页连验证码/公开配置都加载不了，形成"想改密也改不了"的死锁。
      */
     private static final Set<String> PWD_RESET_ALLOWED_PATHS = Set.of(
-            "/system/user/changePassword",
+            "/system/account/changePassword",
             "/logout",
             "/login",
             "/system/config/getConfigKeyValue",
@@ -156,6 +156,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         Result<String> result = new Result<>(PWD_RESET_REQUIRED_CODE,
                 "当前为初始/重置密码，请先修改密码后再进行其他操作！", null);
-        response.getWriter().write(JSON.toJSONString(result));
+        response.getWriter().write(JsonUtils.toJson(result));
     }
 }

@@ -1,5 +1,5 @@
 <template>
-  <a-select v-model:value="modelValue" style="width: 100%" :options="options" :field-names="computedFieldNames"
+  <a-select v-model:value="modelValue" style="width: 100%" :options="options" :field-names="props.fieldNames"
     :placeholder="placeholder" :allow-clear="allowClear" :disabled="disabled" :mode="mode" :show-search="showSearch"
     :filter-option="filterOption">
   </a-select>
@@ -18,6 +18,8 @@ const props = defineProps({
   params: { type: Object, default: () => ({}) },
   // 监听变化的依赖值
   watchValue: { type: [String, Number], default: undefined },
+  // watchValue 对应的请求参数名
+  watchParamName: { type: String, default: 'watchValue' },
   // 字段映射配置
   fieldNames: {
     type: Object,
@@ -34,7 +36,12 @@ const props = defineProps({
   // 是否显示搜索框
   showSearch: { type: Boolean, default: false },
   // 自定义过滤函数
-  filterOption: { type: Function, default: undefined }
+  filterOption: { type: Function, default: undefined },
+  // 响应数据路径，支持从嵌套结构中提取选项数组（如分页接口返回 res.data.records）
+  // 默认取 res.data；设为 'data.records' 则取 res.data.records
+  dataPath: { type: String, default: 'data' },
+  // 选项展示文案格式化函数：(原始记录) => string，返回值写入 fieldNames.label 对应字段
+  labelFormatter: { type: Function, default: undefined }
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -44,20 +51,10 @@ const modelValue = computed({
   set: (value) => emit('update:modelValue', value)
 })
 
-// 计算字段映射，为用户数据提供默认值
-const computedFieldNames = computed(() => {
-  // 如果是用户相关接口，使用默认的用户字段映射
-  if (props.apiUrl.includes('/user/') || props.apiUrl.includes('user')) {
-    return props.fieldNames?.label ? props.fieldNames : { label: 'nickName', value: 'userName' };
-  }
-  return props.fieldNames;
-});
-
 const options = ref<SelectOption[]>([]);
 
-// 默认过滤函数
 const defaultFilterOption = (input: string, option: any) => {
-  const labelField = computedFieldNames.value.label || 'label';
+  const labelField = props.fieldNames?.label || 'label';
   return option[labelField]?.includes(input);
 };
 
@@ -72,22 +69,34 @@ const filterOption = computed(() => {
   return undefined;
 });
 
+// 按 dataPath 从响应体中取出选项数组（支持 'data' / 'data.records' 等点分路径）
+const extractData = (res: any): any[] => {
+  const path = props.dataPath || 'data';
+  const segments = path.split('.');
+  let value = res;
+  for (const seg of segments) {
+    value = value?.[seg];
+    if (value == null) return [];
+  }
+  return Array.isArray(value) ? value : [];
+}
+
 // 获取数据
 const fetchData = async () => {
-  // 如果有依赖值但为空，则清空选项
-  if (props.watchValue !== undefined && !props.watchValue) {
+  // 如果有依赖值但为空（null 或空字符串），则清空选项；0 等 falsy 值视为有效
+  if (props.watchValue !== undefined && (props.watchValue === null || props.watchValue === '')) {
     options.value = [];
     return;
   }
 
   try {
-    const res = await getAction<SelectOption[]>(props.apiUrl, {
+    const res = await getAction(props.apiUrl, {
       ...props.params,
-      ...(props.watchValue !== undefined ? { [Object.keys(props.params).find(key => props.params[key] === '${watchValue}') || '']: props.watchValue } : {})
+      ...(props.watchValue !== undefined ? { [props.watchParamName]: props.watchValue } : {})
     });
 
     if (res.code === 200) {
-      options.value = res.data;
+      options.value = applyFormatter(extractData(res));
     }
   } catch (error) {
     console.error('获取数据失败:', error);
@@ -95,16 +104,18 @@ const fetchData = async () => {
   }
 };
 
-// 监听依赖值变化（immediate 已覆盖组件初始化：无论 watchValue 是否传入，挂载时都会执行一次）
-watch(() => props.watchValue, () => {
-  fetchData();
-}, { immediate: true });
+// 应用展示文案格式化：把格式化结果写入 label 对应字段（value 等其余字段保持原样）
+const applyFormatter = (list: any[]): SelectOption[] => {
+  const formatter = props.labelFormatter;
+  if (!formatter) return list;
+  const labelField = props.fieldNames?.label || 'label';
+  return list.map(item => ({ ...item, [labelField]: formatter(item) }));
+};
 
-// 监听参数变化（非 immediate，避免与上面的 immediate watch 在挂载时重复请求）
-watch(() => props.params, () => {
-  fetchData();
-}, { deep: true });
-
-// 注意：不要再在 onMounted 里调 fetchData——immediate watch 挂载时已触发一次，
-// 两个入口并存会导致每个 XCSelect 挂载即发两次完全相同的请求
+// 监听依赖值与参数变化（合并为单个 watcher 避免两者同时变化时重复请求）
+watch(
+  [() => props.watchValue, () => props.params],
+  () => { fetchData(); },
+  { immediate: true, deep: true }
+);
 </script>

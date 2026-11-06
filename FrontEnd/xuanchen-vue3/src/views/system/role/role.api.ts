@@ -24,12 +24,12 @@ enum RoleApiUrl {
   ASSIGN_MENU_LIST_AUTH_MENU = '/system/rolemenu/listAuthMenu',
   ASSIGN_MENU_SAVE_AUTH_MENU = '/system/rolemenu/saveAuthMenu',
 
-  ASSIGN_USER_LIST_AUTH_USER = '/system/userrole/listAuthUser',
-  ASSIGN_USER_LIST_UN_AUTH_USER = '/system/userrole/listUnAuthUser',
-  ASSIGN_USER_AUTH = '/system/userrole/auth',
-  ASSIGN_USER_AUTH_BATCH = '/system/userrole/authBatch',
-  ASSIGN_USER_CANCEL_AUTH = '/system/userrole/cancelAuth',
-  ASSIGN_USER_CANCEL_AUTH_BATCH = '/system/userrole/cancelAuthBatch',
+  ASSIGN_USER_LIST_AUTH_USER = '/system/accountrole/listAuthUser',
+  ASSIGN_USER_LIST_UN_AUTH_USER = '/system/accountrole/listUnAuthUser',
+  ASSIGN_USER_AUTH = '/system/accountrole/auth',
+  ASSIGN_USER_AUTH_BATCH = '/system/accountrole/authBatch',
+  ASSIGN_USER_CANCEL_AUTH = '/system/accountrole/cancelAuth',
+  ASSIGN_USER_CANCEL_AUTH_BATCH = '/system/accountrole/cancelAuthBatch',
 
   SELECT = '/system/role/select',
 }
@@ -83,20 +83,20 @@ export const saveAuthMenu = (roleId: string, menuIds: string[]): Promise<Result<
   return postAction<null>(RoleApiUrl.ASSIGN_MENU_SAVE_AUTH_MENU, { roleId, menuIds });
 }
 
-export const cancelAuthUser = (userId: string, roleId: string): Promise<Result<null>> => {
-  return postAction<null>(RoleApiUrl.ASSIGN_USER_CANCEL_AUTH, { userId, roleId });
+export const cancelAuthUser = (accountId: string, roleId: string): Promise<Result<null>> => {
+  return postAction<null>(RoleApiUrl.ASSIGN_USER_CANCEL_AUTH, { accountId, roleId });
 };
 
-export const cancleAuthUserBatch = (userIds: string[], roleId: string): Promise<Result<null>> => {
-  return postAction<null>(RoleApiUrl.ASSIGN_USER_CANCEL_AUTH_BATCH, { userIds, roleId });
+export const cancleAuthUserBatch = (accountIds: string[], roleId: string): Promise<Result<null>> => {
+  return postAction<null>(RoleApiUrl.ASSIGN_USER_CANCEL_AUTH_BATCH, { accountIds, roleId });
 }
 
-export const authUser = (userId: string, roleId: string): Promise<Result<null>> => {
-  return postAction<null>(RoleApiUrl.ASSIGN_USER_AUTH, { userId, roleId });
+export const authUser = (accountId: string, roleId: string): Promise<Result<null>> => {
+  return postAction<null>(RoleApiUrl.ASSIGN_USER_AUTH, { accountId, roleId });
 };
 
-export const authUserBatch = (userIds: string[], roleId: string): Promise<Result<null>> => {
-  return postAction<null>(RoleApiUrl.ASSIGN_USER_AUTH_BATCH, { userIds, roleId });
+export const authUserBatch = (accountIds: string[], roleId: string): Promise<Result<null>> => {
+  return postAction<null>(RoleApiUrl.ASSIGN_USER_AUTH_BATCH, { accountIds, roleId });
 }
 
 export const getListUnAuthUser = (roleId: string) => {

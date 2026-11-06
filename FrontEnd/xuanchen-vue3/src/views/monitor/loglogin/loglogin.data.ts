@@ -18,7 +18,7 @@ export const queryFormItems = reactive([
     width: '180px',
     options: [] as SelectOption[],
     fieldNames: {
-      label: 'nickName',
+      label: 'userName',
       value: 'userName'
     }
   },

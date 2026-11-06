@@ -2,6 +2,7 @@ package com.xuanchen.system.sysmenu.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.xuanchen.common.constant.AuthConst;
 import com.xuanchen.common.constant.TipConst;
@@ -95,6 +96,11 @@ public class SysMenuController {
         if (sysMenu.getId() == null || sysMenu.getId().isBlank()) {
             return Result.error("菜单ID不能为空！");
         }
+        // 记录变更前的旧上级：改挂后需回刷其叶子标记（原上级可能因此变成无子节点）
+        SysMenu oldMenu = sysMenuService.getById(sysMenu.getId());
+        if (oldMenu == null) {
+            return Result.badRequest("菜单不存在或已被删除！");
+        }
         if (StringUtil.isNotEmpty(sysMenu.getParentId())) {
             // 不允许把自身设为上级，否则形成环导致菜单树无法构建
             if (sysMenu.getParentId().equals(sysMenu.getId())) {
@@ -114,7 +120,30 @@ public class SysMenuController {
         long childCount = sysMenuService.count(queryWrapper);
         // 按是否仍有子节点回写叶子标记，避免标记值与实际层级漂移
         sysMenu.setIsLeaf(childCount == 0 ? 1 : 0);
-        sysMenuService.updateById(sysMenu);
+        // 🔴 MP updateById 忽略 null 字段：前端清空上级菜单（allow-clear 后 parentId 为 undefined，
+        // JSON 序列化时整个字段被丢弃，后端反序列化为 null），必须用 UpdateWrapper 显式把
+        // parent_id 置 NULL，否则该列保持旧值——表现为"取消上级菜单保存后仍是之前选中的上级"。
+        // 实体与 wrapper 同时携带 parent_id 会产生重复 SET 列，先从实体上摘除、统一由 wrapper 写
+        String newParentId = sysMenu.getParentId();
+        sysMenu.setParentId(null);
+        LambdaUpdateWrapper<SysMenu> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(SysMenu::getId, sysMenu.getId())
+                .set(SysMenu::getParentId, newParentId);
+        if (!sysMenuService.update(sysMenu, updateWrapper)) {
+            return Result.badRequest("菜单不存在或已被删除！");
+        }
+        // 上级发生变更时回刷原上级的叶子标记（新上级已在校验分支中回写为非叶子）
+        if (StringUtil.isNotEmpty(oldMenu.getParentId())
+                && !oldMenu.getParentId().equals(newParentId)) {
+            LambdaQueryWrapper<SysMenu> oldParentChildWrapper = new LambdaQueryWrapper<>();
+            oldParentChildWrapper.eq(SysMenu::getParentId, oldMenu.getParentId());
+            if (sysMenuService.count(oldParentChildWrapper) == 0) {
+                SysMenu oldParent = new SysMenu();
+                oldParent.setId(oldMenu.getParentId());
+                oldParent.setIsLeaf(1);
+                sysMenuService.updateById(oldParent);
+            }
+        }
         return Result.success(TipConst.EDIT_SUCC);
     }
 
@@ -184,9 +213,15 @@ public class SysMenuController {
     @RequestMapping(value = "/changeStatus", method = {RequestMethod.PUT, RequestMethod.POST})
     @PreAuthorize("hasRole('admin')")
     public Result<String> changeStatus(@RequestBody SysMenu sysMenu) {
+        if (StringUtil.isEmpty(sysMenu.getId())) {
+            return Result.badRequest("缺少菜单ID！");
+        }
         UpdateWrapper<SysMenu> updateWrapper = new UpdateWrapper<>();
         updateWrapper.set("status", sysMenu.getStatus()).eq("id", sysMenu.getId());
-        sysMenuService.update(updateWrapper);
+        // 影响行数为 0（id 不存在或已被删除）必须返回失败，避免前端误判成功
+        if (!sysMenuService.update(updateWrapper)) {
+            return Result.badRequest("菜单不存在或已被删除！");
+        }
         return Result.success("状态修改成功！");
     }
 

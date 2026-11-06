@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xuanchen.common.constant.CommonConst;
 import com.xuanchen.common.constant.TipConst;
 import com.xuanchen.common.entity.Result;
+import com.xuanchen.common.excel.FesodSheetExportUtil;
 import com.xuanchen.common.excel.FesodSheetListener;
 import com.xuanchen.common.utils.StringUtil;
 import com.xuanchen.system.sysrole.entity.SysRole;
@@ -15,7 +16,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.fesod.sheet.FesodSheet;
-import org.apache.fesod.sheet.support.ExcelTypeEnum;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,7 +23,6 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -123,17 +122,14 @@ public class SysRoleController {
      */
     @GetMapping(value = "/exportExcel")
     public void exportExcel(HttpServletResponse response) throws IOException {
-        List<SysRole> list = sysRoleService.list();
-        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        response.setCharacterEncoding("utf-8");
-        String title = "角色管理";
-        String fileName = URLEncoder.encode(title, "UTF-8").replaceAll("\\+", "%20");
-        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
-        FesodSheet.write(response.getOutputStream())
-                .head(SysRole.class)
-                .excelType(ExcelTypeEnum.XLSX)
-                .sheet(title)
-                .doWrite(list);
+        FesodSheetExportUtil.export(response, "角色管理", SysRole.class, SysRole::getId, (lastId, batchSize) -> {
+            QueryWrapper<SysRole> queryWrapper = new QueryWrapper<>();
+            if (StringUtil.isNotEmpty(lastId)) {
+                queryWrapper.gt("id", lastId);
+            }
+            queryWrapper.orderByAsc("id");
+            return sysRoleService.page(FesodSheetExportUtil.cursorPage(batchSize), queryWrapper).getRecords();
+        });
     }
 
     /**

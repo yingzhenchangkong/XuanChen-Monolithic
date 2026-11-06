@@ -45,10 +45,19 @@ const state = useMenuStore().state;
 const setActiveTab = () => {
   activeKey.value = route.name as string;
   state.selectedKeys = [route.name as string];
-  state.openKeys = route.matched && route.matched[1] ? [route.matched[1].name as string] : [];
+  // 展开当前页面所属的全部祖先分组：matched 首项是根 Layout、末项是页面自身，
+  // 中间即各级分组。原先只取 matched[1] 只支持两级菜单，三级菜单（系统工具 → 代码生成器 → 代码生成）
+  // 刷新后会停在收起状态，左侧看不到当前项
+  state.openKeys = route.matched
+    .slice(1, -1)
+    .map((record) => record.name)
+    .filter((name): name is string => typeof name === 'string' && name !== '');
 };
 const pushTabList = () => {
-  const { name, meta } = route;
+  const { name, meta, params } = route;
+  // 带路径参数的整页编辑器/详情页（报表设计、模板设计、报表查看…）不建页签：
+  // 页签只记 name，点回来时 router.push({name}) 会丢掉 id 参数导致无法重建原地址
+  if (!name || !meta.title || Object.keys(params).length > 0) return;
   tabStore.pushTabsList({
     name: name as string,
     title: meta.title as string,
@@ -128,6 +137,9 @@ const handleContextMenu = (key: string, tabPane: TabItem) => {
 };
 
 onMounted(() => {
+  // 清理历史遗留页签：路由已被删除/改名（如原「报表配置」并入「报表设计」）时点开只会空白
+  const valid = tabsList.value.filter((pane) => pane.name === 'home' || router.hasRoute(pane.name));
+  if (valid.length !== tabsList.value.length) tabStore.setTabsList(valid);
   // 只做标签状态初始化：当前路由已由路由守卫（含动态路由注入后的重导航）正确解析，
   // 绝不能再按缓存的 activeKey 主动 push——否则 F5 刷新任何内页都会被劫持到首页/上次标签
   setActiveTab();

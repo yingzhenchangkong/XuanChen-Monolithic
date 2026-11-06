@@ -12,7 +12,7 @@
   </a-row>
 </template>
 <script setup lang="ts">
-import ChangePassword from './modules/ChangePassword.vue';
-import UserAvatar from './modules/UserAvatar.vue';
-import UserInfo from './modules/UserInfo.vue';
+import ChangePassword from './components/ChangePassword.vue';
+import UserAvatar from './components/UserAvatar.vue';
+import UserInfo from './components/UserInfo.vue';
 </script>

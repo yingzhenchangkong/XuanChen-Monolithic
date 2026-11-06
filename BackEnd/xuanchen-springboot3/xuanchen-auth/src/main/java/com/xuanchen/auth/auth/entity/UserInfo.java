@@ -38,4 +38,8 @@ public class UserInfo {
      * 令牌
      */
     private String token;
+    /**
+     * 是否要求下次登录修改密码（1是0否）：为 1 时前端跳转强制改密页，后端仅放行改密/登出等必要接口
+     */
+    private Integer pwdResetRequired;
 }

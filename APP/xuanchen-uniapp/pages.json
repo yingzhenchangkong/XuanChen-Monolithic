@@ -1,24 +1,184 @@
 {
-	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+	"pages": [
 		{
 			"path": "pages/auth/login",
 			"style": {
-				"navigationBarTitleText": "登录"
+				"navigationBarTitleText": "登录",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/auth/register",
+			"style": {
+				"navigationBarTitleText": "注册",
+				"navigationStyle": "custom"
 			}
 		},
 		{
 			"path": "pages/index/index",
 			"style": {
-				"navigationBarTitleText": "uni-app"
+				"navigationBarTitleText": "首页",
+				"navigationStyle": "custom",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/notice/index",
+			"style": {
+				"navigationBarTitleText": "通知",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/app/index",
+			"style": {
+				"navigationBarTitleText": "应用",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/screen/index",
+			"style": {
+				"navigationBarTitleText": "数据大屏",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/notice/detail",
+			"style": {
+				"navigationBarTitleText": "通知详情"
+			}
+		},
+		{
+			"path": "pages/user/index",
+			"style": {
+				"navigationBarTitleText": "我的",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/user/change-password",
+			"style": {
+				"navigationBarTitleText": "修改密码"
+			}
+		},
+		{
+			"path": "pages/user/account-settings",
+			"style": {
+				"navigationBarTitleText": "个人信息"
+			}
+		},
+		{
+			"path": "pages/user/about",
+			"style": {
+				"navigationBarTitleText": "关于"
+			}
+		},
+		{
+			"path": "pages/system/role",
+			"style": {
+				"navigationBarTitleText": "角色管理"
+			}
+		},
+		{
+			"path": "pages/system/post",
+			"style": {
+				"navigationBarTitleText": "岗位管理"
+			}
+		},
+		{
+			"path": "pages/system/config",
+			"style": {
+				"navigationBarTitleText": "参数配置"
+			}
+		},
+		{
+			"path": "pages/system/dict",
+			"style": {
+				"navigationBarTitleText": "字典管理"
+			}
+		},
+		{
+			"path": "pages/system/dict-items",
+			"style": {
+				"navigationBarTitleText": "字典项"
+			}
+		},
+		{
+			"path": "pages/system/menu",
+			"style": {
+				"navigationBarTitleText": "菜单管理"
+			}
+		},
+		{
+			"path": "pages/system/dept",
+			"style": {
+				"navigationBarTitleText": "部门管理"
+			}
+		},
+		{
+			"path": "pages/monitor/online-user",
+			"style": {
+				"navigationBarTitleText": "在线用户"
+			}
+		},
+		{
+			"path": "pages/monitor/log",
+			"style": {
+				"navigationBarTitleText": "操作日志"
+			}
+		},
+		{
+			"path": "pages/monitor/cache",
+			"style": {
+				"navigationBarTitleText": "缓存监控"
+			}
+		},
+		{
+			"path": "pages/monitor/server",
+			"style": {
+				"navigationBarTitleText": "服务器监控"
 			}
 		}
-		
 	],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
-		"navigationBarTitleText": "uni-app",
-		"navigationBarBackgroundColor": "#F8F8F8",
-		"backgroundColor": "#F8F8F8"
+		"navigationBarTitleText": "萱晨",
+		"navigationBarBackgroundColor": "#ffffff",
+		"backgroundColor": "#f5f6fa",
+		"backgroundTextStyle": "dark"
+	},
+	"tabBar": {
+		"color": "#999999",
+		"selectedColor": "#1890ff",
+		"backgroundColor": "#ffffff",
+		"borderStyle": "white",
+		"list": [
+			{
+				"pagePath": "pages/index/index",
+				"text": "首页",
+				"iconPath": "static/tab/home.png",
+				"selectedIconPath": "static/tab/home-active.png"
+			},
+			{
+				"pagePath": "pages/app/index",
+				"text": "应用",
+				"iconPath": "static/tab/app.png",
+				"selectedIconPath": "static/tab/app-active.png"
+			},
+			{
+				"pagePath": "pages/screen/index",
+				"text": "大屏",
+				"iconPath": "static/tab/screen.png",
+				"selectedIconPath": "static/tab/screen-active.png"
+			},
+			{
+				"pagePath": "pages/user/index",
+				"text": "我的",
+				"iconPath": "static/tab/user.png",
+				"selectedIconPath": "static/tab/user-active.png"
+			}
+		]
 	},
 	"uniIdRouter": {}
 }

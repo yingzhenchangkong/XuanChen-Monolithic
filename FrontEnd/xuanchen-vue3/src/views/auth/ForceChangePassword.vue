@@ -47,7 +47,7 @@ import { reactive, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { message } from 'ant-design-vue';
 import type { Rule } from 'ant-design-vue/es/form';
-import { changePassword } from '@/views/system/user/user.api';
+import { changePassword } from '@/views/system/account/account.api';
 import { logout } from '@/views/auth/auth.api';
 import { useAuthStore, useMenuStore } from '@/stores';
 
@@ -114,7 +114,6 @@ const handleOk = async () => {
         // 兼容旧后端：未返回新会话时回退为手动登录
         message.success(res.msg || '密码修改成功，请使用新密码登录！');
         authStore.clearAuth();
-        window.sessionStorage.clear();
         router.replace({ name: 'login' });
       }
     } else {
@@ -134,7 +133,6 @@ const handleLogout = async () => {
     // 忽略登出接口异常，保证本地会话一定被清理
   }
   authStore.clearAuth();
-  window.sessionStorage.clear();
   router.replace({ name: 'login' });
 }
 </script>

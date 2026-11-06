@@ -1,6 +1,6 @@
 <template>
-  <a-modal v-model:open="visible" :title="props.operationTitle" :width="500" @ok="handleOk" ok-text="确认"
-    cancel-text="取消">
+  <XCModal v-model:open="visible" :title="props.operationTitle" :width="500" :show-fullscreen-btn="false"
+    @ok="handleOk">
     <a-form layout="inline" :model="model" :rules="rules" ref="rulesRef" autocomplete="off" class="modal-form-style">
       <a-form-item name="dictItemValue" label="数据值" :labelCol="labelCol" :wrapperCol="wrapperCol">
         <a-input v-model:value="model.dictItemValue" placeholder="请输入数据值" allowClear
@@ -16,12 +16,13 @@
         <a-input-number v-model:value="model.orderNo" placeholder="请输入排序码" allowClear style="width: 100%" />
       </a-form-item>
     </a-form>
-  </a-modal>
+  </XCModal>
 </template>
 
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
 import { message } from 'ant-design-vue';
+import XCModal from '@/components/xuanchen/XCModal.vue';
 import type { Rule } from 'ant-design-vue/es/form';
 import type { DictItemModel } from '../dict.types';
 import { validateDictItemTextApi, validateDictItemValueApi, saveOrUpdateDictItem } from '../dict.api';

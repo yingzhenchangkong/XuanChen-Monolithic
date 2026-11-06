@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xuanchen.system.dashboard.mapper.DashboardMapper">
+    <select id="countUnreadNotice" resultType="Integer">
+        SELECT
+            COUNT(*)
+        FROM
+            sys_notice_status SNS
+            INNER JOIN sys_notice SN ON SNS.notice_id = SN.id AND SN.`status` = 1
+        WHERE
+            read_status = 0 AND user_id = #{userName}
+    </select>
+
+    <select id="countPendingTodo" resultType="Integer">
+        SELECT
+            COUNT(*)
+        FROM
+            sys_todo ST
+        WHERE
+            ST.status = 0 AND ST.user_name = #{userName}
+    </select>
+
+    <select id="countTodayLogin" resultType="Integer">
+        SELECT
+            COUNT(*)
+        FROM
+            log_login LL
+        WHERE
+            LL.status = 1 AND LL.login_time &gt;= #{beginTime}
+    </select>
+
+    <select id="listUnreadNotice" resultType="com.xuanchen.system.dashboard.vo.DashboardNoticeVO">
+        SELECT
+            SN.id,
+            SN.title,
+            SNS.id AS notice_status_id,
+            SN.create_time
+        FROM
+            sys_notice SN
+            INNER JOIN sys_notice_status SNS ON SN.id = SNS.notice_id
+        WHERE
+            SN.`status` = 1
+            AND SNS.read_status = 0
+            AND SNS.user_id = #{userName}
+        ORDER BY
+            SN.create_time DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="listPendingTodo" resultType="com.xuanchen.system.dashboard.vo.DashboardTodoVO">
+        SELECT
+            ST.id,
+            ST.title,
+            ST.priority,
+            ST.due_date,
+            ST.create_time
+        FROM
+            sys_todo ST
+        WHERE
+            ST.status = 0
+            AND ST.user_name = #{userName}
+        ORDER BY
+            ST.priority ASC,
+            ST.due_date ASC,
+            ST.create_time DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="countLoginGroupByDay" resultType="com.xuanchen.system.dashboard.vo.LoginTrendVO">
+        SELECT
+            DATE_FORMAT(LL.login_time, '%Y-%m-%d') AS date,
+            COUNT(*) AS count
+        FROM
+            log_login LL
+        WHERE
+            LL.status = 1
+            AND LL.login_time &gt;= #{beginTime}
+            AND LL.login_time &lt; #{endTime}
+        GROUP BY
+            DATE_FORMAT(LL.login_time, '%Y-%m-%d')
+        ORDER BY
+            date ASC
+    </select>
+</mapper>

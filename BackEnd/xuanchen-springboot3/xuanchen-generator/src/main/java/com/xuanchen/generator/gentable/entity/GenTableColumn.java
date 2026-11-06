@@ -1,10 +1,11 @@
 package com.xuanchen.generator.gentable.entity;
 
-import cn.idev.excel.annotation.ExcelIgnore;
-import cn.idev.excel.annotation.ExcelProperty;
 import com.baomidou.mybatisplus.annotation.TableLogic;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
+import org.apache.fesod.sheet.annotation.ExcelIgnore;
+import org.apache.fesod.sheet.annotation.ExcelProperty;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
  * @date 2026-02-25
  */
 @Data
+@TableName("gen_table_column")
 public class GenTableColumn implements Serializable {
     private static final long serialVersionUID = 1L;
     /**
@@ -28,6 +30,16 @@ public class GenTableColumn implements Serializable {
      */
     @ExcelProperty(value = "表id")
     private String tableId;
+    /**
+     * 字段归属：main 主表 / sub 子表
+     */
+    @ExcelProperty(value = "字段归属")
+    private String columnScope;
+    /**
+     * 所属子表配置ID（gen_table_sub.id）；为空表示主表字段
+     */
+    @ExcelIgnore
+    private String subId;
     /**
      * 字段 名称
      */
@@ -94,6 +106,11 @@ public class GenTableColumn implements Serializable {
     @ExcelProperty(value = "界面 编辑方式")
     private String uiEditType;
     /**
+     * 界面 字典编码（选择类控件使用；为空时生成 TODO_列名 占位）
+     */
+    @ExcelProperty(value = "界面 字典编码")
+    private String uiDictCode;
+    /**
      * 界面 是否列表字段
      */
     @ExcelProperty(value = "界面 是否列表字段")
@@ -107,13 +124,13 @@ public class GenTableColumn implements Serializable {
      * 状态（1启用，0停用）
      */
     @ExcelIgnore
-    private Boolean status;
+    private Integer status;
     /**
      * 删除状态（0正常，1已删除）
      */
     @ExcelIgnore
     @TableLogic
-    private Boolean delFlag;
+    private Integer delFlag;
     /**
      * 创建者
      */

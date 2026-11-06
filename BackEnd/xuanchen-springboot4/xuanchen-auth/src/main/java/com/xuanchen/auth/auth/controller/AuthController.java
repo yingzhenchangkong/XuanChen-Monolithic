@@ -1,34 +1,30 @@
 package com.xuanchen.auth.auth.controller;
 
-import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.xuanchen.auth.auth.entity.Auth;
 import com.xuanchen.auth.auth.entity.UserInfo;
 import com.xuanchen.auth.auth.service.IAuthService;
-import com.xuanchen.auth.service.MailSendService;
 import com.xuanchen.auth.utils.CaptchaUtil;
 import com.xuanchen.auth.utils.JwtUtil;
 import com.xuanchen.common.constant.AuthConst;
 import com.xuanchen.common.constant.CommonConst;
 import com.xuanchen.common.entity.Result;
-import com.xuanchen.common.service.IAuthServiceCommon;
+import com.xuanchen.common.service.ILogLoginServiceCommon;
 import com.xuanchen.common.utils.DeviceTypeUtil;
 import com.xuanchen.common.utils.IPUtil;
+import com.xuanchen.common.utils.JsonUtils;
 import com.xuanchen.common.utils.RedisUtil;
 import com.xuanchen.common.utils.StringUtil;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import tools.jackson.databind.JsonNode;
 
-import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 /**
  * 控制器-->认证、授权
@@ -40,21 +36,8 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public class AuthController {
     private final IAuthService authService;
-    private final IAuthServiceCommon authServiceCommon;
+    private final ILogLoginServiceCommon logLoginServiceCommon;
     private final RedisUtil redisUtil;
-    private final PasswordEncoder passwordEncoder;
-    private final MailSendService mailSendService;
-
-    /**
-     * 邮箱验证码随机数生成器（线程内安全：SecureRandom 多线程共享安全）
-     */
-    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
-
-    /**
-     * 邮箱格式校验：仅做实用级校验，真实可达性以"验证码能否收到"为准
-     */
-    private static final Pattern EMAIL_PATTERN =
-            Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
 
     /**
      * 登录
@@ -64,9 +47,10 @@ public class AuthController {
      * - 不同IP可同时登录
      */
     @RequestMapping(value = "/login", method = RequestMethod.POST)
-    public Result<UserInfo> login(@RequestBody Auth auth, HttpServletRequest request) {
+    public Result<UserInfo> login(@RequestBody Auth auth, HttpServletRequest request,
+                                  HttpServletResponse response) {
         //1、验证码校验（开关由系统参数 captchaEnabled 控制，仅当显式为 false 时关闭，缺省按开启处理）
-        String captchaError = validateCaptcha(auth, false);
+        String captchaError = authService.validateCaptcha(auth, false);
         if (captchaError != null) {
             return Result.badRequest(captchaError);
         }
@@ -74,25 +58,37 @@ public class AuthController {
         String username = auth.getUserName();
         String password = auth.getPassword();
         String clientIp = IPUtil.getClientIpAddress(request);
-        if (isLoginFailOverTimes(username, clientIp)) {
+        if (authService.isLoginFailOverTimes(username, clientIp)) {
+            logLoginServiceCommon.recordLoginLog(username, false, "登录失败次数过多", request);
             return Result.badRequest("登录失败次数过多，请稍后再试！");
         }
         Auth sysUser = authService.getByUserName(username);
         //3、校验用户名密码
-        if (!isLoginSuccess(password, sysUser)) {
-            // 用户不存在与密码错误走完全相同的处理路径：双维度计数 + 统一错误提示，
-            // 既防止针对不存在用户名的无限撞库，也消除两种情形在计数/锁定行为上的差异（防用户名枚举）
-            addLoginFailOvertimes(username, clientIp);
+        if (!authService.isLoginSuccess(password, sysUser)) {
+            authService.addLoginFailOvertimes(username, clientIp);
+            logLoginServiceCommon.recordLoginLog(username, false, "用户名或密码错误", request);
             return Result.badRequest("用户名或密码错误！");
         }
         //3.1、校验账号状态（status=1正常，2冻结），冻结账号不允许登录
         if (sysUser.getStatus() == null || sysUser.getStatus() != 1) {
+            logLoginServiceCommon.recordLoginLog(username, false, "账号已冻结", request);
             return Result.badRequest("账号已被冻结，请联系管理员！");
         }
         //4. 获取终端类型，生成 token 并执行同IP踢下线逻辑（clientIp 已在上方取得）
         String deviceType = DeviceTypeUtil.detectDeviceType(request);
-        UserInfo userInfo = this.getUserInfo(sysUser, clientIp, deviceType);
+        // 会话ID在本次登录时生成并写入会话元数据，同时作为"记住我"刷新令牌的绑定键，
+        // 使强制退出能按"会话/终端"精确定位（同一会话多次续期期间保持不变）
+        String sessionId = UUID.randomUUID().toString().replace("-", "");
+        UserInfo userInfo = authService.getUserInfo(sysUser, clientIp, deviceType, sessionId);
 
+        //5. 刷新令牌：先清除浏览器上可能残留的旧刷新凭据（Cookie + Redis），
+        //   再按"记住我"决定是否签发新的 7 天刷新令牌（绑定本次会话ID）
+        clearRefreshTokenFromRequest(request, response);
+        if (Boolean.TRUE.equals(auth.getRememberMe())) {
+            issueRefreshToken(username, sessionId, request, response);
+        }
+
+        logLoginServiceCommon.recordLoginLog(username, true, "登录成功", request);
         return Result.success("登录成功，欢迎回来！", userInfo);
     }
 
@@ -100,7 +96,7 @@ public class AuthController {
      * 退出登录
      */
     @RequestMapping(value = "/logout", method = RequestMethod.POST)
-    public Result<String> logout(HttpServletRequest request) {
+    public Result<String> logout(HttpServletRequest request, HttpServletResponse response) {
         String token = request.getHeader(AuthConst.XC_ACCESS_TOKEN);
         if (StringUtil.isEmpty(token)) {
             return Result.badRequest("退出登录失败！");
@@ -111,8 +107,8 @@ public class AuthController {
         } else {
             Auth sysUser = authService.getByUserName(username);
             if (sysUser != null) {
-                // 清理本次会话及其 IP 索引（会话可能已被同 IP 新登录踢掉，方法内部做幂等处理）
-                clearLogoutSession(username, token);
+                authService.clearLogoutSession(username, token);
+                clearRefreshTokenFromRequest(request, response);
                 return Result.success("退出登录成功！");
             } else {
                 return Result.badRequest("退出登录失败！");
@@ -125,16 +121,16 @@ public class AuthController {
      * 规则：
      * - 与登录相同的滑块验证码（开关跟随 captchaEnabled）+ IP 限流，防机器人批量注册
      * - 仅接收 userName/nickName/email/password 白名单字段，杜绝角色/状态等字段批量赋值提权
-     * - 邮箱为必填（忘记密码时凭绑定邮箱接收验证码完成身份认证），且全系统账号内唯一
+     * - 邮箱为必填（忘记密码时凭绑定邮箱接收验证码完成身份认证），存储在 sys_account，全系统账号内唯一
      * - 新账号 status=1（正常）、pwd_reset_required=0（密码由本人设置），不分配任何角色/部门/岗位，
-     *   登录后仅可见无需权限的页面，由管理员另行授权
+     * 登录后仅可见无需权限的页面，由管理员另行授权
      */
     @RequestMapping(value = "/register", method = RequestMethod.POST)
     public Result<String> register(@RequestBody Auth auth, HttpServletRequest request) {
         String userName = auth.getUserName() == null ? null : auth.getUserName().trim();
         String password = auth.getPassword();
         //1、格式校验（与前端校验规则保持一致，服务端为最终防线）
-        String formatError = validateAccountFormat(userName, password);
+        String formatError = authService.validateAccountFormat(userName, password);
         if (formatError != null) {
             return Result.badRequest(formatError);
         }
@@ -144,17 +140,17 @@ public class AuthController {
         }
         //邮箱必填、格式合法（找回密码依赖绑定邮箱做身份认证）
         String email = auth.getEmail() == null ? null : auth.getEmail().trim().toLowerCase();
-        String emailError = validateEmailFormat(email);
+        String emailError = authService.validateEmailFormat(email);
         if (emailError != null) {
             return Result.badRequest(emailError);
         }
         String clientIp = IPUtil.getClientIpAddress(request);
         //2、IP 限流（滑块 token 仅 5 分钟单次有效，叠加窗口计数防批量注册）
-        if (isSelfServiceOverTimes(AuthConst.PREFIX_REGISTER_TIMES_IP, clientIp)) {
+        if (authService.isSelfServiceOverTimes(AuthConst.PREFIX_REGISTER_TIMES_IP, clientIp)) {
             return Result.badRequest("操作过于频繁，请稍后再试！");
         }
         //3、滑块验证码校验
-        String captchaError = validateCaptcha(auth, false);
+        String captchaError = authService.validateCaptcha(auth, false);
         if (captchaError != null) {
             return Result.badRequest(captchaError);
         }
@@ -163,21 +159,21 @@ public class AuthController {
             return Result.badRequest("用户名已存在，请更换用户名！");
         }
         //5、邮箱查重：一个邮箱只能绑定一个正常账号（大小写不敏感），保证找回密码验证码有唯一归属
-        if (authService.getOne(new QueryWrapper<Auth>().eq("email", email).last("LIMIT 1")) != null) {
+        if (authService.countAccountByEmail(email) > 0) {
             return Result.badRequest("该邮箱已被其他账号绑定，请更换邮箱！");
         }
-        //6、组装账号：只设置白名单字段，其他字段（角色关联、头像、手机号等）一律不由注册接口写入
+        //6、组装账号：昵称/邮箱直接写入 sys_account（身份与凭证同源），注册不再创建空人员档案
         Auth newUser = new Auth();
         newUser.setUserName(userName);
         newUser.setNickName(StringUtil.isNotEmpty(nickName) ? nickName.trim() : userName);
         newUser.setEmail(email);
-        newUser.setPassword(authServiceCommon.encryptPassword(password));
+        newUser.setPassword(authService.encryptPassword(password));
         newUser.setStatus(CommonConst.STATUS_ENABLED);
         newUser.setPwdResetRequired(CommonConst.NO);
         newUser.setDelFlag(CommonConst.DEL_FLAG_NORMAL);
         authService.save(newUser);
         //限流计数在注册成功后写入
-        addSelfServiceTimes(AuthConst.PREFIX_REGISTER_TIMES_IP, clientIp);
+        authService.addSelfServiceTimes(AuthConst.PREFIX_REGISTER_TIMES_IP, clientIp);
         return Result.success("注册成功，请使用新账号登录！");
     }
 
@@ -199,36 +195,16 @@ public class AuthController {
         }
         String clientIp = IPUtil.getClientIpAddress(request);
         //1、IP 发信频控：重发间隔 + 窗口总量（任何请求都计数，防止不存在的用户名被用来刷邮件接口）
-        if (isEmailSendIpLimited(clientIp)) {
+        if (authService.isEmailSendIpLimited(clientIp)) {
             return Result.badRequest("验证码发送过于频繁，请稍后再试！");
         }
         //2、滑块验证码强制校验（发信场景即使系统关闭了登录验证码也必须验证）
-        String captchaError = validateCaptcha(auth, true);
+        String captchaError = authService.validateCaptcha(auth, true);
         if (captchaError != null) {
             return Result.badRequest(captchaError);
         }
         //3、查询账号及其绑定邮箱；不存在/未绑定邮箱一律走统一成功文案（不发信），防枚举
-        Auth sysUser = authService.getByUserName(userName);
-        if (sysUser != null && StringUtil.isNotEmpty(sysUser.getEmail())) {
-            //同一账号 60 秒内已发过：直接返回统一提示，不重新生成/发送
-            Object intervalFlag = redisUtil.get(AuthConst.PREFIX_PWD_EMAIL_INTERVAL_USER + userName);
-            if (intervalFlag == null) {
-                String code = generateEmailCode();
-                redisUtil.set(AuthConst.PREFIX_PWD_EMAIL_CODE + userName, code,
-                        AuthConst.PWD_EMAIL_CODE_TTL_SECONDS);
-                //新验证码生效，历史错误计数清零，避免上一轮失败计数影响本轮
-                redisUtil.del(AuthConst.PREFIX_PWD_EMAIL_CODE_FAIL + userName);
-                //SMTP 未配置时 sendPasswordResetCode 返回 false（验证码只写日志），不影响接口契约
-                mailSendService.sendPasswordResetCode(sysUser.getEmail(), code);
-                redisUtil.set(AuthConst.PREFIX_PWD_EMAIL_INTERVAL_USER + userName, "1",
-                        AuthConst.PWD_EMAIL_RESEND_INTERVAL_SECONDS);
-            }
-        }
-        //4、IP 维度计数与间隔标记对"发信"与"未发信"请求都写入，防止用不存在用户名绕过频控
-        redisUtil.set(AuthConst.PREFIX_PWD_EMAIL_INTERVAL_IP + clientIp, "1",
-                AuthConst.PWD_EMAIL_RESEND_INTERVAL_SECONDS);
-        redisUtil.incrWithExpire(AuthConst.PREFIX_PWD_EMAIL_TIMES_IP + clientIp,
-                AuthConst.PWD_EMAIL_SEND_IP_WINDOW_SECONDS);
+        authService.sendEmailCodeForPassword(userName, clientIp);
         return Result.success("验证码已发送，若账号存在且已绑定邮箱，请注意查收（5 分钟内有效）！");
     }
 
@@ -250,25 +226,14 @@ public class AuthController {
         if (StringUtil.isEmpty(emailCode) || !emailCode.matches("^\\d{6}$")) {
             return Result.badRequest("请输入6位数字验证码！");
         }
-        //错误次数过多直接拒绝
-        int failTimes = getLoginFailTimes(AuthConst.PREFIX_PWD_EMAIL_CODE_FAIL + userName);
-        if (failTimes >= AuthConst.PWD_EMAIL_MAX_FAIL) {
-            return Result.badRequest("验证码错误次数过多，请重新获取验证码！");
-        }
-        Object storedCode = redisUtil.get(AuthConst.PREFIX_PWD_EMAIL_CODE + userName);
-        if (storedCode == null || !emailCode.equals(storedCode.toString())) {
-            redisUtil.incrWithExpire(AuthConst.PREFIX_PWD_EMAIL_CODE_FAIL + userName,
-                    AuthConst.PWD_EMAIL_FAIL_WINDOW_SECONDS);
+        Map<String, String> data = authService.verifyEmailCodeForResetToken(userName, emailCode);
+        if (data == null) {
+            int failTimes = authService.getLoginFailTimes(AuthConst.PREFIX_PWD_EMAIL_CODE_FAIL + userName);
+            if (failTimes >= AuthConst.PWD_EMAIL_MAX_FAIL) {
+                return Result.badRequest("验证码错误次数过多，请重新获取验证码！");
+            }
             return Result.badRequest("验证码错误或已过期！");
         }
-        //校验通过：验证码立即失效，签发一次性重置令牌（UUID 随机串，Redis 绑定用户名，10 分钟有效）
-        redisUtil.del(AuthConst.PREFIX_PWD_EMAIL_CODE + userName);
-        redisUtil.del(AuthConst.PREFIX_PWD_EMAIL_CODE_FAIL + userName);
-        String resetToken = UUID.randomUUID().toString().replace("-", "");
-        redisUtil.set(AuthConst.PREFIX_PWD_RESET_TOKEN + resetToken, userName,
-                AuthConst.PWD_RESET_TOKEN_TTL_SECONDS);
-        Map<String, String> data = new HashMap<>();
-        data.put("resetToken", resetToken);
         return Result.success("验证成功，请设置新密码！", data);
     }
 
@@ -279,295 +244,123 @@ public class AuthController {
      */
     @RequestMapping(value = "/password/reset", method = RequestMethod.POST)
     public Result<String> resetPassword(@RequestBody Auth auth) {
-        String resetToken = auth.getResetToken();
-        String newPassword = auth.getPassword();
-        if (StringUtil.isEmpty(resetToken) || resetToken.length() > 64) {
-            return Result.badRequest("重置凭证无效，请重新获取验证码！");
+        String error = authService.resetPasswordWithToken(auth.getResetToken(), auth.getPassword());
+        if (error != null) {
+            return Result.badRequest(error);
         }
-        if (StringUtil.isEmpty(newPassword)
-                || newPassword.length() < AuthConst.PASSWORD_MIN_LENGTH
-                || newPassword.length() > AuthConst.PASSWORD_MAX_LENGTH) {
-            return Result.badRequest("密码长度须为" + AuthConst.PASSWORD_MIN_LENGTH + "-" + AuthConst.PASSWORD_MAX_LENGTH + "个字符！");
-        }
-        String tokenKey = AuthConst.PREFIX_PWD_RESET_TOKEN + resetToken;
-        Object usernameObj = redisUtil.get(tokenKey);
-        if (usernameObj == null) {
-            return Result.badRequest("重置凭证已失效，请重新获取验证码！");
-        }
-        //单次有效：先删令牌再执行后续操作，并发的第二个请求必然拿不到令牌
-        redisUtil.del(tokenKey);
-        String userName = usernameObj.toString();
-        Auth sysUser = authService.getByUserName(userName);
-        if (sysUser == null) {
-            return Result.badRequest("账号状态异常，请联系管理员！");
-        }
-        //仅更新密码与强制改密标记（自助重置的密码本人已知，无需再强制改密），
-        //使用精确 SET 避免实体空字段覆盖其他列
-        LambdaUpdateWrapper<Auth> updateWrapper = new LambdaUpdateWrapper<>();
-        updateWrapper.eq(Auth::getId, sysUser.getId())
-                .set(Auth::getPassword, authServiceCommon.encryptPassword(newPassword))
-                .set(Auth::getPwdResetRequired, 0);
-        authService.update(updateWrapper);
-        //改密即失效：踢出该账号全部在线会话（各 IP、各终端）
-        kickOutAllSessions(userName);
         return Result.success("密码已重置，请使用新密码登录！");
     }
 
     /**
-     * 获取用户信息（返回给前端）
-     * 实际签发逻辑统一收敛到 {@link IAuthServiceCommon#issueLoginSession}，
-     * 与"改密后免输入自动登录"复用同一套实现，避免两条链路行为漂移。
+     * 凭刷新令牌签发新访问令牌（公开接口，httpOnly Cookie 自动携带）。
+     * 访问令牌过期后前端静默调用此接口，成功则拿到新访问令牌继续操作，
+     * 失败（刷新令牌过期/被篡改/账号已冻结）则前端跳转登录页重新输入密码。
      */
-    private UserInfo getUserInfo(Auth sysUser, String clientIp, String deviceType) {
-        if (sysUser == null) {
-            return new UserInfo();
+    @RequestMapping(value = "/auth/refresh", method = RequestMethod.POST)
+    public Result<UserInfo> refreshToken(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = getRefreshTokenFromCookie(request);
+        if (StringUtil.isEmpty(refreshToken)) {
+            return Result.badRequest("登录已过期，请重新登录！");
         }
-        Map<String, Object> data = authServiceCommon.issueLoginSession(
-                sysUser.getUserName(), clientIp, deviceType);
-        if (data == null) {
-            return new UserInfo();
+        Object refreshValue = redisUtil.get(AuthConst.PREFIX_REFRESH_TOKEN + refreshToken);
+        if (refreshValue == null) {
+            // 刷新令牌已过期/已失效（Redis 无记录）：清掉浏览器上的陈旧 Cookie，
+            // 否则每次冷启动前端都会白跑一次刷新请求，且用户永远留着无效凭据
+            clearRefreshCookie(response);
+            return Result.badRequest("登录已过期，请重新登录！");
         }
-        return JSON.parseObject(JSON.toJSONString(data), UserInfo.class);
+        // 刷新令牌值：新结构为 JSON {"username":..,"sessionId":..}，历史结构为纯用户名（兼容）
+        String rawValue = refreshValue.toString();
+        String username;
+        String sessionId = null;
+        if (rawValue.startsWith("{")) {
+            Map<String, Object> payload;
+            try {
+                payload = JsonUtils.parseToMap(rawValue);
+            } catch (Exception e) {
+                clearRefreshCookie(response);
+                return Result.badRequest("登录已过期，请重新登录！");
+            }
+            username = payload.get("username") == null ? null : payload.get("username").toString();
+            sessionId = payload.get("sessionId") == null ? null : payload.get("sessionId").toString();
+        } else {
+            username = rawValue;
+        }
+        if (StringUtil.isEmpty(username)) {
+            clearRefreshCookie(response);
+            return Result.badRequest("登录已过期，请重新登录！");
+        }
+        Auth sysUser = authService.getByUserName(username);
+        if (sysUser == null || sysUser.getStatus() == null || sysUser.getStatus() != 1) {
+            redisUtil.del(AuthConst.PREFIX_REFRESH_TOKEN + refreshToken);
+            clearRefreshCookie(response);
+            return Result.badRequest("账号状态异常，请重新登录！");
+        }
+        String clientIp = IPUtil.getClientIpAddress(request);
+        String deviceType = DeviceTypeUtil.detectDeviceType(request);
+        // 复用刷新令牌中绑定的会话ID：同一会话在多次续期（访问令牌轮换）间身份保持稳定，
+        // 这样管理员对其中任一次签发的访问令牌"强制退出"，都能按会话ID撤销本枚刷新令牌
+        UserInfo userInfo = authService.getUserInfo(sysUser, clientIp, deviceType, sessionId);
+        return Result.success("刷新成功", userInfo);
     }
 
     /**
-     * 退出登录的会话清理（幂等）：
-     * <ol>
-     *   <li>删除本次请求 token 的会话键（可能已被同 IP 新登录踢掉，DEL 天然幂等）；</li>
-     *   <li>扫描该用户的"用户名-IP"索引，只删除两类：指向本次 token 的索引、以及指向为空/指向会话
-     *       已不存在的孤儿索引。</li>
-     * </ol>
-     * 关键约束：<b>绝不能删除指向该用户其他存活会话的索引</b>。该索引是登录时"同 IP 重复登录
-     * 踢旧保新"的唯一依据；误删后存活会话会变成无索引的孤儿，之后任何登录都踢不到它，
-     * 只能等 JWT 自然过期，在线用户列表就会长期出现同一用户的多条会话。
-     * <p>
-     * 前缀碰撞（如 admin / admin_backup）安全：扫描可能命中其他用户的索引，但本方法只按
-     * "索引指向的 token 值"判定——指向本次 token（必属当前用户）或已成孤儿时才删除，
-     * 指向他人存活会话的索引一律保留。
+     * 签发刷新令牌：生成 UUID 写入 Redis（值为 JSON{"username":用户名,"sessionId":会话ID}，
+     * 7 天 TTL；sessionId 把该刷新令牌绑定到具体会话/终端），同时设置 httpOnly Cookie。
+     * Cookie 路径为 "/"，SameSite=Lax（防 CSRF），secure 标志跟随请求协议（HTTPS 环境自动开启）。
      */
-    private void clearLogoutSession(String username, String token) {
-        if (StringUtil.isNotEmpty(token)) {
-            redisUtil.del(AuthConst.PREFIX_USER_TOKEN + token);
-        }
-        Set<String> indexKeys = redisUtil.scanKeys(AuthConst.PREFIX_USER_BY_IP + username + "_*");
-        if (indexKeys == null || indexKeys.isEmpty()) {
-            return;
-        }
-        for (String indexKey : indexKeys) {
-            Object indexedToken = redisUtil.get(indexKey);
-            if (indexedToken == null) {
-                // 孤儿索引：无值
-                redisUtil.del(indexKey);
-                continue;
-            }
-            String indexed = indexedToken.toString();
-            // 指向本次退出的令牌：删除
-            if (StringUtil.isNotEmpty(token) && token.equals(indexed)) {
-                redisUtil.del(indexKey);
-                continue;
-            }
-            // 指向的会话本体已不存在：孤儿索引，删除；指向其他存活会话的索引保留
-            if (redisUtil.get(AuthConst.PREFIX_USER_TOKEN + indexed) == null) {
-                redisUtil.del(indexKey);
-            }
-        }
+    private void issueRefreshToken(String username, String sessionId, HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = UUID.randomUUID().toString().replace("-", "");
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("username", username);
+        payload.put("sessionId", sessionId);
+        redisUtil.set(AuthConst.PREFIX_REFRESH_TOKEN + refreshToken, JsonUtils.toJson(payload),
+                AuthConst.REFRESH_TOKEN_EXPIRE_SECONDS);
+        Cookie cookie = new Cookie(AuthConst.REFRESH_TOKEN_COOKIE, refreshToken);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(AuthConst.REFRESH_TOKEN_EXPIRE_SECONDS);
+        cookie.setAttribute("SameSite", "Lax");
+        cookie.setSecure(request.isSecure());
+        response.addCookie(cookie);
     }
 
     /**
-     * 校验滑块验证码（登录/注册/找回密码发信三处共用同一套校验逻辑）。
-     *
-     * @param forceEnabled true=无论系统参数 captchaEnabled 如何都强制校验（发邮件等敏感操作）；
-     *                     false=仅当系统参数未显式设为 "false" 时校验
-     * @return 校验失败返回错误提示；通过返回 null
+     * 清除刷新令牌 Cookie：maxAge=0 通知浏览器立即删除该 Cookie
      */
-    private String validateCaptcha(Auth auth, boolean forceEnabled) {
-        if (!forceEnabled) {
-            String captchaEnabled = authService.getConfigValueByKey(AuthConst.CONFIG_CAPTCHA_ENABLED);
-            if ("false".equalsIgnoreCase(captchaEnabled)) {
-                return null;
-            }
-        }
-        String captchaToken = auth.getCaptchaToken();
-        if (StringUtil.isEmpty(captchaToken)) {
-            return "请完成验证码验证！";
-        }
-        //校验签名与 captchaId，防止伪造 token
-        boolean captchaValid;
-        try {
-            captchaValid = JwtUtil.verifyCaptchaToken(captchaToken, auth.getCaptchaId());
-        } catch (Exception e) {
-            captchaValid = false;
-        }
-        if (!captchaValid) {
-            return "验证码验证失败，请重新验证！";
-        }
-        //单次有效：必须存在 /captcha/verify 时写入的 Redis 标记，校验通过立即删除，杜绝重放
-        String captchaKey = AuthConst.PREFIX_CAPTCHA_TOKEN + captchaToken;
-        if (redisUtil.get(captchaKey) == null) {
-            return "验证码已失效或已被使用，请重新验证！";
-        }
-        redisUtil.del(captchaKey);
-        return null;
+    private void clearRefreshCookie(HttpServletResponse response) {
+        Cookie cookie = new Cookie(AuthConst.REFRESH_TOKEN_COOKIE, "");
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
     }
 
     /**
-     * 用户名/密码格式校验（注册与找回密码共用），规则与前端登录页一致：
-     * 用户名 3-10 个字符，密码 6-20 个字符
-     *
-     * @return 校验失败返回错误提示；通过返回 null
+     * 从请求中读取刷新令牌 Cookie 值，不存在返回 null
      */
-    private String validateAccountFormat(String userName, String password) {
-        if (StringUtil.isEmpty(userName)
-                || userName.length() < AuthConst.USERNAME_MIN_LENGTH
-                || userName.length() > AuthConst.USERNAME_MAX_LENGTH) {
-            return "用户名长度须为" + AuthConst.USERNAME_MIN_LENGTH + "-" + AuthConst.USERNAME_MAX_LENGTH + "个字符！";
+    private String getRefreshTokenFromCookie(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return null;
         }
-        if (StringUtil.isEmpty(password)
-                || password.length() < AuthConst.PASSWORD_MIN_LENGTH
-                || password.length() > AuthConst.PASSWORD_MAX_LENGTH) {
-            return "密码长度须为" + AuthConst.PASSWORD_MIN_LENGTH + "-" + AuthConst.PASSWORD_MAX_LENGTH + "个字符！";
+        for (Cookie cookie : cookies) {
+            if (AuthConst.REFRESH_TOKEN_COOKIE.equals(cookie.getName())) {
+                return cookie.getValue();
+            }
         }
         return null;
     }
 
     /**
-     * 注册/找回密码 IP 维度限流：窗口内计数达到阈值即拒绝
+     * 退出登录时清除刷新令牌：从 Cookie 读取令牌值 → 删除 Redis 键 → 置 Cookie 过期
      */
-    private boolean isSelfServiceOverTimes(String keyPrefix, String clientIp) {
-        if (StringUtil.isEmpty(clientIp)) {
-            return false;
+    private void clearRefreshTokenFromRequest(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = getRefreshTokenFromCookie(request);
+        if (StringUtil.isNotEmpty(refreshToken)) {
+            redisUtil.del(AuthConst.PREFIX_REFRESH_TOKEN + refreshToken);
         }
-        return getLoginFailTimes(keyPrefix + clientIp) >= AuthConst.SELF_SERVICE_MAX_BY_IP;
-    }
-
-    /**
-     * 邮箱格式校验（注册必填、统一小写后传入）
-     *
-     * @return 校验失败返回错误提示；通过返回 null
-     */
-    private String validateEmailFormat(String email) {
-        if (StringUtil.isEmpty(email)) {
-            return "请输入邮箱！";
-        }
-        if (email.length() > AuthConst.EMAIL_MAX_LENGTH) {
-            return "邮箱长度不能超过" + AuthConst.EMAIL_MAX_LENGTH + "个字符！";
-        }
-        if (!EMAIL_PATTERN.matcher(email).matches()) {
-            return "邮箱格式不正确！";
-        }
-        return null;
-    }
-
-    /**
-     * 找回密码发信 IP 频控：60 秒重发间隔 或 10 分钟窗口内累计达上限即拦截
-     */
-    private boolean isEmailSendIpLimited(String clientIp) {
-        if (StringUtil.isEmpty(clientIp)) {
-            return false;
-        }
-        if (redisUtil.get(AuthConst.PREFIX_PWD_EMAIL_INTERVAL_IP + clientIp) != null) {
-            return true;
-        }
-        return getLoginFailTimes(AuthConst.PREFIX_PWD_EMAIL_TIMES_IP + clientIp)
-                >= AuthConst.PWD_EMAIL_SEND_IP_MAX;
-    }
-
-    /**
-     * 生成 6 位数字邮箱验证码（含前导零，使用 SecureRandom 防可预测）
-     */
-    private String generateEmailCode() {
-        return String.format("%06d", SECURE_RANDOM.nextInt(1_000_000));
-    }
-
-    /**
-     * 写入注册/找回密码 IP 计数：原子自增，首次计数起开启滑动窗口
-     */
-    private void addSelfServiceTimes(String keyPrefix, String clientIp) {
-        if (StringUtil.isNotEmpty(clientIp)) {
-            redisUtil.incrWithExpire(keyPrefix + clientIp, AuthConst.SELF_SERVICE_WINDOW_SECONDS);
-        }
-    }
-
-    /**
-     * 踢出指定用户的全部在线会话：扫描该用户各 IP 索引，删除索引指向的 token 会话后再删索引。
-     * 用于自助重置密码后让旧令牌立即失效。
-     */
-    private void kickOutAllSessions(String username) {
-        Set<String> indexKeys = redisUtil.scanKeys(AuthConst.PREFIX_USER_BY_IP + username + "_*");
-        if (indexKeys == null || indexKeys.isEmpty()) {
-            return;
-        }
-        for (String indexKey : indexKeys) {
-            Object indexedToken = redisUtil.get(indexKey);
-            if (indexedToken == null) {
-                //孤儿索引（指向的会话早已不存在），直接清理
-                redisUtil.del(indexKey);
-                continue;
-            }
-            String tokenKey = AuthConst.PREFIX_USER_TOKEN + indexedToken;
-            Object metaObj = redisUtil.get(tokenKey);
-            if (metaObj == null) {
-                //会话本体已不存在，仅剩索引：按孤儿索引清理
-                redisUtil.del(indexKey);
-                continue;
-            }
-            //用会话元数据二次确认归属，避免前缀碰撞误踢其他用户（如 admin / admin_backup）；
-            //旧结构（值即 token、无元数据）无法确认，按索引前缀归属处理
-            boolean belongsToUser = true;
-            if (metaObj instanceof String meta && meta.startsWith("{")) {
-                try {
-                    belongsToUser = username.equals(JSON.parseObject(meta).getString("username"));
-                } catch (Exception ignored) {
-                    belongsToUser = false;
-                }
-            }
-            if (belongsToUser) {
-                redisUtil.del(tokenKey);
-                redisUtil.del(indexKey);
-            }
-        }
-    }
-
-    /**
-     * 校验是否登录成功（纯校验，不做计数；失败计数由登录入口统一处理，保证用户不存在与密码错误路径一致）
-     */
-    private boolean isLoginSuccess(String password, Auth sysUser) {
-        return sysUser != null && passwordEncoder.matches(password, sysUser.getPassword());
-    }
-
-    /**
-     * 记录登录失败次数：用户名维度（保护账号）+ 来源 IP 维度（防轮换用户名撞库/枚举），
-     * 原子自增，首次计数起 10 分钟滑动窗口，窗口内阈值见 {@link AuthConst}
-     */
-    private void addLoginFailOvertimes(String username, String clientIp) {
-        redisUtil.incrWithExpire(AuthConst.PREFIX_LOGIN_FAIL_TIMES + username, AuthConst.LOGIN_FAIL_WINDOW_SECONDS);
-        if (StringUtil.isNotEmpty(clientIp)) {
-            redisUtil.incrWithExpire(AuthConst.PREFIX_LOGIN_FAIL_TIMES_IP + clientIp, AuthConst.LOGIN_FAIL_WINDOW_SECONDS);
-        }
-    }
-
-    /**
-     * 校验登录失败是否超限：用户名维度或来源 IP 维度任一达到阈值即锁定
-     */
-    private boolean isLoginFailOverTimes(String username, String clientIp) {
-        return getLoginFailTimes(AuthConst.PREFIX_LOGIN_FAIL_TIMES + username) >= AuthConst.LOGIN_MAX_FAIL_BY_USERNAME
-                || (StringUtil.isNotEmpty(clientIp)
-                && getLoginFailTimes(AuthConst.PREFIX_LOGIN_FAIL_TIMES_IP + clientIp) >= AuthConst.LOGIN_MAX_FAIL_BY_IP);
-    }
-
-    /**
-     * 读取失败计数；值缺失或异常均按 0 处理，绝不能因计数脏数据阻断正常登录
-     */
-    private int getLoginFailTimes(String key) {
-        Object failTimes = redisUtil.get(key);
-        if (failTimes == null) {
-            return 0;
-        }
-        try {
-            return Integer.parseInt(failTimes.toString());
-        } catch (NumberFormatException e) {
-            return 0;
-        }
+        clearRefreshCookie(response);
     }
 
     /**
@@ -577,14 +370,19 @@ public class AuthController {
     public Result<Map<String, Object>> captchaGenerate() {
         String captchaId = UUID.randomUUID().toString();
 
-        // 使用 CaptchaUtil 生成验证码图片
-        Map<String, Object> captchaResult = CaptchaUtil.generateCaptcha();
+        // 读取验证码背景图类型配置（dynamic=动态生成，static=预置图片）
+        String captchaType = authService.getConfigValueByKey(AuthConst.CONFIG_CAPTCHA_TYPE);
+        Map<String, Object> captchaResult = CaptchaUtil.generateCaptcha(captchaType);
 
         Map<String, Object> map = new HashMap<>();
         map.put("captchaId", captchaId);
         map.put("bgImage", captchaResult.get("bgImage"));
         map.put("sliderImage", captchaResult.get("sliderImage"));
         map.put("sliderTop", captchaResult.get("offsetY"));
+        map.put("imageWidth", captchaResult.get("imageWidth"));
+        map.put("imageHeight", captchaResult.get("imageHeight"));
+        map.put("sliderWidth", captchaResult.get("sliderWidth"));
+        map.put("sliderHeight", captchaResult.get("sliderHeight"));
 
         // 只存储正确位置，不返回给前端
         redisUtil.set("captcha:" + captchaId, String.valueOf(captchaResult.get("offsetX")), 300);
@@ -596,7 +394,7 @@ public class AuthController {
      * 校验验证码
      */
     @PostMapping("/captcha/verify")
-    public Result<Map<String, Object>> captchaVerify(HttpServletRequest request, @RequestBody JSONObject jsonObject) {
+    public Result<Map<String, Object>> captchaVerify(HttpServletRequest request, @RequestBody JsonNode jsonObject) {
         //1、获取客户端 IP
         String clientIp = IPUtil.getClientIpAddress(request);
         //2、检查防暴力破解限制：Lua 原子"自增+首次设TTL"（固定窗口），
@@ -607,8 +405,8 @@ public class AuthController {
             return Result.error("验证次数过多，请稍后再试！");
         }
         //4、获取参数
-        String captchaId = jsonObject.getString("captchaId");
-        Double captchaOffset = jsonObject.getDouble("captchaOffset");
+        String captchaId = jsonObject.get("captchaId").asText();
+        Double captchaOffset = jsonObject.get("captchaOffset").asDouble();
         //5、检查captchaId是否存在且未过期
         Object storedCaptchaInfo = redisUtil.get("captcha:" + captchaId);
         if (storedCaptchaInfo == null) {

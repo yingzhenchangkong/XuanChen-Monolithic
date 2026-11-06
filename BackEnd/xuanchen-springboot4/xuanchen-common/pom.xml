@@ -12,26 +12,15 @@
 
     <artifactId>xuanchen-common</artifactId>
     <description>通用模块</description>
-    <packaging>jar</packaging>
 
     <dependencies>
-        <!-- 本模块直接使用 Servlet/MVC API（LogOperationAspect、GlobalExceptionHandler、Result.HttpStatus），显式声明；
-             Boot 4 起 web starter 更名为 spring-boot-starter-webmvc（旧名 spring-boot-starter-web 已废弃） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webmvc</artifactId>
         </dependency>
-        <!-- Boot 4 起 AOP/AspectJ 支持由 spring-boot-starter-aspectj 提供（旧 spring-boot-starter-aop 已移除，
-             版本由 Boot BOM 统一管理，对齐 Spring Framework 7） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aspectj</artifactId>
-        </dependency>
-        <!-- DictAspect 需要复用与 Web 层一致的序列化契约（@JsonFormat/@JsonProperty 等）；
-             Spring Boot 4 使用 Jackson 3（tools.jackson 包） -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-jackson</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -53,6 +42,21 @@
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-spring-boot4-starter</artifactId>
+            <exclusions>
+                <!-- 连接池由 Druid 接管：排除 mybatis-plus starter 传递引入的
+                     spring-boot-starter-jdbc 中的默认实现 HikariCP，避免 HikariCP
+                     仍在 classpath 上被 DataSourceAutoConfiguration 创建连接池 -->
+                <exclusion>
+                    <groupId>com.zaxxer</groupId>
+                    <artifactId>HikariCP</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!-- Druid 连接池：官方 1.2.28 起提供适配 Spring Boot 4.x 的 starter，
+             自动注册 DruidDataSource 并支持 stat/wall 监控过滤器 -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid-spring-boot-4-starter</artifactId>
         </dependency>
         <dependency>
             <groupId>com.baomidou</groupId>

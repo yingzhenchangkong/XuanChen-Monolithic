@@ -19,7 +19,7 @@
 import { reactive, ref } from 'vue';
 import { message } from 'ant-design-vue';
 import type { Rule } from 'ant-design-vue/es/form';
-import { changePassword } from '@/views/system/user/user.api';
+import { changePassword } from '@/views/system/account/account.api';
 import { useAuthStore } from '@/stores';
 
 const authStore = useAuthStore();

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xuanchen.report.rptdataset.mapper.RptDatasetMapper">
+    <!-- 只查本模块自己的表：数据源名称由 RptDatasetController 调用 DatasourceProvider 批量回填，
+         不再 LEFT JOIN sys_datasource（跨模块连表会让 report 隐式依赖 system 的表结构与逻辑删除规则） -->
+    <select id="listByTemplate" resultType="com.xuanchen.report.rptdataset.entity.RptDataset">
+        SELECT RD.id,
+               RD.template_id,
+               RD.ds_id,
+               RD.dataset_code,
+               RD.dataset_name,
+               RD.sql_text,
+               RD.params_json
+        FROM rpt_dataset RD
+        WHERE RD.template_id = #{templateId}
+          AND RD.del_flag = 0
+        ORDER BY RD.create_time ASC
+    </select>
+</mapper>

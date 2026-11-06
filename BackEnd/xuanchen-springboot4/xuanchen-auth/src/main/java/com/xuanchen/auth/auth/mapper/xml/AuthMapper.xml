@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xuanchen.auth.auth.mapper.AuthMapper">
+
+    <!-- 查询用户已启用角色的角色编码 -->
+    <select id="listRoleCodesByUserName" resultType="java.lang.String">
+        SELECT DISTINCT r.role_code
+        FROM sys_account u
+        INNER JOIN sys_account_role ur ON u.id = ur.account_id
+        INNER JOIN sys_role r ON ur.role_id = r.id
+        WHERE u.user_name = #{userName}
+        AND u.del_flag = 0 AND r.del_flag = 0 AND r.status = 1
+    </select>
+
+    <!-- 查询用户已启用角色关联的全部菜单权限标识（perms） -->
+    <select id="listPermsByUserName" resultType="java.lang.String">
+        SELECT DISTINCT m.perms
+        FROM sys_account u
+        INNER JOIN sys_account_role ur ON u.id = ur.account_id
+        INNER JOIN sys_role r ON ur.role_id = r.id
+        INNER JOIN sys_role_menu rm ON r.id = rm.role_id
+        INNER JOIN sys_menu m ON rm.menu_id = m.id
+        WHERE u.user_name = #{userName}
+        AND u.del_flag = 0 AND r.del_flag = 0 AND r.status = 1
+        AND m.del_flag = 0 AND m.status = 1
+        AND m.perms IS NOT NULL AND m.perms &lt;&gt; ''
+    </select>
+
+    <!-- 按 config_key 查询启用中的系统参数值 -->
+    <select id="getConfigValueByKey" resultType="java.lang.String">
+        SELECT config_value FROM sys_config
+        WHERE config_key = #{configKey} AND del_flag = 0 AND status = 1 LIMIT 1
+    </select>
+
+    <!-- 查询登录所需账号信息（账号表是身份与凭证的唯一来源，不再 JOIN md_person） -->
+    <select id="getUserWithProfile" resultType="java.util.Map">
+        SELECT
+            a.id,
+            a.user_name AS userName,
+            COALESCE(NULLIF(a.nick_name, ''), a.user_name) AS nickName,
+            a.password,
+            a.mobile,
+            a.email,
+            a.avatar,
+            a.pwd_reset_required AS pwdResetRequired,
+            CAST(a.status AS SIGNED) AS status,
+            CAST(a.del_flag AS SIGNED) AS delFlag
+        FROM sys_account a
+        WHERE a.user_name = #{userName} AND a.del_flag = 0
+        LIMIT 1
+    </select>
+
+    <!-- 检查邮箱是否已被其他账号绑定（一个邮箱只能归属一个正常账号，保证找回密码验证码有唯一归属） -->
+    <select id="countAccountByEmail" resultType="long">
+        SELECT COUNT(*) FROM sys_account WHERE email = #{email} AND del_flag = 0
+    </select>
+
+</mapper>

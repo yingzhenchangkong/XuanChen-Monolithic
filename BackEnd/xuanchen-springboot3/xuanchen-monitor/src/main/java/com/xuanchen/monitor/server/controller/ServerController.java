@@ -3,6 +3,7 @@ package com.xuanchen.monitor.server.controller;
 import com.xuanchen.common.entity.Result;
 import com.xuanchen.monitor.server.entity.DiskInfoVO;
 import com.xuanchen.monitor.server.entity.ServerInfoVO;
+import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,10 +24,11 @@ import java.util.Properties;
  * @date 2026-02-02
  */
 @RestController
+@RequiresRoles("admin")
 @RequestMapping("/monitor/server")
 public class ServerController {
     @GetMapping("/info")
-    public Result getServerInfo() {
+    public Result<ServerInfoVO> getServerInfo() {
         ServerInfoVO serverInfo = getServerDetailInfo();
         return Result.success(serverInfo);
     }

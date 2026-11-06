@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xuanchen.masterdata.mdpersondept.mapper.MdPersonDeptMapper">
+    <select id="listDeptUser" parameterType="String" resultType="com.xuanchen.masterdata.mdpersondept.entity.MdPersonDept">
+        SELECT
+            md_person_dept.id,
+            md_person_dept.dept_id,
+            md_dept.dept_code,
+            md_dept.dept_name,
+            md_person_dept.person_id,
+            p.person_code,
+            p.real_name
+        FROM
+            md_person_dept
+            LEFT JOIN md_person p ON p.id = md_person_dept.person_id
+            LEFT JOIN md_dept ON md_dept.dept_code = md_person_dept.dept_id
+        WHERE
+            md_person_dept.dept_id = #{deptCode}
+    </select>
+</mapper>

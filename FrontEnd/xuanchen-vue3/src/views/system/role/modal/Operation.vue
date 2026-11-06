@@ -1,5 +1,5 @@
 <template>
-  <a-modal v-model:open="visible" :title="operationTitle" :width="500" @ok="handleOk" ok-text="确认" cancel-text="取消">
+  <XCModal v-model:open="visible" :title="operationTitle" :width="500" :show-fullscreen-btn="false" @ok="handleOk">
     <a-form layout="inline" :model="model" :rules="rules" ref="rulesRef" autoComplete="off" class="modal-form-style">
       <a-form-item name="roleCode" label="角色编码" :labelCol="labelCol" :wrapperCol="wrapperCol">
         <a-input v-model:value="model.roleCode" placeholder="请输入角色编码" allowClear :disabled="roleCodeDisabled" />
@@ -17,13 +17,14 @@
         <a-input-number v-model:value="model.orderNo" placeholder="请输入排序码" allowClear style="width: 100%" />
       </a-form-item>
     </a-form>
-  </a-modal>
+  </XCModal>
 </template>
 
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
 import type { Rule } from 'ant-design-vue/es/form';
 import { message } from 'ant-design-vue';
+import XCModal from '@/components/xuanchen/XCModal.vue';
 import type { RoleModel } from '../role.types';
 import { validateRoleCodeApi, validateRoleNameApi, saveOrUpdate } from '../role.api';
 

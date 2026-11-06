@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xuanchen.visualization.visscreen.mapper.VisScreenMapper">
+    <!-- 列表不查 config_json：大屏配置是大 JSON（longtext），列表/画廊只需要元信息 -->
+    <select id="listScreen" resultType="com.xuanchen.visualization.visscreen.entity.VisScreen">
+        SELECT BS.id,
+               BS.screen_code,
+               BS.screen_name,
+               BS.thumbnail,
+               BS.status,
+               BS.publish_time,
+               BS.remark,
+               BS.create_by,
+               COALESCE(NULLIF(SUA.nick_name, ''), SUA.user_name) AS create_name,
+               BS.create_time,
+               BS.update_by,
+               COALESCE(NULLIF(SUB.nick_name, ''), SUB.user_name) AS update_name,
+               BS.update_time
+        FROM vis_screen BS
+                 LEFT JOIN sys_account SUA ON BS.create_by = SUA.user_name
+                 LEFT JOIN sys_account SUB ON BS.update_by = SUB.user_name
+        <where>
+            <if test="screen.screenName != '' and screen.screenName != null">
+                <bind name="screenName" value="'%' + screen.screenName + '%'"/>
+                AND BS.screen_name LIKE #{screenName}
+            </if>
+            <if test="screen.screenCode != '' and screen.screenCode != null">
+                <bind name="screenCode" value="'%' + screen.screenCode + '%'"/>
+                AND BS.screen_code LIKE #{screenCode}
+            </if>
+            <if test="screen.status != null">
+                AND BS.status = #{screen.status}
+            </if>
+        </where>
+        ORDER BY BS.create_time DESC
+    </select>
+</mapper>

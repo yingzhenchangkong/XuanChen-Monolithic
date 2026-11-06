@@ -1,6 +1,6 @@
 package com.xuanchen.system.sysmenu.service.impl;
 
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import com.xuanchen.common.utils.StringUtil;
 import com.xuanchen.system.sysmenu.entity.SysMenu;
 import com.xuanchen.system.sysmenu.entity.SysMenuTree;
@@ -39,12 +39,12 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
             SysMenuTree tree = new SysMenuTree(item);
             if (temp == null && StringUtil.isEmpty(tempPid)) {
                 listTree.add(tree);
-                if (!tree.getIsLeaf()) {
+                if (!Integer.valueOf(1).equals(tree.getIsLeaf())) {
                     listToTree(listTree, list, tree);
                 }
             } else if (temp != null && tempPid != null && tempPid.equals(temp.getId())) {
                 temp.getChildren().add(tree);
-                if (!tree.getIsLeaf()) {
+                if (!Integer.valueOf(1).equals(tree.getIsLeaf())) {
                     listToTree(listTree, list, tree);
                 }
             }

@@ -4,9 +4,11 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.xuanchen.common.aspect.annotation.LogOperation;
 import com.xuanchen.common.constant.CommonConst;
 import com.xuanchen.common.constant.TipConst;
 import com.xuanchen.common.entity.Result;
+import com.xuanchen.common.excel.FesodSheetExportUtil;
 import com.xuanchen.common.excel.FesodSheetListener;
 import com.xuanchen.common.utils.StringUtil;
 import com.xuanchen.system.sysconfig.entity.SysConfig;
@@ -15,7 +17,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.fesod.sheet.FesodSheet;
-import org.apache.fesod.sheet.support.ExcelTypeEnum;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,7 +24,6 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -57,6 +57,7 @@ public class SysConfigController {
      * @param pageSize
      * @return
      */
+    @LogOperation(type = "列表", module = "system")
     @GetMapping("/list")
     public Result<IPage<SysConfig>> list(SysConfig sysConfig,
                                          @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
@@ -80,6 +81,7 @@ public class SysConfigController {
      * @param sysConfig
      * @return
      */
+    @LogOperation(type = "新增", module = "system")
     @PostMapping(value = "/add")
     public Result<String> add(@RequestBody SysConfig sysConfig) {
         sysConfigService.save(sysConfig);
@@ -92,9 +94,16 @@ public class SysConfigController {
      * @param sysConfig
      * @return
      */
+    @LogOperation(type = "修改", module = "system")
     @RequestMapping(value = "/edit", method = {RequestMethod.PUT, RequestMethod.POST})
     public Result<String> edit(@RequestBody SysConfig sysConfig) {
-        sysConfigService.updateById(sysConfig);
+        if (StringUtil.isEmpty(sysConfig.getId())) {
+            return Result.badRequest("缺少参数ID！");
+        }
+        // 影响行数为 0（id 不存在或已被删除）必须返回失败，避免前端误判成功
+        if (!sysConfigService.updateById(sysConfig)) {
+            return Result.badRequest("参数不存在或已被删除！");
+        }
         return Result.success(TipConst.EDIT_SUCC);
     }
 
@@ -104,6 +113,7 @@ public class SysConfigController {
      * @param id
      * @return
      */
+    @LogOperation(type = "删除", module = "system")
     @DeleteMapping(value = "/delete")
     public Result<String> delete(@RequestParam(name = "id", required = true) String id) {
         sysConfigService.removeById(id);
@@ -116,6 +126,7 @@ public class SysConfigController {
      * @param ids
      * @return
      */
+    @LogOperation(type = "批量删除", module = "system")
     @DeleteMapping(value = "/deleteBatch")
     public Result<String> deleteBatch(@RequestParam(name = "ids", required = true) String ids) {
         sysConfigService.removeByIds(Arrays.asList(ids.split(",")));
@@ -128,19 +139,17 @@ public class SysConfigController {
      * @param response
      * @throws IOException
      */
+    @LogOperation(type = "导出excel", module = "system")
     @GetMapping(value = "/exportExcel")
     public void exportExcel(HttpServletResponse response) throws IOException {
-        List<SysConfig> list = sysConfigService.list();
-        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        response.setCharacterEncoding("utf-8");
-        String title = "参数配置";
-        String fileName = URLEncoder.encode(title, "UTF-8").replaceAll("\\+", "%20");
-        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
-        FesodSheet.write(response.getOutputStream())
-                .head(SysConfig.class)
-                .excelType(ExcelTypeEnum.XLSX)
-                .sheet(title)
-                .doWrite(list);
+        FesodSheetExportUtil.export(response, "参数配置", SysConfig.class, SysConfig::getId, (lastId, batchSize) -> {
+            QueryWrapper<SysConfig> queryWrapper = new QueryWrapper<>();
+            if (StringUtil.isNotEmpty(lastId)) {
+                queryWrapper.gt("id", lastId);
+            }
+            queryWrapper.orderByAsc("id");
+            return sysConfigService.page(FesodSheetExportUtil.cursorPage(batchSize), queryWrapper).getRecords();
+        });
     }
 
     /**
@@ -150,6 +159,7 @@ public class SysConfigController {
      * @param response
      * @return
      */
+    @LogOperation(type = "导入excel", module = "system")
     @RequestMapping(value = "/importExcel", method = RequestMethod.POST)
     public Result<String> importExcel(HttpServletRequest request, HttpServletResponse response) throws IOException {
         MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
@@ -189,6 +199,7 @@ public class SysConfigController {
      * @param pageSize
      * @return
      */
+    @LogOperation(type = "回收站 列表", module = "system")
     @GetMapping("/listRecycleBin")
     public Result<IPage<SysConfig>> listRecycleBin(SysConfig sysConfig,
                                                    @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
@@ -204,6 +215,7 @@ public class SysConfigController {
      * @param id
      * @return
      */
+    @LogOperation(type = "回收站 彻底删除 单条", module = "system")
     @DeleteMapping("/deleteRecycleBin")
     public Result<String> deleteRecycleBin(@RequestParam("id") String id) {
         sysConfigService.deleteRecycleBin(id);
@@ -216,6 +228,7 @@ public class SysConfigController {
      * @param ids
      * @return
      */
+    @LogOperation(type = "回收站 彻底删除 多条", module = "system")
     @DeleteMapping("/deleteRecycleBinBatch")
     public Result<String> deleteRecycleBinBatch(@RequestParam("ids") String ids) {
         sysConfigService.deleteRecycleBin(ids);
@@ -228,6 +241,7 @@ public class SysConfigController {
      * @param map
      * @return
      */
+    @LogOperation(type = "回收站 还原 单条", module = "system")
     @PutMapping("/revertRecycleBin")
     public Result<String> revertRecycleBin(@RequestBody Map<String, String> map) {
         String id = map.get("id");
@@ -241,6 +255,7 @@ public class SysConfigController {
      * @param map
      * @return
      */
+    @LogOperation(type = "回收站 还原 多条", module = "system")
     @PutMapping("/revertRecycleBinBatch")
     public Result<String> revertRecycleBinBatch(@RequestBody Map<String, String> map) {
         String ids = map.get("ids");
@@ -267,11 +282,17 @@ public class SysConfigController {
      * @param sysConfig
      * @return
      */
+    @LogOperation(type = "状态修改", module = "system")
     @RequestMapping(value = "/changeStatus", method = {RequestMethod.PUT, RequestMethod.POST})
     public Result<String> changeStatus(@RequestBody SysConfig sysConfig) {
+        if (StringUtil.isEmpty(sysConfig.getId())) {
+            return Result.badRequest("缺少参数ID！");
+        }
         UpdateWrapper<SysConfig> updateWrapper = new UpdateWrapper<>();
         updateWrapper.set("status", sysConfig.getStatus()).eq("id", sysConfig.getId());
-        sysConfigService.update(updateWrapper);
+        if (!sysConfigService.update(updateWrapper)) {
+            return Result.badRequest("参数不存在或已被删除！");
+        }
         return Result.success("状态修改成功！");
     }
 
@@ -316,6 +337,7 @@ public class SysConfigController {
      * @param sysConfig
      * @return
      */
+    @LogOperation(type = "键值修改", module = "system")
     @PostMapping("setConfigKeyValue")
     public Result<String> setConfigKeyValue(@RequestBody SysConfig sysConfig) {
         QueryWrapper<SysConfig> queryWrapper = new QueryWrapper<>();

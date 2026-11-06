@@ -12,7 +12,11 @@ import jakarta.websocket.server.ServerEndpoint;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.io.EOFException;
 import java.io.IOException;
+import java.net.SocketException;
+import java.nio.channels.ClosedChannelException;
+import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutionException;
@@ -31,7 +35,11 @@ import java.util.concurrent.atomic.AtomicLong;
  * 安全约束：
  * 1、握手阶段由 {@link WebSocketAuthConfigurator} 完成 Origin 白名单与 token 会话校验；
  * 2、{@link #onOpen} 中无用户名（未认证）立即关闭连接，且不加入连接池；
- * 3、服务端消息只按用户名定向推送，不再向所有连接广播，避免跨用户数据泄露。
+ * 3、服务端消息只按用户名定向推送，不再向所有连接广播，避免跨用户数据泄露；
+ * 4、会话在服务端失效（登出/被强制退出/密码重置）时，由业务侧调用
+ *    {@link #closeSessionOnLogout} / {@link #closeSessionOnKick} / {@link #closeUserOnKick}
+ *    立即断开对应长连接——否则该连接依旧存活、继续接收推送，且"踢出"要等到下一次
+ *    HTTP 请求 401 才被客户端感知。
  * <p>
  * 推送模型：业务线程只向有界线程池投递发送任务，{@code AsyncRemote} 异步写出 +
  * 按连接串行 + 单次发送有界超时。任一连接 TCP 写阻塞（慢客户端/半开连接）
@@ -47,6 +55,14 @@ public class WebSocketServer {
 
     private Session session;
     private String userName;
+    /**
+     * 握手时携带的访问令牌与会话ID。
+     * <p>
+     * 用于在"登出/被踢"时精确断开对应的长连接：会话ID在同一会话多次续期
+     * （访问令牌轮换）期间保持不变，故优先按会话ID匹配，令牌仅作兜底。
+     */
+    private String token;
+    private String sessionId;
     /**
      * 该连接是否通过认证并被接入连接池。
      * 未认证握手在 {@link #onOpen} 即被关闭、从不入池，其后续 onClose/onError 不应再以
@@ -118,9 +134,15 @@ public class WebSocketServer {
         }
         this.session = session;
         this.userName = loginUser;
+        this.token = asText(config.getUserProperties().get("token"));
+        this.sessionId = asText(config.getUserProperties().get("sessionId"));
         this.accepted = true;
         WEB_SOCKET_SET.add(this);
         log.info("【websocket消息】用户[{}]建立连接, 当前连接总数:{}", loginUser, WEB_SOCKET_SET.size());
+    }
+
+    private static String asText(Object value) {
+        return value instanceof String text && !text.isBlank() ? text : null;
     }
 
     /**
@@ -164,7 +186,45 @@ public class WebSocketServer {
             log.debug("【websocket】未认证连接异常: {}", error.getMessage());
             return;
         }
+        // 客户端单方面断开（关标签页、刷新、进程被杀、切网络、网关空闲超时）在传输层表现为
+        // Connection reset / Broken pipe / EOF / ClosedChannel。这属于预期事件：连接已不可用，
+        // 后续 @OnClose 会完成出池清理，无需人工介入。此处降级为 debug，避免 ERROR + 完整堆栈
+        // 淹没真正的服务端故障；只有其它异常（编码失败、容器内部错误等）才按 error 记录。
+        if (isBenignDisconnect(error)) {
+            log.debug("【websocket消息】用户[{}]连接被动断开: {}", userName, error.getMessage());
+            return;
+        }
         log.error("【websocket消息】用户[" + userName + "]连接异常", error);
+    }
+
+    /**
+     * 判断异常链是否只是"对端异常断开"，用于把噪音日志降级到 debug。
+     * <p>
+     * Tomcat 常把底层网络异常包一层 IOException 抛出，故必须沿 cause 链判断。
+     */
+    private static boolean isBenignDisconnect(Throwable error) {
+        Throwable cause = error;
+        for (int depth = 0; cause != null && depth < 10; depth++) {
+            if (cause instanceof EOFException || cause instanceof ClosedChannelException) {
+                return true;
+            }
+            if (cause instanceof SocketException) {
+                String message = cause.getMessage();
+                if (message == null) {
+                    return true;
+                }
+                String lower = message.toLowerCase(Locale.ROOT);
+                if (lower.contains("connection reset") || lower.contains("broken pipe")
+                        || lower.contains("connection abort") || lower.contains("socket closed")) {
+                    return true;
+                }
+            }
+            if (cause == cause.getCause()) {
+                break;
+            }
+            cause = cause.getCause();
+        }
+        return false;
     }
 
     /**
@@ -186,6 +246,94 @@ public class WebSocketServer {
                 ASYNC_SEND_POOL.execute(() -> webSocket.sendAsync(target, message));
             }
         }
+    }
+
+    /**
+     * 用户主动退出登录：以正常关闭码（1000）断开该会话的长连接。
+     * <p>
+     * 退出后访问令牌与会话均已撤销，长连接不应继续存在——否则它仍能收到服务端推送，
+     * 只有等到"下一次重连"才会被握手校验拦下。正常关闭码不会让前端误判为"会话过期"。
+     *
+     * @param sessionId 会话ID（为空时按 token 兜底匹配）
+     * @param token     本次退出请求携带的访问令牌
+     */
+    public static void closeSessionOnLogout(String sessionId, String token) {
+        closeMatching(sessionId, token,
+                new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, "退出登录"));
+    }
+
+    /**
+     * 服务端终止会话（管理员强制退出）：以 1008 断开该会话的长连接。
+     * <p>
+     * 1008 会被前端识别为"凭证失效、重试无法恢复"：停止自动重连并立即走登录过期流程（跳登录页）。
+     * 这样"强制退出"就从"等下一次 HTTP 请求才生效的软踢"变为即时、客户端可见的踢出。
+     *
+     * @param sessionId 会话ID（为空时按 token 兜底匹配）
+     * @param token     该会话的访问令牌（管理员从在线列表拿到的令牌）
+     * @param reason    关闭原因，随关闭帧下发给前端用于提示
+     */
+    public static void closeSessionOnKick(String sessionId, String token, String reason) {
+        closeMatching(sessionId, token, new CloseReason(CloseReason.CloseCodes.VIOLATED_POLICY, kickReason(reason)));
+    }
+
+    /**
+     * 账号级踢出：断开该用户名下全部长连接（重置密码、账号被停用/删除）
+     *
+     * @param userName 用户名
+     * @param reason   关闭原因
+     */
+    public static void closeUserOnKick(String userName, String reason) {
+        if (userName == null || userName.isBlank()) {
+            return;
+        }
+        CloseReason closeReason = new CloseReason(CloseReason.CloseCodes.VIOLATED_POLICY, kickReason(reason));
+        for (WebSocketServer webSocket : WEB_SOCKET_SET) {
+            if (userName.equals(webSocket.userName)) {
+                webSocket.closeAsync(closeReason);
+            }
+        }
+    }
+
+    private static String kickReason(String reason) {
+        return (reason == null || reason.isBlank()) ? "会话已被服务端终止" : reason;
+    }
+
+    /**
+     * 按"会话ID优先、令牌兜底"匹配并异步关闭连接
+     */
+    private static void closeMatching(String sessionId, String token, CloseReason reason) {
+        boolean bySession = sessionId != null && !sessionId.isBlank();
+        if (!bySession && (token == null || token.isBlank())) {
+            return;
+        }
+        for (WebSocketServer webSocket : WEB_SOCKET_SET) {
+            boolean matched = bySession
+                    ? sessionId.equals(webSocket.sessionId)
+                    : token.equals(webSocket.token);
+            if (matched) {
+                webSocket.closeAsync(reason);
+            }
+        }
+    }
+
+    /**
+     * 异步关闭本连接：投递到推送线程池，避免阻塞调用方（HTTP 请求线程）；
+     * 关闭失败只记日志，连接仍会由 {@code @OnClose} 负责移出连接池
+     */
+    private void closeAsync(CloseReason reason) {
+        Session target = this.session;
+        if (target == null || !target.isOpen()) {
+            return;
+        }
+        ASYNC_SEND_POOL.execute(() -> {
+            synchronized (sendLock) {
+                try {
+                    target.close(reason);
+                } catch (IOException ex) {
+                    log.debug("【websocket消息】断开连接异常, 用户[{}]", userName, ex);
+                }
+            }
+        });
     }
 
     /**

@@ -18,7 +18,10 @@
         <dependency>
             <groupId>com.xuanchen</groupId>
             <artifactId>xuanchen-common</artifactId>
-            <version>${xuanchen.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.xuanchen</groupId>
+            <artifactId>xuanchen-masterdata</artifactId>
         </dependency>
     </dependencies>
 

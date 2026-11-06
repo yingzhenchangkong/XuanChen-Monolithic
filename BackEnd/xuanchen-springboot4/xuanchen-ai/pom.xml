@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>xuanchen-parent</artifactId>
+        <groupId>com.xuanchen</groupId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>xuanchen-ai</artifactId>
+    <description>AI 能力模块：LangChain4j + Ollama + pgvector 知识库</description>
+    <packaging>jar</packaging>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.xuanchen</groupId>
+            <artifactId>xuanchen-common</artifactId>
+        </dependency>
+
+        <!-- LangChain4j 核心（版本由父 pom BOM 统一管理） -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j</artifactId>
+        </dependency>
+        <!-- Ollama 模型接入：对话 / 流式对话 / 向量化 -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-ollama</artifactId>
+        </dependency>
+        <!-- pgvector 向量存取 -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-pgvector</artifactId>
+        </dependency>
+        <!-- Apache Tika 文档解析（PDF/Word/Excel/PPT/TXT/MD 等），版本由 BOM 管理 -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-document-parser-apache-tika</artifactId>
+        </dependency>
+
+        <!-- 文件中心：知识库文档复用 IFileInfoService 上传（MinIO 统一存储） -->
+        <dependency>
+            <groupId>com.xuanchen</groupId>
+            <artifactId>xuanchen-filemanage</artifactId>
+        </dependency>
+
+        <!-- PostgreSQL 驱动（向量库专用，版本由 Spring Boot BOM 管理） -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+        </dependency>
+        <!-- 向量库独立连接池：复用 common 已引入的 Druid（与主库同一套池实现），
+             仅供 xuanchen-kb 使用；手动 new + 包装 Bean，不参与主库自动配置 -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid</artifactId>
+        </dependency>
+    </dependencies>
+
+</project>

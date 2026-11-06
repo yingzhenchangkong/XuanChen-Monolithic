@@ -1,6 +1,5 @@
 package com.xuanchen.system.sysnotice.controller;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -9,6 +8,7 @@ import com.xuanchen.common.entity.Result;
 import com.xuanchen.common.exception.BusinessException;
 import com.xuanchen.common.server.WebSocketServer;
 import com.xuanchen.common.service.IAuthServiceCommon;
+import com.xuanchen.common.utils.JsonUtils;
 import com.xuanchen.common.utils.StringUtil;
 import com.xuanchen.system.sysnotice.dto.NoticeReadBatchDTO;
 import com.xuanchen.system.sysnotice.dto.NoticeReadDTO;
@@ -118,7 +118,7 @@ public class SysNoticeController {
      */
     private void pushNoticeCount(String userName) {
         WebSocketServer.sendMessage(userName,
-                JSONObject.toJSONString(List.of(getNoticeCountByUserName(userName))));
+                JsonUtils.toJson(List.of(getNoticeCountByUserName(userName))));
     }
 
     /**
@@ -179,7 +179,9 @@ public class SysNoticeController {
     @PreAuthorize("hasRole('admin')")
     public Result<String> cancel(@RequestBody SysNotice sysNotice, HttpServletRequest request) {
         String userName = authServiceCommon.getUserNameByToken(request.getHeader("XC-ACCESS-TOKEN"));
-        cancelRecover(sysNotice.getId(), 2, userName);
+        if (!cancelRecover(sysNotice.getId(), 2, userName)) {
+            return Result.badRequest("通知不存在或已被删除！");
+        }
         return Result.success("撤销成功！");
     }
 
@@ -194,7 +196,9 @@ public class SysNoticeController {
     @PreAuthorize("hasRole('admin')")
     public Result<String> recover(@RequestBody SysNotice sysNotice, HttpServletRequest request) {
         String userName = authServiceCommon.getUserNameByToken(request.getHeader("XC-ACCESS-TOKEN"));
-        cancelRecover(sysNotice.getId(), 1, userName);
+        if (!cancelRecover(sysNotice.getId(), 1, userName)) {
+            return Result.badRequest("通知不存在或已被删除！");
+        }
         return Result.success("恢复成功！");
     }
 
@@ -204,19 +208,26 @@ public class SysNoticeController {
      * @param id
      * @param status
      * @param userName
+     * @return 通知存在且更新成功返回 true；id 不存在或已被删除（影响行数 0）返回 false
      */
-    private void cancelRecover(String id, Integer status, String userName) {
+    private boolean cancelRecover(String id, Integer status, String userName) {
         SysNotice sysNotice = new SysNotice();
         sysNotice.setId(id);
         sysNotice.setStatus(status);
-        sysNoticeService.updateById(sysNotice);
+        // 影响行数为 0（通知 id 不存在或已被删除）时返回 false，由调用方拒绝并提示
+        boolean updated = sysNoticeService.updateById(sysNotice);
+        if (!updated) {
+            return false;
+        }
 
         QueryWrapper<SysNoticeStatus> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("notice_id", sysNotice.getId());
         List<SysNoticeStatus> listSysNoticeStatus = sysNoticeStatusService.list(queryWrapper);
+        //逐接收人定向推送各自的未读数
         for (SysNoticeStatus item : listSysNoticeStatus) {
             pushNoticeCount(item.getUserId());
         }
+        return true;
     }
 
 

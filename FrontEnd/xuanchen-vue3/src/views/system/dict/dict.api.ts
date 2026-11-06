@@ -3,26 +3,34 @@ import type { SelectOption } from '@/types/api';
 import type { DictSaveParams, DictItemSaveParams } from './dict.types';
 
 enum DictApiUrl {
-  DICT_LIST = '/system/dict/list',
-  DICT_DELETE = '/system/dict/delete',
-  DICT_ADD = '/system/dict/add',
-  DICT_EDIT = '/system/dict/edit',
-  DICT_CHANGE_STATUS = '/system/dict/changeStatus',
-  VALIDATE = '/system/dict/validate',
-  SELECT = '/system/dict/select',
+  // 字典主表列表页
+  INDEX_LIST = '/system/dict/list',
+  INDEX_DELETE = '/system/dict/delete',
 
-  DICT_ITEM_LIST = '/system/dict/listItem',
-  DICT_ITEM_DELETE = '/system/dict/deleteItem',
-  DICT_ITEM_ADD = '/system/dict/addItem',
-  DICT_ITEM_EDIT = '/system/dict/editItem',
-  DICT_ITEM_CHANGE_STATUS = '/system/dict/changeStatusItem',
-  VALIDATE_ITEM = '/system/dict/validateItem',
+  // 字典主表增删改
+  OPERATION_ADD = '/system/dict/add',
+  OPERATION_EDIT = '/system/dict/edit',
+  OPERATION_CHANGE_STATUS = '/system/dict/changeStatus',
+  OPERATION_VALIDATE = '/system/dict/validate',
+
+  // 字典项列表（主页面下面的子表格）
+  INDEX_ITEM_LIST = '/system/dict/listItem',
+  INDEX_ITEM_DELETE = '/system/dict/deleteItem',
+
+  // 字典项增删改
+  OPERATION_ITEM_ADD = '/system/dict/addItem',
+  OPERATION_ITEM_EDIT = '/system/dict/editItem',
+  OPERATION_ITEM_CHANGE_STATUS = '/system/dict/changeStatusItem',
+  OPERATION_VALIDATE_ITEM = '/system/dict/validateItem',
+
+  // 对外字典查询接口（不参与 CRUD 分组）
+  SELECT = '/system/dict/select',
 }
 
 export { DictApiUrl };
 
 export const validateDictCodeApi = async (id: string, dictCode: string): Promise<void> => {
-  const res = await getAction(DictApiUrl.VALIDATE, { id, dictCode });
+  const res = await getAction(DictApiUrl.OPERATION_VALIDATE, { id, dictCode });
   if (res.code !== 200) {
     return Promise.reject("字典编码已存在!");
   } else {
@@ -31,7 +39,7 @@ export const validateDictCodeApi = async (id: string, dictCode: string): Promise
 }
 
 export const validateDictNameApi = async (id: string, dictName: string): Promise<void> => {
-  const res = await getAction(DictApiUrl.VALIDATE, { id, dictName });
+  const res = await getAction(DictApiUrl.OPERATION_VALIDATE, { id, dictName });
   if (res.code !== 200) {
     return Promise.reject("字典名称已存在!");
   } else {
@@ -53,21 +61,21 @@ export const getDictSelect = async (dictCode: string): Promise<SelectOption[]> =
 }
 
 export const deleteDictApi = async (id: string) => {
-  return await deleteAction(DictApiUrl.DICT_DELETE, { id });
+  return await deleteAction(DictApiUrl.INDEX_DELETE, { id });
 }
 
 export const changeStatusApi = async (id: string, status: number) => {
-  return await postAction(DictApiUrl.DICT_CHANGE_STATUS, { id, status });
+  return await postAction(DictApiUrl.OPERATION_CHANGE_STATUS, { id, status });
 }
 
 export const saveOrUpdateDict = async (data: DictSaveParams) => {
-  const httpUrl = data.id ? DictApiUrl.DICT_EDIT : DictApiUrl.DICT_ADD;
+  const httpUrl = data.id ? DictApiUrl.OPERATION_EDIT : DictApiUrl.OPERATION_ADD;
   const method = data.id ? 'put' : 'post';
   return await httpAction(httpUrl, data, method);
 };
 
 export const validateDictItemTextApi = async (id: string, dictCode: string, dictItemText: string): Promise<void> => {
-  const res = await getAction(DictApiUrl.VALIDATE_ITEM, { id, dictCode, dictItemText });
+  const res = await getAction(DictApiUrl.OPERATION_VALIDATE_ITEM, { id, dictCode, dictItemText });
   if (res.code !== 200) {
     return Promise.reject("名称已存在!");
   } else {
@@ -76,7 +84,7 @@ export const validateDictItemTextApi = async (id: string, dictCode: string, dict
 }
 
 export const validateDictItemValueApi = async (id: string, dictCode: string, dictItemValue: string): Promise<void> => {
-  const res = await getAction(DictApiUrl.VALIDATE_ITEM, { id, dictCode, dictItemValue });
+  const res = await getAction(DictApiUrl.OPERATION_VALIDATE_ITEM, { id, dictCode, dictItemValue });
   if (res.code !== 200) {
     return Promise.reject("数据值已存在!");
   } else {
@@ -85,11 +93,11 @@ export const validateDictItemValueApi = async (id: string, dictCode: string, dic
 }
 
 export const changeStatusItemApi = async (id: string, status: number) => {
-  return await postAction(DictApiUrl.DICT_ITEM_CHANGE_STATUS, { id, status });
+  return await postAction(DictApiUrl.OPERATION_ITEM_CHANGE_STATUS, { id, status });
 }
 
 export const saveOrUpdateDictItem = async (data: DictItemSaveParams) => {
-  const httpUrl = data.id ? DictApiUrl.DICT_ITEM_EDIT : DictApiUrl.DICT_ITEM_ADD;
+  const httpUrl = data.id ? DictApiUrl.OPERATION_ITEM_EDIT : DictApiUrl.OPERATION_ITEM_ADD;
   const method = data.id ? 'put' : 'post';
   return await httpAction(httpUrl, data, method);
 };

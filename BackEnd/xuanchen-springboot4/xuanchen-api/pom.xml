@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.xuanchen</groupId>
+        <artifactId>xuanchen-parent</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>xuanchen-api</artifactId>
+    <description>数据接口服务（自研配置驱动：分发器 + sql/http/map/save 四类步骤 + 定时采集）</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.xuanchen</groupId>
+            <artifactId>xuanchen-common</artifactId>
+        </dependency>
+    </dependencies>
+
+</project>

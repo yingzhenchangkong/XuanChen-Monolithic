@@ -1,30 +1,41 @@
 package com.xuanchen.common.entity;
 
+import lombok.Data;
 import org.springframework.http.HttpStatus;
 
+import java.io.Serial;
 import java.io.Serializable;
-import java.util.HashMap;
 
 /**
  * 实体类-->通用返回结果
+ * HTTP状态码	语义	        使用场景
+ * 200	        成功	        操作成功、查询成功
+ * 400	        请求错误	    参数校验失败、请求格式错误
+ * 401	        未授权	    未登录、token过期、认证失败
+ * 403	        禁止访问	    权限不足
+ * 404	        未找到	    资源不存在
+ * 409	        冲突	        数据重复、状态冲突
+ * 500	        服务器错误	系统异常、不可预期错误
  *
  * @author XuanChen
  * @date 2025-03-05
  */
-public class Result extends HashMap<String, Object> implements Serializable {
+@Data
+public class Result<T> implements Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
     /**
-     * 状态码
+     * 返回状态码
      */
-    public static final String CODE_TAG = "code";
+    private int code;
     /**
      * 返回内容
      */
-    public static final String MSG_TAG = "msg";
+    private String msg;
     /**
-     * 数据对象
+     * 返回数据对象
      */
-    public static final String DATA_TAG = "data";
+    private T data;
 
     /**
      * 构造函数 (无参)
@@ -39,8 +50,8 @@ public class Result extends HashMap<String, Object> implements Serializable {
      * @param msg  返回内容
      */
     public Result(int code, String msg) {
-        super.put(CODE_TAG, code);
-        super.put(MSG_TAG, msg);
+        this.code = code;
+        this.msg = msg;
     }
 
     /**
@@ -50,12 +61,10 @@ public class Result extends HashMap<String, Object> implements Serializable {
      * @param msg  返回内容
      * @param data 数据对象
      */
-    public Result(int code, String msg, Object data) {
-        super.put(CODE_TAG, code);
-        super.put(MSG_TAG, msg);
-        if (data != null) {
-            super.put(DATA_TAG, data);
-        }
+    public Result(int code, String msg, T data) {
+        this.code = code;
+        this.msg = msg;
+        this.data = data;
     }
 
     /**
@@ -65,8 +74,8 @@ public class Result extends HashMap<String, Object> implements Serializable {
      * @param data 数据对象
      * @return code-->200，msg-->返回内容，data-->数据对象
      */
-    public static Result success(String msg, Object data) {
-        return new Result(HttpStatus.OK.value(), msg, data);
+    public static <T> Result<T> success(String msg, T data) {
+        return new Result<>(HttpStatus.OK.value(), msg, data);
     }
 
     /**
@@ -75,7 +84,7 @@ public class Result extends HashMap<String, Object> implements Serializable {
      * @param msg 返回内容
      * @return code-->200，msg-->返回内容，data-->null
      */
-    public static Result success(String msg) {
+    public static <T> Result<T> success(String msg) {
         return Result.success(msg, null);
     }
 
@@ -85,7 +94,7 @@ public class Result extends HashMap<String, Object> implements Serializable {
      * @param data 返回数据
      * @return code-->200，msg-->操作成功，data-->data
      */
-    public static Result success(Object data) {
+    public static <T> Result<T> success(T data) {
         return Result.success("操作成功", data);
     }
 
@@ -94,8 +103,58 @@ public class Result extends HashMap<String, Object> implements Serializable {
      *
      * @return code-->200，msg-->操作成功，data-->null
      */
-    public static Result success() {
+    public static <T> Result<T> success() {
         return Result.success("操作成功");
+    }
+
+    /**
+     * 请求错误
+     *
+     * @param msg 错误信息
+     * @return code-->400，msg-->错误信息，data-->null
+     */
+    public static <T> Result<T> badRequest(String msg) {
+        return new Result<>(HttpStatus.BAD_REQUEST.value(), msg, null);
+    }
+
+    /**
+     * 未授权
+     *
+     * @param msg 错误信息
+     * @return code-->401，msg-->错误信息，data-->null
+     */
+    public static <T> Result<T> unauthorized(String msg) {
+        return new Result<>(HttpStatus.UNAUTHORIZED.value(), msg);
+    }
+
+    /**
+     * 禁止访问
+     *
+     * @param msg 错误信息
+     * @return code-->403，msg-->错误信息，data-->null
+     */
+    public static <T> Result<T> forbidden(String msg) {
+        return new Result<>(HttpStatus.FORBIDDEN.value(), msg, null);
+    }
+
+    /**
+     * 未找到
+     *
+     * @param msg 错误信息
+     * @return code-->404，msg-->错误信息，data-->null
+     */
+    public static <T> Result<T> notFound(String msg) {
+        return new Result<>(HttpStatus.NOT_FOUND.value(), msg, null);
+    }
+
+    /**
+     * 冲突
+     *
+     * @param msg 错误信息
+     * @return code-->409，msg-->错误信息，data-->null
+     */
+    public static <T> Result<T> conflict(String msg) {
+        return new Result<>(HttpStatus.CONFLICT.value(), msg, null);
     }
 
     /**
@@ -105,8 +164,8 @@ public class Result extends HashMap<String, Object> implements Serializable {
      * @param data 数据对象
      * @return code-->500，msg-->返回内容，data-->数据对象
      */
-    public static Result error(String msg, Object data) {
-        return new Result(HttpStatus.INTERNAL_SERVER_ERROR.value(), msg, data);
+    public static <T> Result<T> error(String msg, T data) {
+        return new Result<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), msg, data);
     }
 
     /**
@@ -115,7 +174,7 @@ public class Result extends HashMap<String, Object> implements Serializable {
      * @param msg 返回内容
      * @return code-->500，msg-->返回内容，data-->null
      */
-    public static Result error(String msg) {
+    public static <T> Result<T> error(String msg) {
         return Result.error(msg, null);
     }
 
@@ -125,7 +184,7 @@ public class Result extends HashMap<String, Object> implements Serializable {
      * @param data 返回数据
      * @return code-->500，msg-->操作失败，data-->data
      */
-    public static Result error(Object data) {
+    public static <T> Result<T> error(T data) {
         return Result.error("操作失败", data);
     }
 
@@ -134,8 +193,7 @@ public class Result extends HashMap<String, Object> implements Serializable {
      *
      * @return code-->500，msg-->操作失败，data-->null
      */
-    public static Result error() {
+    public static <T> Result<T> error() {
         return Result.error("操作失败");
     }
-
 }

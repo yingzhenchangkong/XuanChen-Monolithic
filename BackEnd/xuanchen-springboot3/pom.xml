@@ -4,107 +4,250 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.16</version>
+        <relativePath/>
+    </parent>
+
     <groupId>com.xuanchen</groupId>
     <artifactId>xuanchen-parent</artifactId>
     <version>1.0.0</version>
-    <name>XuanChen ${project.version}</name>
-    <description>Xuan Chen Manage System</description>
     <packaging>pom</packaging>
+    <name>XuanChen Parent</name>
+    <description>Xuan Chen Manage System</description>
 
     <modules>
-        <module>xuanchen-admin</module>
+        <module>xuanchen-boot</module>
         <module>xuanchen-generator</module>
         <module>xuanchen-common</module>
         <module>xuanchen-auth</module>
         <module>xuanchen-system</module>
+        <module>xuanchen-masterdata</module>
         <module>xuanchen-filemanage</module>
         <module>xuanchen-monitor</module>
+        <module>xuanchen-report</module>
+        <module>xuanchen-visualization</module>
+        <module>xuanchen-businessprocess</module>
+        <module>xuanchen-online</module>
+        <module>xuanchen-ai</module>
+        <module>xuanchen-api</module>
     </modules>
 
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.14</version>
-        <relativePath/>
-    </parent>
-
     <properties>
-        <xuanchen.version>1.0.0</xuanchen.version>
+        <!-- 编译版本（spring-boot-starter-parent 会据此设置 maven.compiler.release） -->
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <mybatisplus.version>3.5.16</mybatisplus.version>
+        <!-- 第三方依赖版本统一在此维护 -->
+        <mybatisplus.version>3.5.17</mybatisplus.version>
         <druid.version>1.2.28</druid.version>
-
-        <fastjson2.version>2.0.61</fastjson2.version>
-
-        <fastexcel.version>1.3.0</fastexcel.version>
-
-        <shiro.version>2.1.0</shiro.version>
-        <jwt.version>4.5.1</jwt.version>
-
-        <oshi.version>6.12.0</oshi.version>
+        <fesod-sheet.version>2.0.2-incubating</fesod-sheet.version>
+        <shiro.version>3.0.1</shiro.version>
+        <jwt.version>4.6.1</jwt.version>
+        <oshi.version>7.6.1</oshi.version>
+        <langchain4j.version>1.20.2</langchain4j.version>
+        <!-- Boot BOM 未管理 commons-io，需自行钉版（原因见 dependencyManagement 处注释） -->
+        <commons-io.version>2.20.0</commons-io.version>
+        <!-- Boot BOM 同样未管理 POI 与 MinIO，版本集中在此维护 -->
+        <poi.version>5.2.5</poi.version>
+        <minio.version>8.5.17</minio.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <!-- LangChain4j BOM：统一 AI 相关依赖版本（core/ollama 同版本，pgvector 为 beta 线） -->
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-bom</artifactId>
+                <version>${langchain4j.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
 
+            <!-- commons-io 全局钉版：Tika 3.x（AI 模块文档解析）依赖 2.16+ 的 ChecksumInputStream，
+                 而 xuanchen-online 直接依赖的 2.15.0 会按就近优先顶掉 Tika 传递版本，导致 NoClassDefFoundError -->
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons-io.version}</version>
+            </dependency>
+
+            <!-- 内部模块统一版本，子模块引用时无需再写 version -->
+            <dependency>
+                <groupId>com.xuanchen</groupId>
+                <artifactId>xuanchen-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.xuanchen</groupId>
+                <artifactId>xuanchen-auth</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.xuanchen</groupId>
+                <artifactId>xuanchen-system</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.xuanchen</groupId>
+                <artifactId>xuanchen-masterdata</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.xuanchen</groupId>
+                <artifactId>xuanchen-monitor</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.xuanchen</groupId>
+                <artifactId>xuanchen-generator</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.xuanchen</groupId>
+                <artifactId>xuanchen-online</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.xuanchen</groupId>
+                <artifactId>xuanchen-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.xuanchen</groupId>
+                <artifactId>xuanchen-filemanage</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.xuanchen</groupId>
+                <artifactId>xuanchen-report</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.xuanchen</groupId>
+                <artifactId>xuanchen-visualization</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.xuanchen</groupId>
+                <artifactId>xuanchen-businessprocess</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.xuanchen</groupId>
+                <artifactId>xuanchen-ai</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- Shiro：3.x 原生 Jakarta，与 Spring Boot 3 匹配（3.x 起不再发布 shiro-bom，直接管版本） -->
+            <dependency>
+                <groupId>org.apache.shiro</groupId>
+                <artifactId>shiro-spring</artifactId>
+                <version>${shiro.version}</version>
+            </dependency>
+
+            <!-- Shiro 核心（注解 @RequiresRoles/@RequiresPermissions、授权异常），
+                 供 system/monitor/generator 等不引入完整 web 栈的模块编译期使用 -->
+            <dependency>
+                <groupId>org.apache.shiro</groupId>
+                <artifactId>shiro-core</artifactId>
+                <version>${shiro.version}</version>
+            </dependency>
+
+            <!-- MyBatis-Plus（Spring Boot 3 starter / 分页 SQL 解析 / 代码生成器） -->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+                <version>${mybatisplus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-jsqlparser</artifactId>
+                <version>${mybatisplus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-generator</artifactId>
+                <version>${mybatisplus.version}</version>
+            </dependency>
+
+            <!-- Druid（Spring Boot 3 专用 starter） -->
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>druid-spring-boot-3-starter</artifactId>
+                <version>${druid.version}</version>
+            </dependency>
+            <!-- Druid 核心：ai 模块需直接 new DruidDataSource 构建向量库连接池，
+                 「用哪个就声明哪个」，避免依赖 starter 的传递关系 -->
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>druid</artifactId>
+                <version>${druid.version}</version>
+            </dependency>
+
+            <!-- Excel -->
+            <dependency>
+                <groupId>org.apache.fesod</groupId>
+                <artifactId>fesod-sheet</artifactId>
+                <version>${fesod-sheet.version}</version>
+            </dependency>
+
+            <!-- POI：online 模块服务端生成空白 docx/xlsx/pptx，Boot BOM 未管理。
+                 注意：fesod-sheet 声明的是 poi 5.5.1，此处钉 5.2.5 会按「最近优先」把全链路压到 5.2.5，
+                 而 Tika 传递的 poi-scratchpad 仍为 5.4.1（POI 家族版本不齐，待单独收敛，见审查记录） -->
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi-ooxml</artifactId>
+                <version>${poi.version}</version>
+            </dependency>
+
+            <!-- MinIO 对象存储 SDK：filemanage 模块使用，Boot BOM 未管理 -->
+            <dependency>
+                <groupId>io.minio</groupId>
+                <artifactId>minio</artifactId>
+                <version>${minio.version}</version>
+            </dependency>
+
+            <!-- JWT -->
+            <dependency>
+                <groupId>com.auth0</groupId>
+                <artifactId>java-jwt</artifactId>
+                <version>${jwt.version}</version>
+            </dependency>
+
+            <!-- 服务器监控 -->
+            <dependency>
+                <groupId>com.github.oshi</groupId>
+                <artifactId>oshi-core</artifactId>
+                <version>${oshi.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
     <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
+        <!-- Lombok 仅编译期需要，所有模块统一引入且不向下游传递 -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <scope>provided</scope>
             <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>com.alibaba.fastjson2</groupId>
-            <artifactId>fastjson2</artifactId>
-            <version>${fastjson2.version}</version>
         </dependency>
     </dependencies>
 
     <build>
-        <plugins>
-            <!-- 指定JDK编译版本 -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                    <encoding>UTF-8</encoding>
-                </configuration>
-            </plugin>
-            <!-- 打包跳过测试 -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <skipTests>true</skipTests>
-                </configuration>
-            </plugin>
-        </plugins>
         <resources>
+            <!-- src/main/resources 下的全部资源原样打包（避免白名单漏掉 properties/xml/META-INF 等文件） -->
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+            </resource>
+            <!-- Mapper XML 与 Java 代码同包放置，需要一并打入 classpath -->
             <resource>
                 <directory>src/main/java</directory>
                 <includes>
                     <include>**/*.xml</include>
-                    <include>**/*.yml</include>
-                </includes>
-                <filtering>false</filtering>
-            </resource>
-            <resource>
-                <directory>src/main/resources</directory>
-                <includes>
-                    <include>**/*.yml</include>
-                    <include>**/*.ftl</include>
-                    <include>**/*.png</include>
                 </includes>
                 <filtering>false</filtering>
             </resource>

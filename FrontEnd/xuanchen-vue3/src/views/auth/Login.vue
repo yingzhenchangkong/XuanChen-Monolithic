@@ -37,53 +37,26 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue';
 import { ref, reactive } from 'vue';
-import { useAuthStore, useMenuStore } from '@/stores';
+import { useAuthStore, useMenuStore, useTabsStore } from '@/stores';
 import router from '@/router';
 import SlideVerify from './modal/SlideVerify.vue';
 import ForgotPassword from './modal/ForgotPassword.vue';
 import { login } from './auth.api';
 import { getConfigKeyValueApi } from '../system/config/config.api';
+import { loadMenus } from '@/permission';
 
 const authStore = useAuthStore();
 const menuStore = useMenuStore();
+const tabsStore = useTabsStore();
 
-/**
- * 「记住我」存储：仅保存在本机浏览器 localStorage，密码以 base64 编码（非加密，
- * 仅避免肉眼直读）；勾选时登录成功后写入，未勾选时清除。
- */
-const REMEMBER_KEY = 'xuanchen_login_remember';
-const encodeBase64 = (str: string) => window.btoa(encodeURIComponent(str));
-const decodeBase64 = (str: string) => {
-  try {
-    return decodeURIComponent(window.atob(str));
-  } catch {
-    return '';
-  }
-};
-
-// 表单数据（保留默认预填，方便演示环境快速登录；若本机曾勾选"记住我"则用已保存凭据覆盖回填）
+// 表单数据
 const loginForm = reactive({
   userName: 'admin4',
-  password: 'Admin@123',
+  password: '888888',
   rememberMe: false,
   captchaId: '',
   captchaToken: '',
 })
-const loadRemembered = () => {
-  const raw = localStorage.getItem(REMEMBER_KEY);
-  if (!raw) return;
-  try {
-    const saved = JSON.parse(raw);
-    if (saved?.remember === true) {
-      loginForm.userName = decodeBase64(saved.userName) || loginForm.userName;
-      loginForm.password = decodeBase64(saved.password) || '';
-      loginForm.rememberMe = true;
-    }
-  } catch {
-    // 存储内容损坏时直接忽略，按默认预填处理
-  }
-}
-loadRemembered();
 
 // 表单验证
 const loginRef = ref();
@@ -121,19 +94,10 @@ const loginSubmit = async () => {
       loginForm.userName,
       loginForm.password,
       loginForm.captchaId,
-      loginForm.captchaToken
+      loginForm.captchaToken,
+      loginForm.rememberMe,
     );
     if (res?.code === 200) {
-      // 登录成功后按勾选状态写入/清除本机记住的凭据（记住我为纯前端能力，不传后端）
-      if (loginForm.rememberMe) {
-        localStorage.setItem(REMEMBER_KEY, JSON.stringify({
-          remember: true,
-          userName: encodeBase64(loginForm.userName.trim()),
-          password: encodeBase64(loginForm.password),
-        }));
-      } else {
-        localStorage.removeItem(REMEMBER_KEY);
-      }
       const { token, ...userInfo } = res.data;
       authStore.setToken(token);
       authStore.setUserInfo(userInfo);
@@ -144,11 +108,20 @@ const loginSubmit = async () => {
       if (router.hasRoute('parent')) {
         router.removeRoute('parent');
       }
+      // 新会话只保留首页页签，确保不残留上一账号打开过的标签
+      tabsStore.clearTabsList();
+      tabsStore.setActiveKey('');
       // 初始/被重置密码：不进系统，直接引导到独立强制改密页（路由守卫也会兜底）
       if (userInfo.pwdResetRequired === 1) {
         router.push({ name: "forceChangePassword" });
         message.warning('当前为初始/重置密码，请先修改密码后再进行其他操作！');
       } else {
+        // 登录成功后立即并行发起菜单加载——与 router.push 的守卫链路并行执行。
+        // loadMenus 内部有 Promise 去重，守卫进来时若请求仍在飞，会直接 await 同一个 Promise，
+        // 不会打第二次 /system/menu/authList；若已完成则菜单已在 store 里，守卫直接放行。
+        void loadMenus().catch((err) => {
+          console.warn('[Login] 预加载菜单失败:', err);
+        });
         router.push({ path: "/" });
         message.success(res.msg);
       }

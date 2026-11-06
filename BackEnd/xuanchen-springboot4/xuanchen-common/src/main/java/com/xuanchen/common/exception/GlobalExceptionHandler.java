@@ -8,6 +8,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 /**
@@ -43,6 +44,19 @@ public class GlobalExceptionHandler {
         // 业务异常属于预期内的控制流，仅记录一行便于追溯，不打印堆栈
         log.warn("业务异常 uri={} code={} msg={}", request.getRequestURI(), e.getCode(), e.getMessage());
         return new Result<>(e.getCode(), e.getMessage(), null);
+    }
+
+    /**
+     * 上传文件超过 multipart 大小上限（容器层在进入 Controller 前抛出）
+     *
+     * @param e 超限异常
+     * @return 413 错误信息
+     */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    @ResponseStatus(HttpStatus.PAYLOAD_TOO_LARGE)
+    public Result<?> handleMaxUploadSize(MaxUploadSizeExceededException e, HttpServletRequest request) {
+        log.warn("上传文件超限 uri={} msg={}", request.getRequestURI(), e.getMessage());
+        return new Result<>(HttpStatus.PAYLOAD_TOO_LARGE.value(), "上传文件大小超出限制！", null);
     }
 
     /**

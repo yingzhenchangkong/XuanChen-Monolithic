@@ -7,8 +7,8 @@
     </a-avatar>
     <template #overlay>
       <a-menu>
-        <a-menu-item key="userCenter">
-          <router-link :to="{ name: 'userCenter' }">用户中心</router-link>
+        <a-menu-item key="userCenter" @click="goUserCenter">
+          用户中心
         </a-menu-item>
         <a-menu-item key="changePassword" @click="changePassword">
           修改密码
@@ -47,6 +47,9 @@ const refChangePassword = ref();
 const changePassword = () => {
   refChangePassword.value.show();
 };
+const goUserCenter = () => {
+  router.push({ name: 'userCenter' });
+};
 
 const clearCache = () => {
   // 只清本地 UI 缓存、不退出登录：token/userInfo 保留，WebSocket 不动。
@@ -69,12 +72,8 @@ const logout = async () => {
     message.error('退出登录失败:' + error);
   } finally {
     useWebSocketStore().closeConnection();
-    // 同步清空响应式会话状态（token/userInfo ref），否则守卫仍会读到内存中的旧凭据
+    // 同步清空响应式会话状态（token/userInfo ref + 页签），否则守卫仍会读到内存中的旧凭据/旧页签
     authStore.clearAuth();
-    // 页签 store 的内存状态也要复位，否则 SPA 不刷新直接换账号登录会残留上一用户的页签
-    tabsStore.clearTabsList();
-    tabsStore.setActiveKey('');
-    window.sessionStorage.clear();
     // 先导航到静态登录页，再移除动态路由：在当前页面仍激活时 removeRoute 会让
     // RouterView 瞬间解析到空匹配并抛出 "No match for" 错误
     await router.push('/login');

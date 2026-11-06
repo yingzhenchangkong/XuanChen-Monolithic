@@ -1,111 +1,134 @@
 package com.xuanchen.generator.utils;
 
-import com.alibaba.druid.pool.DruidDataSource;
-import com.xuanchen.generator.gendatabase.entity.GenDatabase;
+import com.xuanchen.common.datasource.DatasourceConnectionFactory;
+import com.xuanchen.common.entity.DatasourceInfo;
+import com.xuanchen.common.exception.BusinessException;
+import com.xuanchen.generator.dialect.DatabaseDialect;
+import com.xuanchen.generator.dialect.Dialects;
+import com.xuanchen.generator.gendatabase.entity.GenDatasource;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
 
 /**
- * 工具类-->数据库
+ * 代码生成数据库工具：统一数据源（sys_datasource）。
+ * <p>
+ * 连接口径与 report / api / visualization 完全一致：
+ * {@link GenDatasource} 由 {@link com.xuanchen.generator.gendatabase.service.GenDatasourceResolver}
+ * 从 sys_datasource 解析而来，本类只负责把连接交给
+ * {@link DatasourceConnectionFactory}（按数据源 id 复用连接池，替代此前每次
+ * {@code DriverManager.getConnection} 重新握手）。
+ * <p>
+ * DDL 由 {@link DatabaseDialect#buildCreateTable} 内部生成；表元数据走方言固定 SQL。
  *
  * @author XuanChen
  * @date 2025-09-28
  */
+@Slf4j
+@Component
 public class DBUtil {
+
+    private final DatasourceConnectionFactory connectionFactory;
+
+    public DBUtil(DatasourceConnectionFactory connectionFactory) {
+        this.connectionFactory = connectionFactory;
+    }
+
+    // ==================== 连接获取 ====================
+
     /**
-     * 获取数据库连接
-     *
-     * @param genDatabase
-     * @return
+     * 按已解析的数据源配置取连接（调用方负责 close，连接归还到该数据源的池）。
      */
-    public static Connection getConnection(GenDatabase genDatabase, DruidDataSource druidDataSource) {
-        String driverClassName = "com.mysql.cj.jdbc.Driver";
-        String url = "jdbc:mysql://" + genDatabase.getHost() + ":" + genDatabase.getPort() + "/" + genDatabase.getDbName() + "?serverTimezone=GMT%2B8&characterEncoding=utf-8&allowPublicKeyRetrieval=true&useSSL=false&tinyInt1isBit=true";
-        String username = genDatabase.getUserName();
-        String password = genDatabase.getPassword();
-        druidDataSource = new DruidDataSource();
-        Connection conn = null;
-        try {
-            druidDataSource.setDriverClassName(driverClassName);
-            druidDataSource.setUrl(url);
-            druidDataSource.setUsername(username);
-            druidDataSource.setPassword(password);
-            druidDataSource.setMaxActive(10);
-            conn = druidDataSource.getConnection();
-        } catch (Exception e) {
-            e.printStackTrace();
+    public Connection getConnection(GenDatasource genDatabase) {
+        if (genDatabase == null || genDatabase.getJdbcUrl() == null || genDatabase.getJdbcUrl().isBlank()) {
+            throw new BusinessException(500, "数据源缺少 JDBC 连接串");
         }
-        return conn;
+        try {
+            return connectionFactory.getConnection(genDatabase.getId(), toInfo(genDatabase));
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new BusinessException(500, "连接数据库失败：" + e.getMessage());
+        }
     }
 
     /**
-     * 获取数据库表列表
-     *
-     * @param genDatabase
-     * @return
+     * GenDatasource → DatasourceInfo：GenDatasourceResolver 已把 sys_datasource 的字段完整搬过来，
+     * 这里只做结构转换，不再回查数据库。
      */
-    public static List<Map<String, Object>> getTableList(GenDatabase genDatabase) {
-        DruidDataSource druidDataSource = new DruidDataSource();
-        List<Map<String, Object>> list = new ArrayList<>();
-        try {
-            Connection conn = getConnection(genDatabase, druidDataSource);
-            String strSql = "SELECT TABLE_NAME,TABLE_COMMENT FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE()";
-            PreparedStatement preparedStatement = conn.prepareStatement(strSql);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()) {
-                Map<String, Object> map = new HashMap<>();
-                map.put("tableName", resultSet.getString("TABLE_NAME"));//表名
-                map.put("tableComment", resultSet.getString("TABLE_COMMENT"));//表注释
-                list.add(map);
+    private DatasourceInfo toInfo(GenDatasource genDatabase) {
+        DatasourceInfo info = new DatasourceInfo();
+        info.setId(genDatabase.getId());
+        info.setDsName(genDatabase.getConnName());
+        info.setDsType(genDatabase.getConnType());
+        info.setJdbcUrl(genDatabase.getJdbcUrl());
+        info.setUsername(genDatabase.getUserName());
+        info.setPassword(genDatabase.getPassword());
+        info.setStatus(genDatabase.getStatus());
+        return info;
+    }
+
+    // ==================== URL / 方言 ====================
+
+    /** 取完整 JDBC URL（GenDatasource 已由 GenDatasourceResolver 预取好） */
+    public String buildUrl(GenDatasource genDatabase) {
+        return genDatabase.getJdbcUrl();
+    }
+
+    /** 按数据源配置取方言 */
+    public static DatabaseDialect dialectOf(GenDatasource genDatabase) {
+        return Dialects.of(genDatabase.getConnType());
+    }
+
+    // ==================== DDL 执行 ====================
+
+    /**
+     * 执行 DDL（建表）。sqls 由 DatabaseDialect.buildCreateTable 内部生成，已校验。
+     */
+    public void executeDdl(GenDatasource genDatabase, String... sqls) {
+        if (sqls == null || sqls.length == 0) return;
+        try (Connection conn = getConnection(genDatabase);
+             Statement statement = conn.createStatement()) {
+            for (String sql : sqls) {
+                statement.execute(sql);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            druidDataSource.close();
+        } catch (BusinessException e) {
+            throw e;
+        } catch (SQLException e) {
+            throw new BusinessException(500, "执行建表语句失败：" + e.getMessage());
         }
-        return list;
     }
 
     /**
-     * 获取数据库表信息
-     *
-     * @param genDatabase
-     * @return
+     * 执行 DDL（多语句版本）。
      */
-    public static List<Map<String, Object>> getTableInfo(GenDatabase genDatabase, String tableName) {
-        DruidDataSource druidDataSource = new DruidDataSource();
-        List<Map<String, Object>> list = new ArrayList<>();
-        try {
-            Connection conn = getConnection(genDatabase, druidDataSource);
-            String strSql = "SELECT COLUMN_NAME,COLUMN_COMMENT,DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,NUMERIC_SCALE,IS_NULLABLE,COLUMN_DEFAULT,COLUMN_KEY,"
-                    + "EXTRA FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '" + genDatabase.getDbName() + "' AND TABLE_NAME = '"
-                    + tableName + "' ORDER BY COLUMN_KEY DESC, ORDINAL_POSITION;";
-            PreparedStatement preparedStatement = conn.prepareStatement(strSql);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()) {
-                Map<String, Object> map = new HashMap<>();
-                map.put("columnName", resultSet.getString("COLUMN_NAME"));//字段名
-                map.put("columnComment", resultSet.getString("COLUMN_COMMENT"));//字段注释
-                map.put("columnType", resultSet.getString("DATA_TYPE"));//字段类型
-                map.put("columnLength", resultSet.getString("CHARACTER_MAXIMUM_LENGTH"));//字段最大长度
-                map.put("columnScale", resultSet.getString("NUMERIC_SCALE"));//字段小数位长度
-                map.put("columnDefault", resultSet.getString("COLUMN_DEFAULT"));//字段默认值
-                map.put("columnIsPk", "PRI".equals(resultSet.getString("COLUMN_KEY")));//字段是否主键
-                map.put("columnIsNullable", "YES".equals(resultSet.getString("IS_NULLABLE")));//字段是否允许为NULL
-                map.put("extra", resultSet.getString("EXTRA"));//扩展信息
-                list.add(map);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            druidDataSource.close();
+    public void executeDdl(GenDatasource genDatabase, List<String> sqls) {
+        if (sqls == null || sqls.isEmpty()) return;
+        executeDdl(genDatabase, sqls.toArray(new String[0]));
+    }
+
+    // ==================== 元数据查询 ====================
+
+    /** 获取数据库表列表（走方言内部固定 SQL，无需额外守卫） */
+    public List<Map<String, Object>> getTableList(GenDatasource genDatabase) {
+        try (Connection conn = getConnection(genDatabase)) {
+            return dialectOf(genDatabase).listTables(conn, genDatabase.getDbName());
+        } catch (SQLException e) {
+            throw new BusinessException(500, "读取数据库表列表失败：" + e.getMessage());
         }
-        return list;
+    }
+
+    /** 获取数据库表字段信息（走方言内部固定 SQL，无需额外守卫） */
+    public List<Map<String, Object>> getTableInfo(GenDatasource genDatabase, String tableName) {
+        try (Connection conn = getConnection(genDatabase)) {
+            return dialectOf(genDatabase).listColumns(conn, genDatabase.getDbName(), tableName);
+        } catch (SQLException e) {
+            throw new BusinessException(500, "读取数据库表字段失败：" + e.getMessage());
+        }
     }
 }

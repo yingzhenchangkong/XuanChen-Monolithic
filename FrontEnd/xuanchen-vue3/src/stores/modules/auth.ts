@@ -1,6 +1,7 @@
 import { computed, shallowRef } from 'vue';
 import { defineStore } from 'pinia';
 import type { UserInfo } from '@/types/api';
+import { useTabsStore } from './tabs';
 
 /** 从 sessionStorage 读取用户信息，损坏数据按未登录处理 */
 const readStoredUserInfo = (): UserInfo | null => {
@@ -47,11 +48,18 @@ export const useAuthStore = defineStore('auth', () => {
 
   /**
    * 清除会话凭据（token + userInfo）的响应式状态与持久化。
-   * 仅清凭据本身，不清 tabs/activeKey 等其他 UI 缓存；需要全清时调用方再自行 sessionStorage.clear()
+   * 同时清除 tabs 等 UI 缓存，确保登出/会话过期后不残留旧账号数据。
    */
   const clearAuth = () => {
     removeToken();
     removeUserInfo();
+    sessionStorage.removeItem('tabslist');
+    sessionStorage.removeItem('activeKey');
+    // 同步复位页签 store 内存状态：仅清 sessionStorage 不够，
+    // SPA 不刷新时 Pinia 仍持有旧列表，下次登录会直接沿用
+    const tabsStore = useTabsStore();
+    tabsStore.clearTabsList();
+    tabsStore.setActiveKey('');
   };
 
   return {

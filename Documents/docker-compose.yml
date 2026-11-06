@@ -1,0 +1,179 @@
+# ============================================================
+# 完整开发环境：Redis + MinIO + OnlyOffice + MySQL + PostgreSQL(pgvector)
+# 适用：Windows Docker Desktop + WSL2
+# 启动：在本文件所在目录执行  docker compose up -d
+# 停止：docker compose down   （保留数据卷）
+# 清空：docker compose down -v （连数据一起删，慎用）
+#
+# 与后端配置的一致性（A 方案：compose 迁就 application.yml 默认值，后端零改动）
+#   Redis     127.0.0.1:6379 无口令         → SPRING_REDIS_PASSWORD 默认空
+#   MinIO     minioadmin / minioadmin       → XUANCHEN_MINIO_AK/SK 默认值
+#   OnlyOffice localhost:8082               → xuanchen.office.ds-url 默认值
+#             JWT xc-office-secret-change-me → xuanchen.office.jwt-secret 默认值
+#   MySQL     127.0.0.1:3306 root/Admin123   → SPRING_DATASOURCE_* 默认值，零改动
+#                                             （⚠️ 需先停本机原生 MySQL 服务释放 3306）
+#   PostgreSQL 127.0.0.1:5432 postgres/Admin123 库 xuanchen-kb → AI_PG_* 默认值，零改动
+# 镜像说明：MinIO 用 pgsty/silo（社区维护分支，官方 minio/minio 已下架）；其余镜像尽量固定 tag。
+#
+# 镜像拉取失败（Docker Hub 直连被墙 / DNS 污染）时的加速器配置：
+#   入口 1（图形界面，更安全）：Docker Desktop → 右上齿轮 → Docker Engine
+#     → 把 JSON 改成下面这样 → 点 Apply & Restart
+#   入口 2（直接改文件）：编辑 C:\Users\<用户名>\.docker\daemon.json，
+#     必须保留原有 builder / experimental 两段，只追加 registry-mirrors 一段
+#   （改完必须重启 Docker 引擎才生效；验证：docker info | grep -A5 "Registry Mirrors"）
+# {
+#   "builder": {
+#     "gc": {
+#       "defaultKeepStorage": "20GB",
+#       "enabled": true
+#     }
+#   },
+#   "experimental": false,
+#   "registry-mirrors": [
+#     "https://docker.1panel.live",
+#     "https://docker.m.daocloud.io",
+#     "https://docker.1ms.run"
+#   ]
+# }
+# 注意：加速器只稳定同步官方 library/* 镜像，第三方 namespace（如 pgsty/silo）
+#       可能拉不到，需显式带源前缀直拉后 docker tag 回标准名，如：
+#         docker pull docker.1panel.live/pgsty/silo:latest
+#         docker tag docker.1panel.live/pgsty/silo:latest pgsty/silo:latest
+#       （1panel 对 onlyoffice 返 403、daocloud 拒 minio，多备几个源轮询）
+# ============================================================
+
+name: xuanchen-dev    # Docker Desktop 容器分组名（不设则默认取目录名 documents）
+
+services:
+
+  # ---------- 1. Redis 缓存 ----------
+  redis:
+    image: redis:latest
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes --appendfsync everysec
+    # 连接信息：127.0.0.1:6379  无口令（与 application-dev.yml 默认一致）
+    # 若需加口令：command 追加 --requirepass "xxx"，同时后端设 SPRING_REDIS_PASSWORD=xxx
+
+  # ---------- 2. MinIO 对象存储 ----------
+  minio:
+    # MinIO 官方镜像 2025-10 停发、2026-09 下架；pgsty/silo 为 Pigsty 维护的社区分支，
+    # S3 API/数据格式/环境变量与 MinIO 完全一致，带中文控制台，持续更新
+    image: pgsty/silo:latest
+    container_name: minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000"   # S3 API 端口（程序上传用）
+      - "9001:9001"   # Web 控制台端口
+    volumes:
+      - minio-data:/data
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    # 控制台：http://127.0.0.1:9001  账号 minioadmin / minioadmin
+    # S3 地址：http://127.0.0.1:9000
+    # 桶 xc-attach / xc-public 由后端 MinioStorageService.initBuckets() 启动时自动创建
+
+  # ---------- 3. OnlyOffice 在线文档编辑器 ----------
+  # 官方镜像（Docker Hub），拉取：docker pull onlyoffice/documentserver:latest
+  # 需要可复现时把 latest 换成具体版本 tag（如 9.1.0.168），避免版本漂移
+  onlyoffice:
+    image: onlyoffice/documentserver:latest
+    container_name: onlyoffice
+    restart: unless-stopped
+    ports:
+      - "8082:80"
+    volumes:
+      - onlyoffice-logs:/var/log/onlyoffice
+      - onlyoffice-data:/var/www/onlyoffice/Data
+      - onlyoffice-db:/var/lib/postgresql
+      - onlyoffice-rabbitmq:/var/lib/rabbitmq
+      - onlyoffice-lib:/var/lib/onlyoffice                     # DS 内部运行数据（原为匿名卷，命名防 down/up 后漂移）
+      - onlyoffice-fonts:/usr/share/fonts/truetype/custom      # 自定义字体（原为匿名卷，上传字体后必须持久化）
+      - C:/Windows/fonts:/usr/share/fonts/windows:ro   # 中文字体，避免转换缺字
+    environment:
+      JWT_ENABLED: "true"
+      JWT_SECRET: xc-office-secret-change-me          # 必须与 xuanchen.office.jwt-secret 一致
+      JWT_IN_BODY: "true"                              # 后端把 token 放在 editor config 里
+      ALLOW_PRIVATE_IP_ADDRESS: "true"                 # 允许 DS 访问宿主机私有地址拉取文档
+    # 访问：http://127.0.0.1:8082
+    # 8080 是后端 server.port，不能占用；后端 yml 默认 ds-url 即 http://localhost:8082
+    # 启动后需等 2~4 分钟服务就绪，刚起来会 502；首次启动后执行一次
+    #   docker exec onlyoffice bash -c "documentserver-generate-allfonts.sh"
+    # 回调地址 xuanchen.office.public-base-url 默认 http://host.docker.internal:8080（Docker Desktop 内置可解析）
+
+  # ---------- 4. MySQL 主库（业务库 xuanchen-monolithic）----------
+  # ⚠️ 端口 3306 与本机原生 mysqld.exe（Windows 服务）冲突：
+  #    启动本容器前必须先停掉原生 MySQL 服务，否则报 "port is already allocated"。
+  #    停服务（管理员 PowerShell）：Stop-Service MySQL -Force  /  或 services.msc 手动停止
+  # 停掉原生服务后，后端 yml 默认 jdbc:mysql://localhost:3306 零改动直连本容器
+  # 库 xuanchen-monolithic 自动创建（MYSQL_DATABASE），表结构与数据需手动导入：
+  #   CMD / Git Bash:   docker exec -i mysql mysql -uroot -pAdmin123 xuanchen-monolithic < xuanchen-monolithic.sql
+  #   PowerShell:       Get-Content -Raw -Encoding UTF8 .\xuanchen-monolithic.sql | docker exec -i mysql mysql -uroot -pAdmin123 xuanchen-monolithic
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: Admin123
+      MYSQL_DATABASE: xuanchen-monolithic
+      TZ: Asia/Shanghai
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_general_ci
+      - --default-time-zone=+08:00
+    # 连接：127.0.0.1:3306  root / Admin123（与 application-dev.yml 默认口令一致，后端零改动）
+
+  # ---------- 5. PostgreSQL + pgvector（AI 向量库）----------
+  # 库 xuanchen-kb / 用户 postgres / 5432，与 application-ai.yml 默认值一致，后端零改动
+  # 扩展 vector 需手动执行一次：docker exec -i postgres psql -U postgres -d xuanchen-kb -c "CREATE EXTENSION IF NOT EXISTS vector;"
+  # 表 ai_chunk 由后端启动时自动建
+  postgres:
+    image: pgvector/pgvector:pg18
+    container_name: postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg-data:/var/lib/postgresql          # PG18 官方镜像 PGDATA=/var/lib/postgresql/18/docker
+    environment:
+      POSTGRES_DB: xuanchen-kb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Admin123
+      TZ: Asia/Shanghai
+    # 连接：127.0.0.1:5432  postgres / Admin123  库 xuanchen-kb
+    # 若 pg18 tag 拉不到，可退到 pgvector/pgvector:pg17（表结构兼容）
+
+# ============================================================
+# 数据卷定义（显式固定 name，不随项目名/目录名变化，数据永不漂移）
+# ============================================================
+volumes:
+  redis-data:
+    name: xuanchen-redis-data
+  minio-data:
+    name: xuanchen-minio-data
+  mysql-data:
+    name: xuanchen-mysql-data
+  pg-data:
+    name: xuanchen-pg-data
+  onlyoffice-logs:
+    name: xuanchen-onlyoffice-logs
+  onlyoffice-data:
+    name: xuanchen-onlyoffice-data
+  onlyoffice-db:
+    name: xuanchen-onlyoffice-db
+  onlyoffice-rabbitmq:
+    name: xuanchen-onlyoffice-rabbitmq
+  onlyoffice-lib:
+    name: xuanchen-onlyoffice-lib
+  onlyoffice-fonts:
+    name: xuanchen-onlyoffice-fonts

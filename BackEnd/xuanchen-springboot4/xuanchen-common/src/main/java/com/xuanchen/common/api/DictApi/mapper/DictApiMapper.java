@@ -38,4 +38,12 @@ public interface DictApiMapper extends BaseMapper<Dict> {
                                                   @Param("code") String code,
                                                   @Param("text") String text,
                                                   @Param("codeValues") Collection<String> codeValues);
+
+    /**
+     * 按字典编码获取全部启用且未删除的字典项（编码值 -> 文本），供 Excel 导出翻译等
+     * "一次取整组字典"的场景使用；按 order_no 排序。dictCode 走 #{} 预编译参数，无注入风险。
+     * 返回行键：dict_item_value / dict_item_text（MyBatis 对 Map 键的大小写以实际驱动为准，
+     * 调用方需做大小写兼容读取）。
+     */
+    List<Map<String, Object>> selectDictItemMap(@Param("dictCode") String dictCode);
 }

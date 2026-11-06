@@ -24,9 +24,9 @@ export interface RoleRecord {
   [key: string]: unknown;
 }
 
-/** 未授权用户下拉选项（/system/userrole/listUnAuthUser 的 records 项） */
+/** 未授权用户下拉选项（/system/accountrole/listUnAuthUser 的 records 项） */
 export interface UnAuthUserOption {
-  userId: string;
+  accountId: string;
   userName?: string;
   nickName?: string;
   [key: string]: unknown;

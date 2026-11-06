@@ -32,8 +32,7 @@ public class AuthSecretInitializer {
     public void init() {
         JwtUtil.initCaptchaSecret(captchaSecret);
         JwtUtil.initJwtSecret(jwtSecret);
-        // 注册给 common 模块 WebSocket 握手使用，保证 WS 与 HTTP 执行同一套 JWT 签名校验
-        com.xuanchen.common.server.WsAuthBridge.registerTokenVerifier(JwtUtil::verify);
+        // WebSocket 握手校验器由 WsAuthInitializer 注册（完整认证链，不止 JWT 签名）
         if (captchaSecret == null || captchaSecret.isBlank()) {
             log.warn("未配置 xuanchen.captcha.secret（XUANCHEN_CAPTCHA_SECRET），验证码密钥已随机生成，多实例部署将互不通用");
         }

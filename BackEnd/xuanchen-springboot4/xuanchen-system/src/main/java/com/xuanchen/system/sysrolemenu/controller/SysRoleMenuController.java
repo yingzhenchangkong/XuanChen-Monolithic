@@ -1,7 +1,5 @@
 package com.xuanchen.system.sysrolemenu.controller;
 
-import com.alibaba.fastjson2.JSONArray;
-import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.xuanchen.common.entity.Result;
 import com.xuanchen.common.utils.StringUtil;
@@ -13,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import tools.jackson.databind.JsonNode;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -58,7 +57,19 @@ public class SysRoleMenuController {
         for (SysRoleMenu roleMenu : list) {
             String menuId = roleMenu.getMenuId();
             SysMenu sysMenu = menuMap.get(menuId);
-            if (sysMenu != null && StringUtil.isNotEmpty(sysMenu.getComponent())) {
+            if (sysMenu == null) {
+                continue;
+            }
+            // 回显条件 = "组件非空" 或 "叶子节点"：
+            // 1) 组件非空：普通页面菜单（含带子按钮的 C 菜单）；
+            // 2) 叶子节点：组件为空但确为叶子页面的菜单（如"待建"占位页、外链），
+            //    这类菜单保存成功、路由菜单栏也显示，但按旧条件会被过滤导致重新打开时不显示勾选；
+            //    按钮类型（F，叶子且无组件）同样借此正确回显。
+            // 3) 排除目录（isLeaf=0 且无组件）：目录进入 checkedKeys 会被树控件向下级联
+            //    勾选全部子节点，重新打开即"凭空"勾上未授权的子菜单。
+            // isLeaf 由菜单新增/编辑维护（有子节点回写 0，无子节点回写 1），可作可靠判据。
+            boolean isLeaf = Integer.valueOf(1).equals(sysMenu.getIsLeaf());
+            if (isLeaf || StringUtil.isNotEmpty(sysMenu.getComponent())) {
                 listStr.add(menuId);
             }
         }
@@ -77,20 +88,20 @@ public class SysRoleMenuController {
      */
     @PostMapping("/saveAuthMenu")
     @Transactional(rollbackFor = Exception.class)
-    public Result<String> saveAuthMenu(@RequestBody JSONObject jsonObject) {
-        JSONArray jsonArray = jsonObject.getJSONArray("menuIds");
-        String roleId = jsonObject.getString("roleId");
+    public Result<String> saveAuthMenu(@RequestBody JsonNode jsonObject) {
+        JsonNode jsonArray = jsonObject.get("menuIds");
+        String roleId = jsonObject.get("roleId").asText();
         if (StringUtil.isEmpty(roleId)) {
             return Result.badRequest("角色ID不能为空！");
         }
-        if (jsonArray == null) {
+        if (jsonArray == null || jsonArray.isEmpty()) {
             return Result.badRequest("菜单ID列表不能为空！");
         }
 
         // 去重、去空白（StringUtil.isNotEmpty 不识别纯空白，必须再判 trim）
         Set<String> requestMenuIds = new HashSet<>();
         for (int i = 0; i < jsonArray.size(); i++) {
-            String menuId = jsonArray.getString(i);
+            String menuId = jsonArray.get(i).asText();
             if (StringUtil.isNotEmpty(menuId) && !menuId.trim().isEmpty()) {
                 requestMenuIds.add(menuId.trim());
             }

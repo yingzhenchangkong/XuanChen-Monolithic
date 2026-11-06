@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>xuanchen-parent</artifactId>
+        <groupId>com.xuanchen</groupId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>xuanchen-boot</artifactId>
+    <description>启动入口：聚合各业务模块，提供主类与全局配置</description>
+    <packaging>jar</packaging>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.xuanchen</groupId>
+            <artifactId>xuanchen-auth</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.xuanchen</groupId>
+            <artifactId>xuanchen-system</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.xuanchen</groupId>
+            <artifactId>xuanchen-masterdata</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.xuanchen</groupId>
+            <artifactId>xuanchen-monitor</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.xuanchen</groupId>
+            <artifactId>xuanchen-filemanage</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.xuanchen</groupId>
+            <artifactId>xuanchen-online</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.xuanchen</groupId>
+            <artifactId>xuanchen-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.xuanchen</groupId>
+            <artifactId>xuanchen-generator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.xuanchen</groupId>
+            <artifactId>xuanchen-report</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.xuanchen</groupId>
+            <artifactId>xuanchen-visualization</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.xuanchen</groupId>
+            <artifactId>xuanchen-businessprocess</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.xuanchen</groupId>
+            <artifactId>xuanchen-ai</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- 仅此模块需要打成可执行 fat jar -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

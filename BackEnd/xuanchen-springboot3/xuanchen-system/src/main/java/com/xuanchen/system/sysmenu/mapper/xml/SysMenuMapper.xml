@@ -5,11 +5,11 @@
             resultType="com.xuanchen.system.sysmenu.entity.SysMenu">
         SELECT *
         FROM (SELECT DISTINCT sys_menu.*
-              FROM sys_user
-                       LEFT JOIN sys_user_role ON sys_user.id = sys_user_role.user_id
-                       LEFT JOIN sys_role_menu ON sys_user_role.role_id = sys_role_menu.role_id
+              FROM sys_account
+                       LEFT JOIN sys_account_role ON sys_account.id = sys_account_role.account_id
+                       LEFT JOIN sys_role_menu ON sys_account_role.role_id = sys_role_menu.role_id
                        LEFT JOIN sys_menu ON sys_role_menu.menu_id = sys_menu.id
-              WHERE sys_user.user_name = #{userName}
+              WHERE sys_account.user_name = #{userName}
               ORDER BY order_no ASC) sysmenu
         WHERE id IS NOT NULL
     </select>
@@ -17,11 +17,11 @@
     <select id="listAuthByUserId" resultType="String">
         SELECT *
         FROM (SELECT DISTINCT sys_menu.perms
-              FROM sys_user
-                       LEFT JOIN sys_user_role ON sys_user.id = sys_user_role.user_id
-                       LEFT JOIN sys_role_menu ON sys_user_role.role_id = sys_role_menu.role_id
+              FROM sys_account
+                       LEFT JOIN sys_account_role ON sys_account.id = sys_account_role.account_id
+                       LEFT JOIN sys_role_menu ON sys_account_role.role_id = sys_role_menu.role_id
                        LEFT JOIN sys_menu ON sys_role_menu.menu_id = sys_menu.id
-              WHERE sys_user.id = #{userId}) sysmenu
+              WHERE sys_account.id = #{userId}) sysmenu
         WHERE perms IS NOT NULL
           AND perms != ''
     </select>
@@ -31,13 +31,14 @@
         *
         FROM
         (SELECT * FROM sys_menu WHERE id NOT IN (#{sysMenu.id})) sys_menu
-        WHERE 1=1
-        <if test="sysMenu.name != '' and sysMenu.name != null">
-            AND name = #{sysMenu.name}
-        </if>
-        <if test="sysMenu.path != '' and sysMenu.path != null">
-            AND path = #{sysMenu.path}
-        </if>
+        <where>
+            <if test="sysMenu.name != '' and sysMenu.name != null">
+                AND name = #{sysMenu.name}
+            </if>
+            <if test="sysMenu.path != '' and sysMenu.path != null">
+                AND path = #{sysMenu.path}
+            </if>
+        </where>
     </select>
 
     <select id="ifExistsNoId" parameterType="com.xuanchen.system.sysmenu.entity.SysMenu" resultType="com.xuanchen.system.sysmenu.entity.SysMenu">
@@ -45,12 +46,13 @@
             *
         FROM
             sys_menu
-        WHERE 1=1
-        <if test="sysMenu.name != '' and sysMenu.name != null">
-            AND name = #{sysMenu.name}
-        </if>
-        <if test="sysMenu.path != '' and sysMenu.path != null">
-            AND path = #{sysMenu.path}
-        </if>
+        <where>
+            <if test="sysMenu.name != '' and sysMenu.name != null">
+                AND name = #{sysMenu.name}
+            </if>
+            <if test="sysMenu.path != '' and sysMenu.path != null">
+                AND path = #{sysMenu.path}
+            </if>
+        </where>
     </select>
 </mapper>

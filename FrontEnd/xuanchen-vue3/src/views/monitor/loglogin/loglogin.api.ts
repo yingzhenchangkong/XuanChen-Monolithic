@@ -1,6 +1,6 @@
 enum LogLoginApiUrl {
-  LIST = '/monitor/log/login/list',
-  EXPORT_EXCEL = '/monitor/log/login/exportExcel',
+  INDEX_LIST = '/monitor/log/login/list',
+  INDEX_EXPORT_EXCEL = '/monitor/log/login/exportExcel',
 }
 
 export { LogLoginApiUrl };

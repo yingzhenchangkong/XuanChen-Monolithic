@@ -36,7 +36,9 @@ const props = defineProps({
   // v-model 契约：服务端相对路径字符串数组，如 ['avatar/xxx_20260922.png']
   fileList: { type: Array as () => string[], default: () => [] },
   listType: { type: String, default: 'picture-card' }, // 自定义展示类型
-  maxCount: { type: Number, default: 5 } // 最大上传数量
+  maxCount: { type: Number, default: 5 }, // 最大上传数量
+  accept: { type: String, default: 'image/jpeg,image/png' }, // 允许的文件类型
+  maxSize: { type: Number, default: 2 } // 最大文件大小（MB）
 })
 /** 方法 */
 /** 去掉文件访问基址前缀，得到服务端相对路径；若是编码过的 URL 顺便解码回存储原文 */
@@ -108,15 +110,16 @@ const beforeUpload = (file: any) => {
     message.error(`最多只能上传 ${props.maxCount} 张图片`);
     return false;
   }
-  const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
-  if (!isJpgOrPng) {
-    message.error('请上传jpg/png图片');
+  const acceptTypes = props.accept.split(',').map(t => t.trim());
+  const isAccepted = acceptTypes.includes(file.type);
+  if (!isAccepted) {
+    message.error(`请上传${acceptTypes.map(t => t.split('/')[1]).join('/')}图片`);
   }
-  const isLt2M = file.size / 1024 / 1024 < 2;
-  if (!isLt2M) {
-    message.error('请上传小于2M的图片');
+  const isLtMaxSize = file.size / 1024 / 1024 < props.maxSize;
+  if (!isLtMaxSize) {
+    message.error(`请上传小于${props.maxSize}M的图片`);
   }
-  return isJpgOrPng && isLt2M;
+  return isAccepted && isLtMaxSize;
 };
 
 // 自定义上传：在“真正发请求前”读取最新 token（token 存于 sessionStorage，非响应式，

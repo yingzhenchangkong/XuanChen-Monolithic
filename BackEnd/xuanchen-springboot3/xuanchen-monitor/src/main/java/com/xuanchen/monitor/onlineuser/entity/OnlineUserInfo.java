@@ -41,4 +41,12 @@ public class OnlineUserInfo implements Serializable {
      * 令牌
      */
     private String token;
+    /**
+     * 登录 IP
+     */
+    private String ip;
+    /**
+     * 终端类型（PC / 移动端 / 未知）
+     */
+    private String deviceType;
 }

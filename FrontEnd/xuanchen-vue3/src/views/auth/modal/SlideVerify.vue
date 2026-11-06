@@ -26,8 +26,10 @@
         <div class="slider-track" :style="{ width: captchaConfig.imageWidth + 'px' }">
           <div class="slider" :style="{ left: sliderLeft + 'px' }" :class="{ dragging: isDragging }"
             @mousedown="startDrag" @touchstart="startDrag">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="12 5 15 8 9 14 12 17"></polyline>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="18" y2="12"></line>
+              <polyline points="12 6 18 12 12 18"></polyline>
             </svg>
           </div>
           <span class="track-tip">拖动滑块完成验证</span>
@@ -233,9 +235,6 @@ defineExpose({
 
 .slider-preview {
   position: absolute;
-  overflow: hidden;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   pointer-events: none;
 }
 

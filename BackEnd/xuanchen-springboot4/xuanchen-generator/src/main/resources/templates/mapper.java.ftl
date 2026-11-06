@@ -1,14 +1,8 @@
 package ${package.Mapper};
 
-import ${package.Entity}.${entity};
 import ${superMapperClassPackage};
-
-<#list importPackages as pkg>
-    import ${pkg};
-</#list>
-<#if mapperAnnotationClass??>
-    import ${mapperAnnotationClass.name};
-</#if>
+import ${package.Entity}.${entity};
+import org.springframework.stereotype.Repository;
 
 /**
 * Mapper --> ${table.comment!}
@@ -17,13 +11,10 @@ import ${superMapperClassPackage};
 * @date ${date}
 */
 @Repository
-<#if mapperAnnotationClass??>
-    @${mapperAnnotationClass.simpleName}
-</#if>
 <#if kotlin>
-    interface ${table.mapperName} : ${superMapperClass}<${entity}> {
+interface ${table.mapperName} : ${superMapperClass}<${entity}> {
 <#else>
-    public interface ${table.mapperName} extends ${superMapperClass}<${entity}> {
+public interface ${table.mapperName} extends ${superMapperClass}<${entity}> {
 </#if>
 
 <#list mapperMethodList as m>
@@ -37,4 +28,3 @@ import ${superMapperClassPackage};
     ${m.method}
 </#list>
 }
-

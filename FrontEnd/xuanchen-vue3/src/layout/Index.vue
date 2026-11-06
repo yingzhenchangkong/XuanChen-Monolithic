@@ -6,6 +6,8 @@
       <Content />
     </a-layout>
   </a-layout>
+  <!-- 全局 AI 助手：悬浮球全页面可见（组件由 unplugin-vue-components 自动引入） -->
+  <XCAiAssistant />
 </template>
 
 <script lang="ts" setup>

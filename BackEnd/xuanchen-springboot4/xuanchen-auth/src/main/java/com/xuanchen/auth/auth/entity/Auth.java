@@ -15,7 +15,7 @@ import java.io.Serializable;
  * @date 2025-03-13
  */
 @Data
-@TableName("sys_user")
+@TableName("sys_account")
 public class Auth implements Serializable {
     private static final long serialVersionUID = 1L;
     /**
@@ -27,10 +27,6 @@ public class Auth implements Serializable {
      */
     private String userName;
     /**
-     * 昵称
-     */
-    private String nickName;
-    /**
      * 密码（入站仅接收登录明文；BCrypt 哈希等内部值禁止随任何响应返回）
      */
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
@@ -39,18 +35,6 @@ public class Auth implements Serializable {
      * 是否要求下次登录修改密码（1是 0否）
      */
     private Integer pwdResetRequired;
-    /**
-     * 手机号
-     */
-    private String mobile;
-    /**
-     * 邮箱
-     */
-    private String email;
-    /**
-     * 头像
-     */
-    private String avatar;
     /**
      * 账号状态（1正常，2冻结）
      */
@@ -82,4 +66,17 @@ public class Auth implements Serializable {
      */
     @TableField(exist = false)
     private String resetToken;
+    /**
+     * 记住我（登录时前端传入，控制是否签发 7 天刷新令牌，非数据库字段）
+     */
+    @TableField(exist = false)
+    private Boolean rememberMe;
+    /**
+     * 昵称（对应 sys_account.nick_name：系统内展示名）
+     */
+    private String nickName;
+    /**
+     * 邮箱（对应 sys_account.email：找回密码/通知的账号凭证）
+     */
+    private String email;
 }

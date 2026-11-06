@@ -49,16 +49,17 @@
         *
         FROM
         (SELECT * FROM sys_config WHERE id NOT IN (#{sysConfig.id})) sys_config
-        WHERE 1=1
-        <if test="sysConfig.configName != '' and sysConfig.configName != null">
-            AND config_name = #{sysConfig.configName}
-        </if>
-        <if test="sysConfig.configKey != '' and sysConfig.configKey != null">
-            AND config_key = #{sysConfig.configKey}
-        </if>
-        <if test="sysConfig.configValue != '' and sysConfig.configValue != null">
-            AND config_value = #{sysConfig.configValue}
-        </if>
+        <where>
+            <if test="sysConfig.configName != '' and sysConfig.configName != null">
+                AND config_name = #{sysConfig.configName}
+            </if>
+            <if test="sysConfig.configKey != '' and sysConfig.configKey != null">
+                AND config_key = #{sysConfig.configKey}
+            </if>
+            <if test="sysConfig.configValue != '' and sysConfig.configValue != null">
+                AND config_value = #{sysConfig.configValue}
+            </if>
+        </where>
     </select>
 
     <select id="ifExistsNoId" parameterType="com.xuanchen.system.sysconfig.entity.SysConfig" resultType="com.xuanchen.system.sysconfig.entity.SysConfig">
@@ -66,15 +67,16 @@
             *
         FROM
             sys_config
-        WHERE 1=1
-        <if test="sysConfig.configName != '' and sysConfig.configName != null">
-            AND config_name = #{sysConfig.configName}
-        </if>
-        <if test="sysConfig.configKey != '' and sysConfig.configKey != null">
-            AND config_key = #{sysConfig.configKey}
-        </if>
-        <if test="sysConfig.configValue != '' and sysConfig.configValue != null">
-            AND config_value = #{sysConfig.configValue}
-        </if>
+        <where>
+            <if test="sysConfig.configName != '' and sysConfig.configName != null">
+                AND config_name = #{sysConfig.configName}
+            </if>
+            <if test="sysConfig.configKey != '' and sysConfig.configKey != null">
+                AND config_key = #{sysConfig.configKey}
+            </if>
+            <if test="sysConfig.configValue != '' and sysConfig.configValue != null">
+                AND config_value = #{sysConfig.configValue}
+            </if>
+        </where>
     </select>
 </mapper>

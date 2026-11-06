@@ -1,8 +1,8 @@
 package com.xuanchen.system.sysconfig.entity;
 
-import cn.idev.excel.annotation.ExcelIgnore;
-import cn.idev.excel.annotation.ExcelProperty;
-import cn.idev.excel.annotation.write.style.ColumnWidth;
+import org.apache.fesod.sheet.annotation.ExcelIgnore;
+import org.apache.fesod.sheet.annotation.ExcelProperty;
+import org.apache.fesod.sheet.annotation.write.style.ColumnWidth;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
@@ -63,13 +63,13 @@ public class SysConfig implements Serializable {
      * 状态（1启用，0停用）
      */
     @ExcelIgnore
-    private Boolean status;
+    private Integer status;
     /**
      * 删除状态（0正常，1已删除）
      */
     @ExcelIgnore
     @TableLogic
-    private Boolean delFlag;
+    private Integer delFlag;
     /**
      * 创建者
      */

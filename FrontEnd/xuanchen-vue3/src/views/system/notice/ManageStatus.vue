@@ -17,7 +17,7 @@ const props = defineProps({
 
 /** url */
 const url = {
-  list: NoticeApiUrl.LIST_MANAGE_STATUS,
+  list: NoticeApiUrl.INDEX_MANAGE_STATUS,
 }
 
 watch(() => props.mainId, (newVal, oldVal) => {

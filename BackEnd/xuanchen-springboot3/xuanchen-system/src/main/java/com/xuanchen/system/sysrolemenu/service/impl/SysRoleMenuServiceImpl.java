@@ -1,6 +1,6 @@
 package com.xuanchen.system.sysrolemenu.service.impl;
 
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import com.xuanchen.system.sysrolemenu.entity.SysRoleMenu;
 import com.xuanchen.system.sysrolemenu.mapper.SysRoleMenuMapper;
 import com.xuanchen.system.sysrolemenu.service.ISysRoleMenuService;

@@ -1,6 +1,6 @@
 package com.xuanchen.system.sysdict.service.impl;
 
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import com.xuanchen.system.sysdict.entity.SysDict;
 import com.xuanchen.system.sysdict.mapper.SysDictMapper;
 import com.xuanchen.system.sysdict.service.ISysDictService;

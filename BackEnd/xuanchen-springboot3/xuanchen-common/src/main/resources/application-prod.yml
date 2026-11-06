@@ -1,0 +1,42 @@
+# ============================================================
+# 生产环境（SPRING_PROFILES_ACTIVE=prod）
+# 敏感配置全部来自环境变量且无默认值，缺失即启动失败（fail-fast），
+# 严禁在本文件或任何代码中写入真实口令
+# ============================================================
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+  data:
+    redis:
+      host: ${SPRING_REDIS_HOST}
+      port: ${SPRING_REDIS_PORT:6379}
+      database: ${SPRING_REDIS_DATABASE:0}
+      # 启用了 requirepass 的 Redis 必须注入口令；无口令 Redis 时显式置空
+      password: ${SPRING_REDIS_PASSWORD}
+
+xuanchen:
+  security:
+    # 生产必须按真实拓扑显式配置反向代理网段，例如 127.0.0.1/8,10.1.0.0/16；
+    # 留空是安全兜底（只认 RemoteAddr），但经过代理时所有请求都会记成代理 IP
+    trusted-proxies: ${XUANCHEN_TRUSTED_PROXIES:}
+  cors:
+    # 必须显式配置前端站点精确来源（逗号分隔），例如 https://admin.example.com
+    allowed-origins: ${XUANCHEN_CORS_ALLOWED_ORIGINS}
+  captcha:
+    secret: ${XUANCHEN_CAPTCHA_SECRET}
+  jwt:
+    # 登录态 JWT 签名密钥：必填、无默认值；多实例须配置同一高强度随机串
+    secret: ${XUANCHEN_JWT_SECRET}
+  crypto:
+    # 数据源连接密码 AES 密钥：必填、无默认值，多实例须保持一致，轮换密钥前需先迁移存量密文
+    datasource-key: ${XUANCHEN_DATASOURCE_SECRET}
+  generator:
+    # 代码生成输出目录：页面用「选择目录」挑选，留空 = 不限制（无需任何配置）。
+    # 生产环境强烈建议配置为一个或多个绝对路径（逗号分隔）：配置后目录选择器只能在该范围内浏览，
+    # 写入路径也必须在白名单之下。禁止填入 "/"、"C:/" 等过大范围根
+    allowed-output-roots: ${XUANCHEN_GEN_OUTPUT_ROOTS:}
+    # 生产默认禁止覆盖任何已存在文件；仅在确认风险后对单实例临时开启
+    allow-file-override: ${XUANCHEN_GEN_ALLOW_OVERRIDE:false}

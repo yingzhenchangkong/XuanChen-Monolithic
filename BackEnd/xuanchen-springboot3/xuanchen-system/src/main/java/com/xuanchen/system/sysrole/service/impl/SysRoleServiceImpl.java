@@ -2,12 +2,13 @@ package com.xuanchen.system.sysrole.service.impl;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import com.xuanchen.system.sysrole.entity.SysRole;
 import com.xuanchen.system.sysrole.mapper.SysRoleMapper;
 import com.xuanchen.system.sysrole.service.ISysRoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service接口实现类-->角色
@@ -25,7 +26,12 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         return page.setRecords(sysRoleMapper.listRecycleBin(page, sysRole));
     }
 
+    /**
+     * 回收站彻底删除：物理删除角色主表、用户-角色关系、角色-菜单关系必须原子完成，
+     * 中途异常整体回滚，避免角色已删但授权关系残留（孤儿数据）
+     */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void deleteRecycleBin(String ids) {
         String[] idArray = ids.split(",");
         sysRoleMapper.deleteRecycleBin(idArray);

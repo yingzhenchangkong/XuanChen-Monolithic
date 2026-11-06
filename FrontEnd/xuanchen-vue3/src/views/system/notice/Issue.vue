@@ -6,7 +6,7 @@
       </a-form-item>
       <a-form-item name="listUser" label="接收人" :labelCol="labelCol" :wrapperCol="wrapperCol">
         <a-select v-model:value="model.listUser" style="width: 100%" :options="optionsUser" mode="multiple"
-          :fieldNames="{ label: 'nickName', value: 'userName' }" placeholder="请选择接收人" allowClear>
+          :fieldNames="{ label: 'userName', value: 'userName' }" placeholder="请选择接收人" allowClear>
         </a-select>
       </a-form-item>
       <a-form-item name="content" label="通知内容" :labelCol="labelCol" :wrapperCol="wrapperCol" class="editor-wrapper">
@@ -23,7 +23,7 @@
 import { reactive, ref } from 'vue';
 import type { Rule } from 'ant-design-vue/es/form';
 import { message } from 'ant-design-vue';
-import { getUserSelect } from '../user/user.api';
+import { getUserSelect } from '../account/account.api';
 
 // Quill 局部导入组件和样式
 import { QuillEditor } from '@vueup/vue-quill'

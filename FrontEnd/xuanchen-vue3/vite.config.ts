@@ -9,6 +9,13 @@ import Components from 'unplugin-vue-components/vite'
 import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers'
 
 /**
+ * 全量菜单图标名（图标虚拟模块与 dev 预构建共用同一份清单）
+ */
+const MENU_ICON_NAMES: string[] = JSON.parse(
+  readFileSync(fileURLToPath(new URL('./src/components/iconpicker/icon.json', import.meta.url)), 'utf-8')
+)
+
+/**
  * 虚拟模块 virtual:ant-icons-all：
  * 仅“菜单动态图标解析”和“图标选择器”需要按名字访问全量 antd 图标。
  * 从桶模块 import * 会把全量 700+ 图标钉死在引用它的初始 chunk 中，
@@ -18,12 +25,9 @@ import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers'
 const VIRTUAL_ICONS_ID = 'virtual:ant-icons-all'
 const antIconsVirtual = (): Plugin => {
   const resolvedId = '\0' + VIRTUAL_ICONS_ID
-  const iconNames: string[] = JSON.parse(
-    readFileSync(fileURLToPath(new URL('./src/components/iconpicker/icon.json', import.meta.url)), 'utf-8')
-  )
   const code = [
-    ...iconNames.map((name) => `import ${name} from '@ant-design/icons-vue/es/icons/${name}.js'`),
-    `export const icons = { ${iconNames.join(', ')} }`,
+    ...MENU_ICON_NAMES.map((name) => `import ${name} from '@ant-design/icons-vue/es/icons/${name}.js'`),
+    `export const icons = { ${MENU_ICON_NAMES.join(', ')} }`,
   ].join('\n')
   return {
     name: 'ant-icons-virtual',
@@ -82,7 +86,51 @@ export default defineConfig(({ command, mode }) => {
       },
     },
     envPrefix: "APP_",
+    optimizeDeps: {
+      // 运行期才会被发现的依赖必须全部在启动期声明，否则首次进入对应页面时
+      // Vite 才发现“新依赖”，触发重新预构建并通过 HMR 强制整页 full-reload——
+      // 表现为：登录后首次点击菜单长时间无响应，几秒后页面自动刷新，再点才正常。
+      include: [
+        // ① 菜单图标：虚拟模块 virtual:ant-icons-all 是内存生成的，启动期的 esbuild
+        //    依赖扫描器扫不到它内部 788 条 @ant-design/icons-vue 深路径裸导入。
+        ...MENU_ICON_NAMES.map((name) => `@ant-design/icons-vue/es/icons/${name}.js`),
+        // ② unplugin-vue-components 的模板自动引入同样对扫描器不可见：
+        //    AntDesignVueResolver(v4) 注入的是 'ant-design-vue/es' 桶模块（全部组件共用
+        //    该入口）与日期组件内部的 'ant-design-vue/es/date-picker/dayjs'。
+        'ant-design-vue/es',
+        'ant-design-vue/es/locale/zh_CN',
+        'ant-design-vue/es/date-picker/dayjs',
+        // ③ 仅在懒加载页面/钩子中出现的依赖：首页图表、富文本编辑器、表格拖拽、
+        //    日期语言包等。静态扫描虽可能命中部分，但显式声明可确保冷缓存首次启动
+        //    即完成预构建，不依赖”曾被访问过”的缓存学习。
+        //    注意：echarts 实际使用的是按需引入的子路径入口（echarts/core 等），
+        //    它们与 'echarts' 桶模块是不同的预构建条目，必须分别声明。
+        'echarts/core',
+        'echarts/charts',
+        'echarts/components',
+        'echarts/renderers',
+        '@vueup/vue-quill',
+        'quill',
+        'sortablejs',
+        'dayjs',
+        'dayjs/locale/zh-cn',
+        'axios',
+        // ④ 思维导图：精简入口 index.js 与按需注册的 Export 插件是两条独立的
+        //    预构建入口，显式声明避免首次进入编辑器才触发重新预构建 / 整页刷新
+        'simple-mind-map',
+        'simple-mind-map/src/plugins/Export.js',
+      ],
+    },
     server: {
+      // 开发期预热：dev server 启动后即后台转换布局与全部视图模块（懒加载路由
+      // 正是按需即时编译的，首次点击菜单要等整条模块链转换完才会渲染）。
+      // 预热后首次点击与后续点击体感一致；warmup 以低优先级运行，不影响页面可用。
+      warmup: {
+        clientFiles: [
+          './src/layout/**/*.vue',
+          './src/views/**/*.vue',
+        ],
+      },
       port: 8060,
       proxy: {
         // 浏览器始终同源请求 /api/**，由 dev server 转发到后端并去掉 /api 前缀，

@@ -17,8 +17,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -49,13 +47,9 @@ public class SecurityConfig {
     private String allowedOrigins;
 
     /**
-     * 密码编码器：BCrypt强哈希算法
-     * 所有密码必须通过此编码器加密
+     * 密码编码器已迁至 {@link PasswordConfig}：避免业务层 PasswordCodec 经
+     * PasswordEncoder 回指持有过滤器的 SecurityConfig 而形成 Bean 构造循环
      */
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
@@ -78,6 +72,8 @@ public class SecurityConfig {
                         //找回密码三步公开接口：发送邮箱验证码/校验验证码换令牌/凭令牌重置
                         //（发信强制滑块+IP频控，重置凭一次性令牌，均不暴露账号是否存在）
                         .requestMatchers("/password/**").permitAll()
+                        //刷新令牌：凭 httpOnly Cookie 中的刷新令牌签发新访问令牌，无需认证
+                        .requestMatchers("/auth/refresh").permitAll()
                         //验证码接口
                         .requestMatchers("/captcha/**").permitAll()
                         //系统配置（登录页按key读取公开配置项）
@@ -86,6 +82,15 @@ public class SecurityConfig {
                         //上传(POST)仍需认证。路径穿越已由 FileSecurityUtil 规范化 containment 校验拦截，
                         //新文件名为服务端随机 UUID，不能通过猜测枚举
                         .requestMatchers(HttpMethod.GET, "/filemanage/static/**").permitAll()
+                        //文件共享公开访问：shareNo 为 32 位随机 UUID 不可枚举，可选提取码，
+                        //撤销/过期/源文件删除即时失效，下载为现签预签名 URL（详见 FileShareServiceImpl）
+                        .requestMatchers("/share/**").permitAll()
+                        //数据接口服务公开分发器：/open/api/{code}，接口级鉴权由
+                        //api.api_key（X-Api-Key 头/apiKey 参数）自行控制，未配置密钥即内部免鉴权
+                        .requestMatchers("/open/api/**").permitAll()
+                        //ONLYOFFICE 协同编辑：文档下发（短时效签名令牌）与保存回调（回调体验签）
+                        .requestMatchers("/office/download").permitAll()
+                        .requestMatchers("/office/callback").permitAll()
                         //WebSocket
                         .requestMatchers("/ws").permitAll()
                         //管理类URL前缀：仅管理员角色可访问（方法级 @PreAuthorize 之外的第二道防线）
@@ -98,9 +103,9 @@ public class SecurityConfig {
                                 "/system/role/**",
                                 "/system/dept/**",
                                 "/system/post/**",
-                                "/system/userrole/**",
-                                "/system/userdept/**",
-                                "/system/userpost/**",
+                                "/system/accountrole/**",
+                                "/system/persondept/**",
+                                "/system/personpost/**",
                                 "/system/rolemenu/**"
                         ).hasRole("admin")
                         //其他请求需要认证

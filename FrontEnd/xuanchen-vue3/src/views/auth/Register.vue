@@ -55,7 +55,6 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue';
 import { reactive, ref } from 'vue';
-import { UserOutlined, LockOutlined, SmileOutlined, MailOutlined } from '@ant-design/icons-vue';
 import router from '@/router';
 import SlideVerify from './modal/SlideVerify.vue';
 import { register } from './auth.api';

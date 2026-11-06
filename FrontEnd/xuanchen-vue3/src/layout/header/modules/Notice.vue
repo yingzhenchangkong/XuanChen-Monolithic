@@ -9,6 +9,7 @@
 
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted } from 'vue';
+import { notification } from 'ant-design-vue';
 import { getAction } from '@/utils/httpAction';
 import { useAuthStore, useWebSocketStore } from '@/stores';
 import router from '@/router';
@@ -17,6 +18,13 @@ import router from '@/router';
 interface WsNoticeItem {
   userName?: string;
   count?: number;
+}
+
+/** 工作流推送载荷（bpmTask 新审批任务 / bpmUrge 催办 / bpmCc 抄送知会） */
+interface BpmWsMessage {
+  type?: string;
+  userName?: string;
+  title?: string;
 }
 
 const userStore = useAuthStore();
@@ -36,11 +44,33 @@ getNoticeCount();
 const handleMessage = (data: unknown) => {
   // 直接读响应式 store 的当前用户名，不再手动解析 sessionStorage
   const currentUserName = userStore.getUserInfo()?.userName;
+  // 工作流业务推送（对象载荷，与通知角标的数组载荷互不干扰）
+  if (data && !Array.isArray(data)) {
+    handleBpmMessage(data as BpmWsMessage);
+    return;
+  }
   if (!Array.isArray(data)) return;
   (data as WsNoticeItem[]).forEach((element) => {
     if (element.userName === currentUserName) {
       count.value = element.count ?? 0;
     }
+  });
+};
+
+/** 工作流推送 → 右下角实时提醒 */
+const handleBpmMessage = (payload: BpmWsMessage) => {
+  const typeMap: Record<string, { title: string }> = {
+    bpmTask: { title: '新的审批任务' },
+    bpmUrge: { title: '审批催办' },
+    bpmCc: { title: '抄送知会' },
+  };
+  const meta = payload.type ? typeMap[payload.type] : undefined;
+  if (!meta) return;
+  notification.info({
+    message: meta.title,
+    description: payload.title || '',
+    placement: 'bottomRight',
+    duration: 6,
   });
 };
 

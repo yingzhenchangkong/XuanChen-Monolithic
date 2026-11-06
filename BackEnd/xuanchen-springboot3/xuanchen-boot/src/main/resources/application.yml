@@ -1,0 +1,57 @@
+server:
+  port: ${SERVER_PORT:8080}
+spring:
+  profiles:
+    # 默认本地开发；生产部署通过环境变量 SPRING_PROFILES_ACTIVE=prod 切换。
+    # common=公共配置；ai=xuanchen-ai 模块自带配置（application-ai.yml，配置归属跟随模块）
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+    include: common, ai
+xuanchen:
+  sys:
+    # 统一数据源口令 AES 密钥：生产必须通过环境变量 XC_SYS_ENCRYPT_KEY 覆盖（16/24/32 字节）。
+    # 未覆盖时使用内置开发密钥，启动会打 WARN，切勿在生产沿用。
+    encrypt-key: ${XC_SYS_ENCRYPT_KEY:XuanChen@Report!}
+  query:
+    # 报表/接口管理/数据大屏统一取数限额：由 JDBC setMaxRows 强制，跨方言一致
+    max-rows: ${XC_QUERY_MAX_ROWS:2000}
+    timeout-seconds: ${XC_QUERY_TIMEOUT:30}
+  api:
+    # 匿名分发接口 /open/api/{code} 每分钟调用上限（按接口编码计数，0=不限）
+    invoke-rate-limit: ${XC_API_INVOKE_RATE_LIMIT:120}
+  path:
+    #文件上传根目录：默认应用工作目录下的 upFiles（不依赖运行盘根目录写权限，换机器/容器可用）；
+    #生产环境用环境变量 XUANCHEN_UPLOAD_PATH 显式指定（如挂载卷 /data/upFiles）
+    upload: ${XUANCHEN_UPLOAD_PATH:${user.dir}/upFiles}
+  upload:
+    #单个上传文件大小上限（org.springframework.util.unit.DataSize 格式）——头像等图片上传（/filemanage/upload）
+    max-size: ${XUANCHEN_UPLOAD_MAX_SIZE:5MB}
+  storage:
+    #文件中心存储类型：minio=对象存储（默认）。本机 MinIO 跑在 Docker 容器里（容器名 minio，
+    #控制台 http://localhost:9001，数据卷 D:/data/minio），日常启停：docker start|stop minio；
+    #首次部署与拉镜像命令见 README「八、本地开发环境」。
+    #local=本地磁盘兜底（不依赖 MinIO）。MinIO 不可用时上传直接报错，不静默降级。
+    type: ${XUANCHEN_STORAGE_TYPE:minio}
+    default-bucket: xc-attach
+    public-bucket: xc-public
+    minio:
+      endpoint: ${XUANCHEN_MINIO_ENDPOINT:http://127.0.0.1:9000}
+      access-key: ${XUANCHEN_MINIO_AK:minioadmin}
+      secret-key: ${XUANCHEN_MINIO_SK:minioadmin}
+      #预签名 URL 有效期（分钟）
+      preset-expiry-minutes: 30
+  fileinfo:
+    #文件中心通用上传大小上限——独立于头像的 xuanchen.upload.max-size
+    max-size: ${XUANCHEN_FILEINFO_MAX_SIZE:50MB}
+    #回收站保留天数：超期由每日定时任务（fileinfo.clean-cron）彻底删除并清理存储对象
+    recycle-keep-days: ${XUANCHEN_RECYCLE_KEEP_DAYS:30}
+    #清理任务执行时间（cron）
+    clean-cron: ${XUANCHEN_FILE_CLEAN_CRON:0 0 3 * * ?}
+    #未单独设置配额用户的默认配额（字节，0=不限制）；可在“配额管理”页按用户覆盖
+    default-quota-bytes: ${XUANCHEN_FILE_DEFAULT_QUOTA:1073741824}
+  office:
+    #ONLYOFFICE Docs（Document Server）基地址：本机以 Docker 容器运行（容器名 onlyoffice，端口 8082）
+    ds-url: ${XUANCHEN_OFFICE_DS_URL:http://localhost:8082}
+    #JWT 密钥：必须与 Document Server 的 JWT_SECRET 完全一致（编辑器配置/回调互签）
+    jwt-secret: ${XUANCHEN_OFFICE_JWT_SECRET:xc-office-secret-change-me}
+    #Document Server 回调/拉取文档时访问本后端的基地址：DS 在容器里，须用 host.docker.internal 访问宿主机
+    public-base-url: ${XUANCHEN_OFFICE_PUBLIC_BASE_URL:http://host.docker.internal:8080}

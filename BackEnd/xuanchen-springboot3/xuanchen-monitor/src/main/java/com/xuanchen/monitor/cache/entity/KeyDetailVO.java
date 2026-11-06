@@ -24,7 +24,8 @@ public class KeyDetailVO {
     private Long ttl;
     /**
      * 存储对象的大小信息
-     * 用于记录当前实例的尺寸或容量值
+     * string 类型为值的字节数；list/set/zset/hash 为元素个数
+     * （用 Long 避免大集合超过 Integer 上限）
      */
-    private Integer size;
+    private Long size;
 }

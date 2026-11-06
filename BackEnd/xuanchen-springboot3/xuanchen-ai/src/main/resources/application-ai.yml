@@ -1,0 +1,33 @@
+# ===================================================================
+# xuanchen-ai 模块配置（profile 文件，由 xuanchen-boot 的
+# spring.profiles.include 中的 "ai" 激活；文件名 application-ai.yml 全局唯一）
+# AI 模块（LangChain4j + 本地 Ollama + pgvector）：全部本地推理，数据不出内网
+# 与 sb4 版保持同构
+# ===================================================================
+xuanchen:
+  ai:
+    chat:
+      # Ollama 服务地址与对话模型
+      base-url: ${AI_OLLAMA_URL:http://localhost:11434}
+      model: ${AI_CHAT_MODEL:gemma4}
+      temperature: 0.7
+      # 本地 CPU 推理较慢，超时放宽到 5 分钟
+      timeout-seconds: 300
+    embed:
+      base-url: ${AI_OLLAMA_URL:http://localhost:11434}
+      model: ${AI_EMBED_MODEL:bge-m3}
+    vector:
+      # 独立 PostgreSQL(pgvector) 向量库，库 xuanchen-kb
+      host: ${AI_PG_HOST:localhost:5432}
+      database: ${AI_PG_DATABASE:xuanchen-kb}
+      user: ${AI_PG_USER:postgres}
+      # 本地开发默认值，生产必须用环境变量 AI_PG_PASSWORD 注入
+      password: ${AI_PG_PASSWORD:Admin123}
+      table: ai_chunk
+      dimension: 1024
+      max-pool-size: 5
+    rag:
+      max-results: 5
+      min-score: 0.6
+      chunk-size: 500
+      chunk-overlap: 50

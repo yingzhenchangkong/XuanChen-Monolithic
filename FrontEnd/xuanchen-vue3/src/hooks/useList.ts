@@ -125,7 +125,7 @@ export const useList = <T = Record<string, unknown>, Q extends PageQuery = PageQ
     }
   }
   /** 批量删除 */
-  const handledeleteBatch = async () => {
+  const handleDeleteBatch = async () => {
     if (!url.deleteBatch) {
       message.error('请设置url.deleteBatch属性!');
       return;
@@ -266,7 +266,7 @@ export const useList = <T = Record<string, unknown>, Q extends PageQuery = PageQ
   return {
     url, queryParams, loadData,
     operationTitle, refOperation,
-    handleAdd, handleEdit, handleDelete, handledeleteBatch, handleImport, handleExport, handleRevert, handleRevertBatch,
+    handleAdd, handleEdit, handleDelete, handleDeleteBatch, handleImport, handleExport, handleRevert, handleRevertBatch,
     dataSource, loading, ipagination, handleTableChange, state, onSelectChange, handleCancelSelect
   }
 }

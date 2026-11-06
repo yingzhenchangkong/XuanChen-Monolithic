@@ -18,7 +18,11 @@
         <dependency>
             <groupId>com.xuanchen</groupId>
             <artifactId>xuanchen-common</artifactId>
-            <version>${xuanchen.version}</version>
+        </dependency>
+        <!-- MinIO 对象存储 SDK（纯 Java，无 native 依赖），版本由父 POM 统一管理 -->
+        <dependency>
+            <groupId>io.minio</groupId>
+            <artifactId>minio</artifactId>
         </dependency>
     </dependencies>
 

@@ -3,7 +3,6 @@ package com.xuanchen.auth.auth.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.xuanchen.auth.auth.entity.Auth;
 import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -22,12 +21,6 @@ public interface AuthMapper extends BaseMapper<Auth> {
      * @param userName 用户名
      * @return 角色编码集合
      */
-    @Select("SELECT DISTINCT r.role_code " +
-            "FROM sys_user u " +
-            "INNER JOIN sys_user_role ur ON u.id = ur.user_id " +
-            "INNER JOIN sys_role r ON ur.role_id = r.id " +
-            "WHERE u.user_name = #{userName} " +
-            "AND u.del_flag = 0 AND r.del_flag = 0 AND r.status = 1")
     List<String> listRoleCodesByUserName(@Param("userName") String userName);
 
     /**
@@ -36,16 +29,6 @@ public interface AuthMapper extends BaseMapper<Auth> {
      * @param userName 用户名
      * @return 权限标识集合
      */
-    @Select("SELECT DISTINCT m.perms " +
-            "FROM sys_user u " +
-            "INNER JOIN sys_user_role ur ON u.id = ur.user_id " +
-            "INNER JOIN sys_role r ON ur.role_id = r.id " +
-            "INNER JOIN sys_role_menu rm ON r.id = rm.role_id " +
-            "INNER JOIN sys_menu m ON rm.menu_id = m.id " +
-            "WHERE u.user_name = #{userName} " +
-            "AND u.del_flag = 0 AND r.del_flag = 0 AND r.status = 1 " +
-            "AND m.del_flag = 0 AND m.status = 1 " +
-            "AND m.perms IS NOT NULL AND m.perms <> ''")
     List<String> listPermsByUserName(@Param("userName") String userName);
 
     /**
@@ -54,7 +37,21 @@ public interface AuthMapper extends BaseMapper<Auth> {
      * @param configKey 参数键
      * @return 参数值，不存在返回 null
      */
-    @Select("SELECT config_value FROM sys_config " +
-            "WHERE config_key = #{configKey} AND del_flag = 0 AND status = 1 LIMIT 1")
     String getConfigValueByKey(@Param("configKey") String configKey);
+
+    /**
+     * 查询登录所需账号信息（身份与凭证均在 sys_account）
+     *
+     * @param userName 用户名
+     * @return 包含账号身份与凭证字段的 Map
+     */
+    java.util.Map<String, Object> getUserWithProfile(@Param("userName") String userName);
+
+    /**
+     * 检查邮箱是否已被其他账号绑定（sys_account.email）
+     *
+     * @param email 邮箱
+     * @return 匹配条数
+     */
+    long countAccountByEmail(@Param("email") String email);
 }

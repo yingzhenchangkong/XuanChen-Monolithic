@@ -11,6 +11,13 @@ const RECONNECT_MAX_DELAY = 60000;
 /** 应用层心跳报文（浏览器 WebSocket API 无法发送协议级 Ping 帧，只能用文本消息） */
 const PING_MESSAGE = 'ping';
 const PONG_MESSAGE = 'pong';
+/**
+ * 服务端对"未认证/登录已过期/会话已被踢出"握手的关闭码：后端对缺少认证用户的连接、
+ * 以及管理员强制退出/密码重置等"会话已被终止"的连接，都以 CloseCodes.VIOLATED_POLICY(1008) 关闭。
+ * 与网络中断(常表现为 1006)不同，凭证/会话问题不会靠重试恢复，必须停止重连并走会话过期流程，
+ * 否则会拿着失效 token 按退避策略无限重连，持续制造被拒握手与日志噪音
+ */
+const WS_CLOSE_UNAUTHORIZED = 1008;
 
 /**
  * 连接生命周期诊断日志：仅开发环境输出，不进入生产包；
@@ -34,6 +41,16 @@ export const useWebSocketStore = defineStore('websocket', () => {
   /** 最近一次注册的消息处理器，重连后新连接继续沿用，无需调用方反复注册。
    *  推送报文结构由各业务自行收窄，store 层不假定形状，统一为 unknown */
   let messageHandler: ((data: unknown) => void) | null = null;
+  /**
+   * 鉴权过期处理器（由应用启动时注册，复用 HTTP 401 的统一处置：提示→关 WS→清会话→跳登录）。
+   * 通过钩子注入而不是直接 import httpRequest，避免 store 与请求层形成循环依赖。
+   * 入参为服务端下发的关闭原因（如"您已被管理员强制退出"），用于给出比"登录已过期"更准确的提示
+   */
+  let authExpiredHandler: ((reason?: string) => void) | null = null;
+
+  const setAuthExpiredHandler = (handler: (reason?: string) => void) => {
+    authExpiredHandler = handler;
+  };
 
   // 构造 WebSocket 地址，token 随握手查询参数传递
   // （浏览器 WebSocket API 不支持自定义请求头，后端按 Redis 会话校验该 token）
@@ -189,7 +206,7 @@ export const useWebSocketStore = defineStore('websocket', () => {
       console.error('【WebSocket消息】WebSocket错误:', error);
     };
 
-    socket.onclose = () => {
+    socket.onclose = (event) => {
       // 旧连接的迟到 close：清理工作已随新连接流程完成，直接忽略，
       // 不能清空当前 ws/停掉新连接心跳或再排一个重连
       if (ws !== socket) {
@@ -198,6 +215,16 @@ export const useWebSocketStore = defineStore('websocket', () => {
       log('【WebSocket消息】WebSocket连接已关闭!');
       ws = null;
       stopHeartbeat();
+      // 服务端明确判定凭证/会话失效（1008）：重试不会恢复，终止重连并交给会话过期统一流程。
+      // 该处理器内部幂等（HTTP 401 可能已先行触发），重复调用不会重复弹提示/跳转。
+      // event.reason 为服务端下发的关闭原因（如"您已被管理员强制退出"），透传给提示文案
+      if (event.code === WS_CLOSE_UNAUTHORIZED) {
+        isManualClose = true;
+        clearReconnectTimer();
+        log('【WebSocket消息】握手被服务端以未认证/会话失效(1008)拒绝，停止重连', event.reason);
+        authExpiredHandler?.(event.reason || undefined);
+        return;
+      }
       if (!isManualClose) {
         scheduleReconnect();
       }
@@ -228,5 +255,6 @@ export const useWebSocketStore = defineStore('websocket', () => {
     createConnection,
     closeConnection,
     sendMessage,
+    setAuthExpiredHandler,
   };
 });

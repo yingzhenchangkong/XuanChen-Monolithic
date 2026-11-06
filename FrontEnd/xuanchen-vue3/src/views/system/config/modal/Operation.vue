@@ -1,5 +1,5 @@
 <template>
-  <a-modal v-model:open="visible" :title="operationTitle" :width="500" @ok="handleOk" ok-text="确认" cancel-text="取消">
+  <XCModal v-model:open="visible" :title="operationTitle" :width="500" :show-fullscreen-btn="false" @ok="handleOk">
     <a-form layout="inline" :model="model" :rules="rules" ref="rulesRef" autoComplete="off" class="modal-form-style">
       <a-form-item name="configName" label="参数名称" :labelCol="labelCol" :wrapperCol="wrapperCol">
         <a-input v-model:value="model.configName" placeholder="请输入参数名称" allowClear />
@@ -8,8 +8,8 @@
         <a-input v-model:value="model.configDescription" placeholder="请输入参数描述" allowClear />
       </a-form-item>
       <a-form-item name="configType" label="参数类型" :labelCol="labelCol" :wrapperCol="wrapperCol">
-        <a-select v-model:value="model.configType" :options="optionsConfigType"
-          :fieldNames="{ label: 'dictItemText', value: 'dictItemValue' }" placeholder="请选择参数类型" allowClear></a-select>
+        <XCSelect v-model="model.configType" apiUrl="/system/dict/select" :params="{ dictCode: 'config_type' }"
+          :fieldNames="{ label: 'dictItemText', value: 'dictItemValue' }" placeholder="请选择参数类型" />
       </a-form-item>
       <a-form-item name="configKey" label="参数键名" :labelCol="labelCol" :wrapperCol="wrapperCol">
         <a-input v-model:value="model.configKey" placeholder="请输入参数键名" allowClear />
@@ -24,17 +24,17 @@
         <a-input-number v-model:value="model.orderNo" placeholder="请输入排序码" allowClear style="width: 100%" />
       </a-form-item>
     </a-form>
-  </a-modal>
+  </XCModal>
 </template>
 
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
 import type { Rule } from 'ant-design-vue/es/form';
 import { message } from 'ant-design-vue';
+import XCModal from '@/components/xuanchen/XCModal.vue';
 import type { ConfigModel } from '../config.types';
-import type { SelectOption } from '@/types/api';
 import { validateConfigNameApi, validateConfigKeyApi, saveOrUpdate } from '../config.api';
-import { getDictSelect } from '@/views/system/dict/dict.api';
+import XCSelect from '@/components/xuanchen/XCSelect.vue';
 
 defineProps({
   operationTitle: {
@@ -49,7 +49,6 @@ const wrapperCol = { span: 18 };
 const emit = defineEmits(['childOK']);
 
 const visible = ref(false);
-const optionsConfigType = ref<SelectOption[]>([]);
 
 const model = reactive<ConfigModel>({
   id: '',
@@ -135,12 +134,6 @@ const handleOk = async () => {
     // 网络/HTTP 错误已由响应拦截器统一提示，此处仅保持弹窗打开
   }
 };
-
-const getConfigType = async () => {
-  const res = await getDictSelect('config_type');
-  optionsConfigType.value = res;
-}
-getConfigType();
 
 //子组件方法默认为私有
 defineExpose({

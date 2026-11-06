@@ -1,12 +1,11 @@
 package com.xuanchen.monitor.onlineuser.service.impl;
 
-import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import com.xuanchen.common.constant.AuthConst;
 import com.xuanchen.common.service.IAuthServiceCommon;
+import com.xuanchen.common.utils.JsonUtils;
 import com.xuanchen.common.utils.RedisUtil;
 import com.xuanchen.common.utils.StringUtil;
 import com.xuanchen.monitor.onlineuser.entity.OnlineUserInfo;
@@ -60,10 +59,10 @@ public class OnlineUserInfoServiceImpl extends ServiceImpl<OnlineUserInfoMapper,
                         String metaStr = (String) metaObj;
                         if (metaStr.startsWith("{")) {
                             try {
-                                JSONObject meta = JSON.parseObject(metaStr);
-                                usernameFromMeta = meta.getString("username");
-                                ip = meta.getString("ip");
-                                deviceType = meta.getString("deviceType");
+                                Map<String, Object> meta = JsonUtils.parseToMap(metaStr);
+                                usernameFromMeta = (String) meta.get("username");
+                                ip = (String) meta.get("ip");
+                                deviceType = (String) meta.get("deviceType");
                             } catch (Exception ignored) {
                                 // 旧结构：值本身就是 token 字符串
                             }
@@ -75,7 +74,12 @@ public class OnlineUserInfoServiceImpl extends ServiceImpl<OnlineUserInfoMapper,
                             : userService.getUserNameByToken(token);
                     if (username != null) {
                         Map<String, Object> user = userService.getUserByUserName(username);
-                        if (user != null) {
+                        // 用户已不存在或账号已删除/冻结：其会话已不可能再通过认证，
+                        // 不展示在在线列表中，并回收残留会话键与孤儿索引，避免脏会话残留至 TTL
+                        if (user == null || isAccountInvalid(user)) {
+                            evictSession(token, username);
+                            log.warn("用户 {} 已删除/冻结，已清理其残留会话", username);
+                        } else {
                             OnlineUserInfo userInfo = new OnlineUserInfo();
                             userInfo.setId(Objects.toString(user.get("id"), ""));
                             userInfo.setUserName(Objects.toString(user.get("userName"), ""));
@@ -87,10 +91,6 @@ public class OnlineUserInfoServiceImpl extends ServiceImpl<OnlineUserInfoMapper,
                             userInfo.setIp(ip);
                             userInfo.setDeviceType(deviceType);
                             listOnlineUser.add(userInfo);
-                        } else {
-                            // 用户已删除但会话仍在 TTL 内：清理残留会话键，避免持续出现在扫描结果中
-                            redisUtil.del(key);
-                            log.warn("用户 {} 已不存在，已清理其残留会话键", username);
                         }
                     }
                 } catch (Exception e) {
@@ -107,5 +107,51 @@ public class OnlineUserInfoServiceImpl extends ServiceImpl<OnlineUserInfoMapper,
         int fromIndex = Math.min(total, (pageNo - 1) * pageSize);
         int toIndex = Math.min(total, fromIndex + pageSize);
         return page.setRecords(listOnlineUser.subList(fromIndex, toIndex));
+    }
+
+    /**
+     * 判断会话对应用户是否已失效（软删/冻结）。
+     * 仅在"明确标记为已删除或已冻结"时才回收会话；字段为 null 时视为有效——
+     * 避免因 Map 键映射差异或数据异常导致批量误驱逐（含调用者自身会话），
+     * 造成"刷新后被踢回登录页"的连锁故障。
+     * 兼容 camelCase 与 snake_case 两种 Map 键格式。
+     */
+    private boolean isAccountInvalid(Map<String, Object> user) {
+        Object delFlag = user.containsKey("delFlag") ? user.get("delFlag") : user.get("del_flag");
+        if (delFlag instanceof Number && ((Number) delFlag).intValue() != 0) {
+            return true;
+        }
+        Object status = user.containsKey("status") ? user.get("status") : user.get("status");
+        if (status instanceof Number && ((Number) status).intValue() != 1) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 回收失效会话的 Redis 键：令牌、同IP会话索引。
+     * 同 IP 索引只在仍指向本令牌、无值或指向的会话本体已不存在（孤儿索引）时删除；
+     * 该索引可能已被同 IP 新登录重新指向存活会话，误删会让新会话成为登录踢人扫不到的孤儿。
+     */
+    private void evictSession(String token, String username) {
+        redisUtil.del(AuthConst.PREFIX_USER_TOKEN + token);
+        Set<String> indexKeys = redisUtil.scanKeys(AuthConst.PREFIX_USER_BY_IP + username + "_*");
+        if (indexKeys == null || indexKeys.isEmpty()) {
+            return;
+        }
+        for (String indexKey : indexKeys) {
+            Object indexedToken = redisUtil.get(indexKey);
+            if (indexedToken == null) {
+                // 孤儿索引：无值
+                redisUtil.del(indexKey);
+                continue;
+            }
+            String indexed = indexedToken.toString();
+            if ((token != null && token.equals(indexed))
+                    || redisUtil.get(AuthConst.PREFIX_USER_TOKEN + indexed) == null) {
+                // 指向本次回收的令牌，或指向的会话本体已不存在：删除；其他存活会话的索引保留
+                redisUtil.del(indexKey);
+            }
+        }
     }
 }

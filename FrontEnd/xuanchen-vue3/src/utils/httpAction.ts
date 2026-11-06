@@ -15,16 +15,28 @@ const requestJson = <T>(config: AxiosRequestConfig): Promise<Result<T>> => {
   return service(config) as unknown as Promise<Result<T>>;
 }
 
-/** GET */
-export function getAction<T = unknown>(url: string, params?: object) {
+/** GET（config 可覆盖 timeout 等 axios 配置，如耗时长的预览转换接口） */
+export function getAction<T = unknown>(url: string, params?: object, config?: AxiosRequestConfig) {
   return requestJson<T>({
       url,
       method: 'get',
       params,
+      ...config,
   })
 }
 /** POST */
 export function postAction<T = unknown>(url: string, data?: object) {
+  return requestJson<T>({
+      url,
+      method: 'post',
+      data,
+  })
+}
+/**
+ * POST 表单（FormData）：后端 @RequestParam 从 multipart/form-data 字段绑定；
+ * FormData 时不手写 Content-Type，交由浏览器自动生成带 boundary 的值
+ */
+export function postFormAction<T = unknown>(url: string, data: FormData) {
   return requestJson<T>({
       url,
       method: 'post',

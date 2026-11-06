@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xuanchen.report.rptreport.mapper.RptReportMapper">
+    <select id="listReport" resultType="com.xuanchen.report.rptreport.entity.RptReport">
+        SELECT RR.id,
+               RR.report_code,
+               RR.report_name,
+               RR.report_type,
+               RR.template_id,
+               RT.template_name,
+               RR.status,
+               RR.publish_time,
+               RR.remark,
+               RR.create_by,
+               COALESCE(NULLIF(SUA.nick_name, ''), SUA.user_name) AS create_name,
+               RR.create_time,
+               RR.update_by,
+               COALESCE(NULLIF(SUB.nick_name, ''), SUB.user_name) AS update_name,
+               RR.update_time
+        FROM rpt_report RR
+                 LEFT JOIN rpt_template RT ON RR.template_id = RT.id
+                 LEFT JOIN sys_account SUA ON RR.create_by = SUA.user_name
+                 LEFT JOIN sys_account SUB ON RR.update_by = SUB.user_name
+        <where>
+            <if test="report.reportName != '' and report.reportName != null">
+                <bind name="reportName" value="'%' + report.reportName + '%'"/>
+                AND RR.report_name LIKE #{reportName}
+            </if>
+            <if test="report.reportCode != '' and report.reportCode != null">
+                <bind name="reportCode" value="'%' + report.reportCode + '%'"/>
+                AND RR.report_code LIKE #{reportCode}
+            </if>
+            <if test="report.status != null">
+                AND RR.status = #{report.status}
+            </if>
+        </where>
+        ORDER BY RR.create_time DESC
+    </select>
+</mapper>

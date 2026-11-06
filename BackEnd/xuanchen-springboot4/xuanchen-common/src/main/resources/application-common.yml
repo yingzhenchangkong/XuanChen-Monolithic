@@ -1,4 +1,42 @@
 spring:
+  # 连接池统一使用 Druid（druid-spring-boot-4-starter 自动装配）；
+  # url/username/password 等基础项由 dev/prod profile 各自提供
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      # 初始化连接数与最小/最大空闲、活跃连接
+      initial-size: 5
+      min-idle: 5
+      max-active: 20
+      # 获取连接超时时间（毫秒）
+      max-wait: 60000
+      # 空闲连接检测周期与最小可回收空闲时长（毫秒）
+      time-between-eviction-runs-millis: 60000
+      min-evictable-idle-time-millis: 300000
+      # 连接有效性检测：仅 test-while-idle，借出时不做额外校验（性能优先）
+      validation-query: SELECT 1
+      test-while-idle: true
+      test-on-borrow: false
+      test-on-return: false
+      # 开启 PSCache（MySQL 5.5+ 建议开启）
+      pool-prepared-statements: true
+      max-pool-prepared-statement-per-connection-size: 20
+      # stat：SQL 执行统计；wall：SQL 注入防火墙
+      filters: stat,wall
+      filter:
+        stat:
+          enabled: true
+          # 慢 SQL 阈值（毫秒），超过记为 slow sql 并记录日志
+          log-slow-sql: true
+          slow-sql-millis: 2000
+      stat-view-servlet:
+        # 内置监控页（/druid/）默认关闭：会暴露 SQL、URI 与数据源统计，
+        # 如需开启必须在生产通过 Nginx 白名单/内网限制访问，并配置登录账号：
+        # spring.datasource.druid.stat-view-servlet.login-username / login-password
+        enabled: false
+      web-stat-filter:
+        # Web URI 监控，与 stat-view-servlet 一并保持关闭
+        enabled: false
   mvc:
     # 找不到 handler 时抛出 NoHandlerFoundException，交给 GlobalExceptionHandler 统一返回 404 JSON
     # （默认该异常不抛，请求会被转发到 /error）
@@ -10,9 +48,10 @@ spring:
       add-mappings: false
   servlet:
     multipart:
-      # 全局上传大小限制（FileManageController 内另有同值业务校验）
-      max-file-size: 5MB
-      max-request-size: 10MB
+      # 全局上传大小限制：抬升到 50MB 以支持 AI 知识库大文档（传输层上限）；
+      # 各业务自己的大小校验仍然生效（文件中心 max-size、头像等不受影响，只放宽传输上限）
+      max-file-size: 50MB
+      max-request-size: 60MB
   # 邮件通道（忘记密码邮箱验证码）：默认全部留空，此时不创建 JavaMailSender，
   # 应用正常启动但找回密码邮件无法真正发出（开发环境验证码降级为日志输出）。
   # 启用方式：配置 SPRING_MAIL_HOST/USERNAME/PASSWORD 等环境变量（QQ/163 等用授权码作密码，465+SSL）
@@ -54,18 +93,21 @@ xuanchen:
   crypto:
     # 代码生成器-数据源连接密码的 AES 加密密钥（AES-256-GCM，SHA-256 派生）。
     # 与 JWT 不同，该密钥用于持久化数据加解密：多实例必须一致，且严禁随机生成
-    # （更换/丢失密钥会导致 gen_database 中已存密码无法解密）。
+    # （更换/丢失密钥会导致 cgn_database 中已存密码无法解密）。
     # 生产必须通过环境变量 XUANCHEN_DATASOURCE_SECRET 注入；
     # 本地开发默认值见 application-dev.yml，prod 下为必填（见 application-prod.yml）
     datasource-key: ${XUANCHEN_DATASOURCE_SECRET:}
   generator:
-    # 代码生成器允许写入的输出根目录白名单（逗号分隔，建议绝对路径）。
-    # 用户配置的输出目录经规范化（normalize）后必须位于其中某个根目录之内，否则拒绝生成，
-    # 用于阻断 moduleName/packageName/outputDir 携带 "../" 造成的任意路径写入。
-    # 留空时代码生成功能不可用（保存/生成均会被拒绝）；本地默认值见 application-dev.yml
+    # 代码生成器输出根目录白名单（逗号分隔，建议绝对路径）。
+    # 留空 = 不限制：输出目录由管理员在页面的「选择目录」里挑选，选完即写入该目录（无需任何配置）。
+    # 配置后（或配成 "*"）：目录选择器只能在该范围内浏览，写入路径也必须在白名单之下。
+    # 生产环境建议显式配置，避免管理员误选系统目录。
+    # 说明：zip 打包下载不写用户选择的输出目录；启用白名单时临时目录落在第一个根下的
+    # .codegen-tmp/gen-<uuid>（生成完自动删除），因此该根必须对应用进程可写。
     allowed-output-roots: ${XUANCHEN_GEN_OUTPUT_ROOTS:}
-    # 是否允许覆盖已生成的文件：默认关闭（文件已存在时跳过），确需重新生成覆盖时由管理员显式开启
-    allow-file-override: ${XUANCHEN_GEN_ALLOW_OVERRIDE:false}
+    # 默认覆盖已存在文件（dev 场景：点「生成」即更新全部产物）；prod profile 已显式改为 false。
+    # 未开启覆盖时若目标目录已有同名文件，生成会直接报错（而非只更新 sql 的假成功）
+    allow-file-override: ${XUANCHEN_GEN_ALLOW_OVERRIDE:true}
   mail:
     # 发件人地址（含昵称时形如：萱晨管理系统 <noreply@example.com>）；留空则回退为 spring.mail.username。
     # 生产使用找回密码功能前必须配置 SPRING_MAIL_* 与 XUANCHEN_MAIL_FROM，否则邮件无法真正发出

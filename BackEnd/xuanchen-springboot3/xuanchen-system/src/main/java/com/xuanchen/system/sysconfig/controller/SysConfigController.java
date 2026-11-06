@@ -1,15 +1,16 @@
 package com.xuanchen.system.sysconfig.controller;
 
-import cn.idev.excel.FastExcel;
-import cn.idev.excel.support.ExcelTypeEnum;
+import org.apache.fesod.sheet.FesodSheet;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xuanchen.common.aspect.annotation.LogOperation;
+import com.xuanchen.common.constant.CommonConst;
 import com.xuanchen.common.constant.TipConst;
 import com.xuanchen.common.entity.Result;
-import com.xuanchen.common.fastexcel.FastExcelListener;
+import com.xuanchen.common.excel.FesodSheetListener;
+import com.xuanchen.common.excel.FesodSheetExportUtil;
 import com.xuanchen.common.utils.StringUtil;
 import com.xuanchen.system.sysconfig.entity.SysConfig;
 import com.xuanchen.system.sysconfig.service.ISysConfigService;
@@ -22,11 +23,11 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 控制器-->参数配置
@@ -37,6 +38,12 @@ import java.util.Map;
 @RestController
 @RequestMapping("/system/config")
 public class SysConfigController {
+    /**
+     * 允许匿名访问（登录页等公开场景）的系统参数 key 白名单；
+     * 其余 key 一律不允许通过 getConfigKeyValue 枚举，必须走管理员鉴权接口
+     */
+    private static final Set<String> PUBLIC_CONFIG_KEYS = Set.of("captchaEnabled");
+
     @Autowired
     private ISysConfigService sysConfigService;
 
@@ -51,7 +58,7 @@ public class SysConfigController {
      */
     @LogOperation(type = "列表", module = "system")
     @GetMapping("/list")
-    public Result list(SysConfig sysConfig,
+    public Result<IPage<SysConfig>> list(SysConfig sysConfig,
                        @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
                        @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
                        HttpServletRequest req) {
@@ -76,7 +83,7 @@ public class SysConfigController {
      */
     @LogOperation(type = "新增", module = "system")
     @PostMapping(value = "/add")
-    public Result add(@RequestBody SysConfig sysConfig) {
+    public Result<String> add(@RequestBody SysConfig sysConfig) {
         sysConfigService.save(sysConfig);
         return Result.success(TipConst.ADD_SUCC);
     }
@@ -89,8 +96,14 @@ public class SysConfigController {
      */
     @LogOperation(type = "修改", module = "system")
     @RequestMapping(value = "/edit", method = {RequestMethod.PUT, RequestMethod.POST})
-    public Result edit(@RequestBody SysConfig sysConfig) {
-        sysConfigService.updateById(sysConfig);
+    public Result<String> edit(@RequestBody SysConfig sysConfig) {
+        if (StringUtil.isEmpty(sysConfig.getId())) {
+            return Result.badRequest("缺少参数ID！");
+        }
+        // 影响行数为 0（id 不存在或已被删除）必须返回失败，避免前端误判成功
+        if (!sysConfigService.updateById(sysConfig)) {
+            return Result.badRequest("参数不存在或已被删除！");
+        }
         return Result.success(TipConst.EDIT_SUCC);
     }
 
@@ -102,7 +115,7 @@ public class SysConfigController {
      */
     @LogOperation(type = "删除", module = "system")
     @DeleteMapping(value = "/delete")
-    public Result delete(@RequestParam(name = "id", required = true) String id) {
+    public Result<String> delete(@RequestParam(name = "id", required = true) String id) {
         sysConfigService.removeById(id);
         return Result.success(TipConst.DEL_SUCC);
     }
@@ -115,7 +128,7 @@ public class SysConfigController {
      */
     @LogOperation(type = "批量删除", module = "system")
     @DeleteMapping(value = "/deleteBatch")
-    public Result deleteBatch(@RequestParam(name = "ids", required = true) String ids) {
+    public Result<String> deleteBatch(@RequestParam(name = "ids", required = true) String ids) {
         sysConfigService.removeByIds(Arrays.asList(ids.split(",")));
         return Result.success(TipConst.DEL_BATCH_SUCC);
     }
@@ -129,17 +142,15 @@ public class SysConfigController {
     @LogOperation(type = "导出excel", module = "system")
     @GetMapping(value = "/exportExcel")
     public void exportExcel(HttpServletResponse response) throws IOException {
-        List<SysConfig> list = sysConfigService.list();
-        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        response.setCharacterEncoding("utf-8");
-        String title = "参数配置";
-        String fileName = URLEncoder.encode(title, "UTF-8").replaceAll("\\+", "%20");
-        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
-        FastExcel.write(response.getOutputStream())
-                .head(SysConfig.class)
-                .excelType(ExcelTypeEnum.XLSX)
-                .sheet(title)
-                .doWrite(list);
+        // 主键游标分批查询 + 分批写入，避免 list() 全量加载导致 OOM
+        FesodSheetExportUtil.export(response, "参数配置", SysConfig.class, SysConfig::getId, (lastId, batchSize) -> {
+            QueryWrapper<SysConfig> queryWrapper = new QueryWrapper<>();
+            if (StringUtil.isNotEmpty(lastId)) {
+                queryWrapper.gt("id", lastId);
+            }
+            queryWrapper.orderByAsc("id");
+            return sysConfigService.page(FesodSheetExportUtil.cursorPage(batchSize), queryWrapper).getRecords();
+        });
     }
 
     /**
@@ -151,15 +162,15 @@ public class SysConfigController {
      */
     @LogOperation(type = "导入excel", module = "system")
     @RequestMapping(value = "/importExcel", method = RequestMethod.POST)
-    public Result importExcel(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public Result<String> importExcel(HttpServletRequest request, HttpServletResponse response) throws IOException {
         MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
         Map<String, MultipartFile> fileMap = multipartRequest.getFileMap();
         String message = "";
         for (Map.Entry<String, MultipartFile> entity : fileMap.entrySet()) {
             MultipartFile multipartFile = entity.getValue();
             InputStream inputStream = multipartFile.getInputStream();
-            FastExcelListener<SysConfig> listener = new FastExcelListener<>();
-            FastExcel.read(inputStream, SysConfig.class, listener)
+            FesodSheetListener<SysConfig> listener = new FesodSheetListener<>();
+            FesodSheet.read(inputStream, SysConfig.class, listener)
                     .sheet()
                     .headRowNumber(1)
                     .doRead();
@@ -192,7 +203,7 @@ public class SysConfigController {
      */
     @LogOperation(type = "回收站 列表", module = "system")
     @GetMapping("/listRecycleBin")
-    public Result listRecycleBin(SysConfig sysConfig,
+    public Result<IPage<SysConfig>> listRecycleBin(SysConfig sysConfig,
                                  @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
                                  @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
                                  HttpServletRequest req) {
@@ -209,7 +220,7 @@ public class SysConfigController {
      */
     @LogOperation(type = "回收站 彻底删除 单条", module = "system")
     @DeleteMapping("/deleteRecycleBin")
-    public Result deleteRecycleBin(@RequestParam("id") String id) {
+    public Result<String> deleteRecycleBin(@RequestParam("id") String id) {
         sysConfigService.deleteRecycleBin(id);
         return Result.success(TipConst.DEL_SUCC);
     }
@@ -222,7 +233,7 @@ public class SysConfigController {
      */
     @LogOperation(type = "回收站 彻底删除 多条", module = "system")
     @DeleteMapping("/deleteRecycleBinBatch")
-    public Result deleteRecycleBinBatch(@RequestParam("ids") String ids) {
+    public Result<String> deleteRecycleBinBatch(@RequestParam("ids") String ids) {
         sysConfigService.deleteRecycleBin(ids);
         return Result.success(TipConst.DEL_SUCC);
     }
@@ -235,7 +246,7 @@ public class SysConfigController {
      */
     @LogOperation(type = "回收站 还原 单条", module = "system")
     @PutMapping("/revertRecycleBin")
-    public Result revertRecycleBin(@RequestBody Map<String, String> map) {
+    public Result<String> revertRecycleBin(@RequestBody Map<String, String> map) {
         String id = map.get("id");
         sysConfigService.revertRecycleBin(id);
         return Result.success(TipConst.REVERT_SUCC);
@@ -249,7 +260,7 @@ public class SysConfigController {
      */
     @LogOperation(type = "回收站 还原 多条", module = "system")
     @PutMapping("/revertRecycleBinBatch")
-    public Result revertRecycleBinBatch(@RequestBody Map<String, String> map) {
+    public Result<String> revertRecycleBinBatch(@RequestBody Map<String, String> map) {
         String ids = map.get("ids");
         sysConfigService.revertRecycleBin(ids);
         return Result.success(TipConst.REVERT_SUCC);
@@ -261,9 +272,9 @@ public class SysConfigController {
      * @return
      */
     @GetMapping("/select")
-    public Result select() {
+    public Result<List<SysConfig>> select() {
         QueryWrapper<SysConfig> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("del_flag", false).eq("status", true).orderByAsc("order_no");
+        queryWrapper.eq("del_flag", CommonConst.DEL_FLAG_NORMAL).eq("status", CommonConst.STATUS_ENABLED).orderByAsc("order_no");
         List<SysConfig> list = sysConfigService.list(queryWrapper);
         return Result.success(list);
     }
@@ -277,10 +288,16 @@ public class SysConfigController {
      */
     @LogOperation(type = "状态修改", module = "system")
     @RequestMapping(value = "/changeStatus", method = {RequestMethod.PUT, RequestMethod.POST})
-    public Result changeStatus(@RequestBody SysConfig sysConfig, HttpServletRequest request) {
+    public Result<String> changeStatus(@RequestBody SysConfig sysConfig, HttpServletRequest request) {
+        if (StringUtil.isEmpty(sysConfig.getId())) {
+            return Result.badRequest("缺少参数ID！");
+        }
         UpdateWrapper<SysConfig> updateWrapper = new UpdateWrapper<>();
         updateWrapper.set("status", sysConfig.getStatus()).eq("id", sysConfig.getId());
-        sysConfigService.update(updateWrapper);
+        // 影响行数为 0（id 不存在或已被删除）必须返回失败，避免前端误判成功
+        if (!sysConfigService.update(updateWrapper)) {
+            return Result.badRequest("参数不存在或已被删除！");
+        }
         return Result.success("状态修改成功！");
     }
 
@@ -291,25 +308,31 @@ public class SysConfigController {
      * @return
      */
     @GetMapping("/validate")
-    public Result validate(SysConfig sysConfig) {
+    public Result<Void> validate(SysConfig sysConfig) {
         boolean exists = StringUtil.isEmpty(sysConfig.getId())
                 ? sysConfigService.ifExistsNoId(sysConfig)
                 : sysConfigService.ifExistsId(sysConfig);
         return exists
-                ? Result.error()
-                : Result.success();
+                ? Result.conflict(TipConst.PARAM_EXISTS)
+                : Result.success(TipConst.PARAM_AVAILABLE);
     }
 
     /**
      * 通过键获取值
+     * 匿名接口（Shiro 过滤链对该路径放行）：仅允许读取白名单内的公开参数，
+     * 防止未登录者枚举 SMTP 账号、JWT 配置等敏感系统参数
      *
      * @param sysConfig
      * @return
      */
     @GetMapping("/getConfigKeyValue")
-    public Result getConfigKeyValue(SysConfig sysConfig) {
+    public Result<SysConfig> getConfigKeyValue(SysConfig sysConfig) {
+        String configKey = sysConfig == null ? null : sysConfig.getConfigKey();
+        if (StringUtil.isEmpty(configKey) || !PUBLIC_CONFIG_KEYS.contains(configKey.trim())) {
+            return Result.forbidden("该配置项不允许匿名访问！");
+        }
         QueryWrapper<SysConfig> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("config_key", sysConfig.getConfigKey());
+        queryWrapper.eq("config_key", configKey.trim());
         SysConfig sysConfigResult = sysConfigService.getOne(queryWrapper);
         return Result.success(sysConfigResult);
     }
@@ -320,13 +343,14 @@ public class SysConfigController {
      * @param sysConfig
      * @return
      */
+    @LogOperation(type = "键值修改", module = "system")
     @PostMapping("setConfigKeyValue")
-    public Result setConfigKeyValue(@RequestBody SysConfig sysConfig) {
+    public Result<String> setConfigKeyValue(@RequestBody SysConfig sysConfig) {
         QueryWrapper<SysConfig> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("config_key", sysConfig.getConfigKey());
         SysConfig sysConfigResult = sysConfigService.getOne(queryWrapper);
         if (sysConfigResult == null) {
-            return Result.error("参数不存在");
+            return Result.notFound(TipConst.PARAM_NOT_EXISTS);
         }
         sysConfigResult.setConfigValue(sysConfig.getConfigValue());
         sysConfigService.updateById(sysConfigResult);

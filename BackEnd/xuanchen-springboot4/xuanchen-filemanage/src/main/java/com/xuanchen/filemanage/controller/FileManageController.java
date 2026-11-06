@@ -2,6 +2,7 @@ package com.xuanchen.filemanage.controller;
 
 import com.xuanchen.common.entity.Result;
 import com.xuanchen.common.utils.FileSecurityUtil;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,17 +26,38 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * 控制器 --> 文件管理
  *
  * @author XuanChen
  * @date 2025-04-21
  */
+@Slf4j
 @RestController
 @RequestMapping("/filemanage")
 public class FileManageController {
     @Value("${xuanchen.path.upload}")
     private String uploadPath;
+
+    /**
+     * 启动时规范化为绝对路径并预建目录：配置错误/目录不可写在启动日志中即可发现，
+     * 避免首次上传才报"文件保存失败"；后续落盘/读取统一使用该实例
+     */
+    private Path uploadRoot;
+
+    @PostConstruct
+    public void initUploadRoot() {
+        uploadRoot = Paths.get(uploadPath).toAbsolutePath().normalize();
+        try {
+            Files.createDirectories(uploadRoot);
+            log.info("文件上传根目录初始化成功: {}", uploadRoot);
+        } catch (IOException e) {
+            //不阻断启动（部分部署可能暂不使用上传），但必须明确告警
+            log.error("文件上传根目录不可用: {}，请检查 xuanchen.path.upload 配置与目录权限", uploadRoot, e);
+        }
+    }
 
     /**
      * 上传文件大小上限（DataSize 格式，如 5MB）
@@ -136,7 +158,7 @@ public class FileManageController {
                     FileSecurityUtil.shortHexSuffix());
             dbRelativePath = subPath.isEmpty() ? storedName : subPath + "/" + storedName;
             try {
-                target = FileSecurityUtil.resolveUnderRoot(Paths.get(uploadPath), dbRelativePath);
+                target = FileSecurityUtil.resolveUnderRoot(uploadRoot, dbRelativePath);
             } catch (IllegalArgumentException e) {
                 return Result.badRequest(e.getMessage());
             }
@@ -167,7 +189,7 @@ public class FileManageController {
             return;
         }
 
-        Path root = Paths.get(uploadPath);
+        Path root = uploadRoot;
         Path target;
         try {
             target = FileSecurityUtil.resolveUnderRoot(root, relPath);

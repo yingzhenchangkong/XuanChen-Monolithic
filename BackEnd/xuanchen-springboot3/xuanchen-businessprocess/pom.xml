@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>xuanchen-parent</artifactId>
+        <groupId>com.xuanchen</groupId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>xuanchen-businessprocess</artifactId>
+    <description>审批流程模块（自研轻量引擎 + BPMN 设计）</description>
+    <packaging>jar</packaging>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.xuanchen</groupId>
+            <artifactId>xuanchen-common</artifactId>
+        </dependency>
+        <!-- 审批任务同步 sys_todo 待办中心 -->
+        <dependency>
+            <groupId>com.xuanchen</groupId>
+            <artifactId>xuanchen-system</artifactId>
+        </dependency>
+    </dependencies>
+
+</project>

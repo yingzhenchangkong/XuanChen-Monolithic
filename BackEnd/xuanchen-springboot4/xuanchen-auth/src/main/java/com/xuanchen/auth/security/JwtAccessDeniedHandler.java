@@ -1,6 +1,6 @@
 package com.xuanchen.auth.security;
 
-import com.alibaba.fastjson2.JSON;
+import com.xuanchen.common.utils.JsonUtils;
 import com.xuanchen.common.entity.Result;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -30,6 +30,6 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
         Result<String> result = Result.forbidden("权限不足，禁止访问！");
-        response.getWriter().write(JSON.toJSONString(result));
+        response.getWriter().write(JsonUtils.toJson(result));
     }
 }

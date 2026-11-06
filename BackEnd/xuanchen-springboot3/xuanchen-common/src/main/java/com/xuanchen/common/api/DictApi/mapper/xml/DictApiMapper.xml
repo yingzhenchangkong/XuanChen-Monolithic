@@ -1,9 +1,32 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.xuanchen.common.api.DictApi.mapper.DictApiMapper">
+    <!-- 安全约束：${table}/${code}/${text} 为 SQL 直接拼接，调用方（@Dict 切面）只能传入
+         服务端注解中声明的表名/列名常量，禁止传入任何用户输入；#{codeValue} 为预编译参数 -->
     <select id="translateFieldToString" resultType="String">
         SELECT ${text}
         FROM ${table}
         WHERE ${code} = #{codeValue}
+    </select>
+
+    <!-- 安全约束同上：${table}/${code}/${text} 仅接受服务端 @Dict 注解常量；IN 列表值均走 #{} -->
+    <select id="translateFieldBatch" resultType="java.util.Map">
+        SELECT ${code} AS dict_code_val, ${text} AS dict_text_val
+        FROM ${table}
+        WHERE ${code} IN
+        <foreach collection="codeValues" item="codeValue" open="(" separator="," close=")">
+            #{codeValue}
+        </foreach>
+    </select>
+
+    <!-- 按字典编码取整组启用字典项；dictCode 为预编译参数，供 Excel 导出翻译使用 -->
+    <select id="selectDictItemMap" resultType="java.util.Map">
+        SELECT dict_item_value AS dict_item_value,
+               dict_item_text  AS dict_item_text
+        FROM sys_dict_item
+        WHERE dict_code = #{dictCode}
+          AND status = 1
+          AND del_flag = 0
+        ORDER BY order_no
     </select>
 </mapper>

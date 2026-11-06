@@ -7,41 +7,140 @@
     <groupId>com.xuanchen</groupId>
     <artifactId>xuanchen-parent</artifactId>
     <version>1.0.0</version>
-    <name>XuanChen ${project.version}</name>
+    <name>XuanChen Parent</name>
     <description>Xuan Chen Manage System</description>
     <packaging>pom</packaging>
 
     <modules>
-        <module>xuanchen-admin</module>
+        <module>xuanchen-boot</module>
         <module>xuanchen-common</module>
         <module>xuanchen-auth</module>
         <module>xuanchen-system</module>
+        <module>xuanchen-masterdata</module>
         <module>xuanchen-filemanage</module>
         <module>xuanchen-monitor</module>
+        <module>xuanchen-report</module>
+        <module>xuanchen-visualization</module>
+        <module>xuanchen-businessprocess</module>
         <module>xuanchen-generator</module>
+        <module>xuanchen-online</module>
+        <module>xuanchen-ai</module>
+        <module>xuanchen-api</module>
     </modules>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.1.1</version>
+        <version>4.1.2</version>
         <relativePath/>
     </parent>
 
     <properties>
-        <xuanchen.version>1.0.0</xuanchen.version>
+        <!-- 编译版本（spring-boot-starter-parent 会据此设置 maven.compiler.release） -->
         <java.version>25</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <fastjson2.version>2.0.65</fastjson2.version>
+        <!-- 第三方依赖版本统一在此维护 -->
         <mybatisplus.version>3.5.17</mybatisplus.version>
         <fesod-sheet.version>2.0.2-incubating</fesod-sheet.version>
         <jwt.version>4.6.1</jwt.version>
         <oshi.version>7.6.1</oshi.version>
+        <langchain4j.version>1.20.2</langchain4j.version>
+        <druid.version>1.2.28</druid.version>
+        <!-- Boot BOM 未管理 commons-io，需自行钉版（原因见 dependencyManagement 处注释） -->
+        <commons-io.version>2.20.0</commons-io.version>
+        <!-- Boot BOM 同样未管理 POI 与 MinIO，版本集中在此维护 -->
+        <poi.version>5.2.5</poi.version>
+        <minio.version>8.5.17</minio.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <!-- LangChain4j BOM：统一 AI 相关依赖版本（core/ollama 同版本，pgvector 为 beta 线） -->
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-bom</artifactId>
+                <version>${langchain4j.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- commons-io 全局钉版：Tika 3.x（AI 模块文档解析）依赖 2.16+ 的 ChecksumInputStream，
+                 而 xuanchen-online 直接依赖的 2.15.0 会按就近优先顶掉 Tika 传递版本，导致 NoClassDefFoundError -->
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons-io.version}</version>
+            </dependency>
+
+            <!-- 内部模块统一版本，子模块引用时无需再写 version -->
+            <dependency>
+                <groupId>com.xuanchen</groupId>
+                <artifactId>xuanchen-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.xuanchen</groupId>
+                <artifactId>xuanchen-auth</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.xuanchen</groupId>
+                <artifactId>xuanchen-system</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.xuanchen</groupId>
+                <artifactId>xuanchen-masterdata</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.xuanchen</groupId>
+                <artifactId>xuanchen-monitor</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.xuanchen</groupId>
+                <artifactId>xuanchen-filemanage</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.xuanchen</groupId>
+                <artifactId>xuanchen-generator</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.xuanchen</groupId>
+                <artifactId>xuanchen-online</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.xuanchen</groupId>
+                <artifactId>xuanchen-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.xuanchen</groupId>
+                <artifactId>xuanchen-report</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.xuanchen</groupId>
+                <artifactId>xuanchen-visualization</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.xuanchen</groupId>
+                <artifactId>xuanchen-businessprocess</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.xuanchen</groupId>
+                <artifactId>xuanchen-ai</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- MyBatis-Plus（Spring Boot 4 starter / 分页 SQL 解析 / 代码生成器） -->
             <dependency>
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-spring-boot4-starter</artifactId>
@@ -53,15 +152,56 @@
                 <version>${mybatisplus.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-generator</artifactId>
+                <version>${mybatisplus.version}</version>
+            </dependency>
+
+            <!-- 连接池（Spring Boot 4 专用 starter） -->
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>druid-spring-boot-4-starter</artifactId>
+                <version>${druid.version}</version>
+            </dependency>
+            <!-- Druid 核心：ai 模块需直接 new DruidDataSource 构建向量库连接池，
+                 「用哪个就声明哪个」，避免依赖 starter 的传递关系 -->
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>druid</artifactId>
+                <version>${druid.version}</version>
+            </dependency>
+
+            <!-- Excel -->
+            <dependency>
                 <groupId>org.apache.fesod</groupId>
                 <artifactId>fesod-sheet</artifactId>
                 <version>${fesod-sheet.version}</version>
             </dependency>
+
+            <!-- POI：online 模块服务端生成空白 docx/xlsx/pptx，Boot BOM 未管理。
+                 注意：fesod-sheet 声明的是 poi 5.5.1，此处钉 5.2.5 会按「最近优先」把全链路压到 5.2.5，
+                 而 Tika 传递的 poi-scratchpad 仍为 5.4.1（POI 家族版本不齐，待单独收敛，见审查记录） -->
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi-ooxml</artifactId>
+                <version>${poi.version}</version>
+            </dependency>
+
+            <!-- MinIO 对象存储 SDK：filemanage 模块使用，Boot BOM 未管理 -->
+            <dependency>
+                <groupId>io.minio</groupId>
+                <artifactId>minio</artifactId>
+                <version>${minio.version}</version>
+            </dependency>
+
+            <!-- JWT -->
             <dependency>
                 <groupId>com.auth0</groupId>
                 <artifactId>java-jwt</artifactId>
                 <version>${jwt.version}</version>
             </dependency>
+
+            <!-- 服务器监控 -->
             <dependency>
                 <groupId>com.github.oshi</groupId>
                 <artifactId>oshi-core</artifactId>
@@ -73,28 +213,26 @@
     <!-- 全局只放所有模块真正共用的基础依赖；web 能力由各模块按需显式声明，
          避免非 web 模块被迫引入整套 Spring MVC + 嵌入式容器 -->
     <dependencies>
+        <!-- Lombok 仅编译期需要，所有模块统一引入且不向下游传递；
+             provided 防止 spring-boot-maven-plugin 把它打进 fat jar -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <scope>provided</scope>
             <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>com.alibaba.fastjson2</groupId>
-            <artifactId>fastjson2</artifactId>
-            <version>${fastjson2.version}</version>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <!-- 指定JDK编译版本 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                    <encoding>UTF-8</encoding>
+                    <!-- 编译版本由 spring-boot-starter-parent 通过
+                         maven.compiler.release=java.version 统一控制；
+                         此处不再重复声明 source/target（实测会被 release 覆盖成死配置，
+                         且 encoding 已由 project.build.sourceEncoding 提供） -->
                     <!-- JDK 25 起 javac 不再保证从 classpath 隐式发现并加载注解处理器，
                          Lombok 必须显式声明在 processorpath 上，否则部分文件不会被插桩 -->
                     <annotationProcessorPaths>

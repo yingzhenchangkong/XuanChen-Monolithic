@@ -33,7 +33,7 @@
     </delete>
     <!-- 回收站 彻底删除 用户 角色 关系 -->
     <delete id="deleteUserRole">
-        DELETE FROM sys_user_role
+        DELETE FROM sys_account_role
         WHERE
         role_id in
         <foreach collection="sysRoleIds" index="index" item="id" open="(" separator="," close=")">
@@ -65,13 +65,14 @@
         *
         FROM
         (SELECT * FROM sys_role WHERE id NOT IN (#{sysRole.id})) sys_role
-        WHERE 1=1
-        <if test="sysRole.roleCode != '' and sysRole.roleCode != null">
-            AND role_code = #{sysRole.roleCode}
-        </if>
-        <if test="sysRole.roleName != '' and sysRole.roleName != null">
-            AND role_name = #{sysRole.roleName}
-        </if>
+        <where>
+            <if test="sysRole.roleCode != '' and sysRole.roleCode != null">
+                AND role_code = #{sysRole.roleCode}
+            </if>
+            <if test="sysRole.roleName != '' and sysRole.roleName != null">
+                AND role_name = #{sysRole.roleName}
+            </if>
+        </where>
     </select>
 
     <select id="ifExistsNoId" parameterType="com.xuanchen.system.sysrole.entity.SysRole" resultType="com.xuanchen.system.sysrole.entity.SysRole">
@@ -79,12 +80,13 @@
             *
         FROM
             sys_role
-        WHERE 1=1
-        <if test="sysRole.roleCode != '' and sysRole.roleCode != null">
-            AND role_code = #{sysRole.roleCode}
-        </if>
-        <if test="sysRole.roleName != '' and sysRole.roleName != null">
-            AND role_name = #{sysRole.roleName}
-        </if>
+        <where>
+            <if test="sysRole.roleCode != '' and sysRole.roleCode != null">
+                AND role_code = #{sysRole.roleCode}
+            </if>
+            <if test="sysRole.roleName != '' and sysRole.roleName != null">
+                AND role_name = #{sysRole.roleName}
+            </if>
+        </where>
     </select>
 </mapper>

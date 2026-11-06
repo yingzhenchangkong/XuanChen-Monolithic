@@ -12,31 +12,25 @@
 
     <artifactId>xuanchen-generator</artifactId>
     <description>代码生成器</description>
-    <packaging>jar</packaging>
 
     <dependencies>
-        <!-- MyBatis-Plus 代码生成器（FastAutoGenerator），版本与主依赖 mybatis-plus 3.5.17 对齐 -->
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-generator</artifactId>
-            <version>${mybatisplus.version}</version>
         </dependency>
-        <!-- Freemarker 模板引擎（代码生成模板 + 自定义 Vue 模板） -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-freemarker</artifactId>
+            <groupId>org.freemarker</groupId>
+            <artifactId>freemarker</artifactId>
         </dependency>
         <dependency>
             <groupId>com.xuanchen</groupId>
             <artifactId>xuanchen-common</artifactId>
-            <version>${xuanchen.version}</version>
         </dependency>
-        <!-- 数据源密码响应掩码自定义 ValueSerializer 需要 Jackson 3（Boot 4 Web 层即 Jackson 3）；
-             版本由 Spring Boot BOM 管理。注意 Fesod 传递引入的是 Jackson 2（com.fasterxml），
-             其注解不会被 Boot 4 的 HTTP 消息转换器识别 -->
+        <!-- PostgreSQL 驱动：代码生成器支持 mysql / postgresql 两类外部数据源 -->
         <dependency>
-            <groupId>tools.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
         </dependency>
     </dependencies>
 

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.xuanchen</groupId>
+        <artifactId>xuanchen-parent</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>xuanchen-online</artifactId>
+    <description>在线文档（思维导图/流程图架构图等，JSON 快照落库）</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.xuanchen</groupId>
+            <artifactId>xuanchen-common</artifactId>
+        </dependency>
+        <!-- 在线 Office 文档：复用文件中心存储/元数据/协作者能力（同进程注入，无反向依赖） -->
+        <dependency>
+            <groupId>com.xuanchen</groupId>
+            <artifactId>xuanchen-filemanage</artifactId>
+        </dependency>
+        <!-- POI：服务端生成空白 docx/xlsx/pptx，版本由父 POM 统一管理 -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+        </dependency>
+    </dependencies>
+
+</project>

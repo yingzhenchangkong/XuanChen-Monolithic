@@ -1,17 +1,44 @@
 <script>
-	export default {
-		onLaunch: function() {
-			console.log('App Launch')
-		},
-		onShow: function() {
-			console.log('App Show')
-		},
-		onHide: function() {
-			console.log('App Hide')
+import { useAuthStore } from '@/stores/auth'
+import { useNoticeStore } from '@/stores/notice'
+
+export default {
+	onLaunch() {
+		console.log('App Launch')
+		const authStore = useAuthStore()
+		const noticeStore = useNoticeStore()
+
+		if (authStore.isLoggedIn) {
+			authStore.restoreSession()
+			noticeStore.startListening()
+			noticeStore.fetchUnreadCount()
 		}
+	},
+	onShow() {
+		console.log('App Show')
+	},
+	onHide() {
+		console.log('App Hide')
 	}
+}
 </script>
 
 <style>
-	/*每个页面公共css */
+page {
+	background-color: #f5f6fa;
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+view, text {
+	box-sizing: border-box;
+}
+
+button {
+	margin: 0;
+	padding: 0;
+}
+
+button::after {
+	border: none;
+}
 </style>
